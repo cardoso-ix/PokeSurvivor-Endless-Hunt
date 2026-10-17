@@ -491,7 +491,6 @@ G.HUD = (() => {
         ctx.fillText(fused ? m.name + ' +' + (g.length - 1) : m.name, x + S / 2, y - 7);
       }
     }
-    }
 
     // ---------- vínculo guardado (aún no hay dos movimientos sueltos) ----------
     if (pl.bonds > 0) {
@@ -521,6 +520,7 @@ G.HUD = (() => {
         ctx.fillStyle = '#ffd23f';
         ctx.fillText(G.Items.BY[pl.item].name, ix + S / 2, iy - 6);
       }
+    }
     }
 
     // ---------- botón de pausa (táctil) ----------
