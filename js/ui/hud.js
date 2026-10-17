@@ -575,42 +575,46 @@ G.HUD = (() => {
     ctx.restore();
   }
 
-  // ---------------- TAREFA 1: Radar de Navegação (Formato Redondo) ----------------
+  // ---------------- TAREFA 1: Bússola & Mini-Mapa Retro Pokégear (Estilo DS / GBA) ----------------
   function drawRadar(ctx, w, h, pl, touch) {
-    const rad = 66;
+    const rad = 72; // Ampliado e nítido
     const cx = w - rad - 16;
-    const cy = (touch ? 60 : 16) + rad;
-    const innerRad = rad - 8;
+    const cy = (touch ? 64 : 16) + rad;
+    const innerRad = rad - 9;
 
-    // Fundo escuro circular semitransparente
-    ctx.fillStyle = 'rgba(10, 15, 24, 0.88)';
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+
+    // 1. Fundo Base Circular Azul-Noite Profundo
+    ctx.fillStyle = '#101422';
     ctx.beginPath();
     ctx.arc(cx, cy, rad, 0, Math.PI * 2);
     ctx.fill();
 
-    // Retículo / anéis concêntricos de alcance e miras discretas
-    ctx.strokeStyle = 'rgba(58, 75, 102, 0.35)';
+    // 2. Retículo / Grade Náutica de Bússola Retro
+    ctx.strokeStyle = 'rgba(65, 85, 125, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(cx, cy, innerRad * 0.5, 0, Math.PI * 2);
     ctx.arc(cx, cy, innerRad, 0, Math.PI * 2);
     ctx.stroke();
 
+    ctx.strokeStyle = 'rgba(92, 100, 141, 0.28)';
     ctx.beginPath();
     ctx.moveTo(cx, cy - innerRad); ctx.lineTo(cx, cy + innerRad);
     ctx.moveTo(cx - innerRad, cy); ctx.lineTo(cx + innerRad, cy);
     ctx.stroke();
 
-    // Feixe sutil de varredura (sonar radar sweep)
-    const sweep = (performance.now() / 2200) % (Math.PI * 2);
-    ctx.strokeStyle = 'rgba(74, 222, 128, 0.18)';
-    ctx.lineWidth = 1.5;
+    // 3. Feixe Suave de Varredura Estilo Pokégear / C-Gear (Azul-Elétrico / Ciano)
+    const sweep = (performance.now() / 2400) % (Math.PI * 2);
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(sweep) * innerRad, cy + Math.sin(sweep) * innerRad);
     ctx.stroke();
 
-    // Área clipada circular para entidades e pontos
+    // 4. Área Clipada Circular para Entidades e Marcadores
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, innerRad, 0, Math.PI * 2);
@@ -619,7 +623,7 @@ G.HUD = (() => {
     const RADAR_RANGE = 1400;
     const scale = innerRad / RADAR_RANGE;
 
-    // 1. Baús e Caixas de Loot (Quadrados dourados brilhantes)
+    // 4.1 Baús e Caixas de Loot (Quadrados Dourados Chanfrados)
     if (G.World) {
       if (typeof G.World.propsInCircle === 'function') {
         const props = G.World.propsInCircle(pl.x, pl.y, RADAR_RANGE);
@@ -631,7 +635,10 @@ G.HUD = (() => {
               const px = cx + dx * scale;
               const py = cy + dy * scale;
               ctx.fillStyle = '#fbbf24';
-              ctx.fillRect(px - 2, py - 2, 4, 4);
+              ctx.fillRect(px - 2.5, py - 2.5, 5, 5);
+              ctx.strokeStyle = '#090a10';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(px - 2.5, py - 2.5, 5, 5);
             }
           }
         }
@@ -646,23 +653,23 @@ G.HUD = (() => {
               const px = cx + dx * scale;
               const py = cy + dy * scale;
               ctx.fillStyle = '#f59e0b';
-              ctx.fillRect(px - 2.5, py - 2.5, 5, 5);
-              ctx.strokeStyle = '#fff';
-              ctx.lineWidth = 0.8;
-              ctx.strokeRect(px - 2.5, py - 2.5, 5, 5);
+              ctx.fillRect(px - 3, py - 3, 6, 6);
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(px - 3, py - 3, 6, 6);
             }
           }
         }
       }
     }
 
-    // 2. Inimigos Comuns (pontinhos vermelhos) e Chefes (maiores e pulsantes)
+    // 4.2 Inimigos Comuns e Chefes
     if (G.EnemyMgr) {
       const enemies = G.EnemyMgr.all();
       const now = performance.now() / 1000;
-      const bPulse = 3.5 + Math.sin(now * 8) * 1.2;
+      const bPulse = 4.2 + Math.sin(now * 8) * 1.5;
 
-      // Inimigos comuns
+      // Inimigos comuns: pontos em vermelho carmim
       ctx.fillStyle = '#ef4444';
       for (let i = 0; i < enemies.length; i++) {
         const e = enemies[i];
@@ -672,11 +679,11 @@ G.HUD = (() => {
         const ex = cx + dx * scale;
         const ey = cy + dy * scale;
         ctx.beginPath();
-        ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+        ctx.arc(ex, ey, 1.8, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Chefes / Bosses
+      // Chefes / Bosses: aura de fogo pulsante e borda branca de alta visibilidade
       for (let i = 0; i < enemies.length; i++) {
         const e = enemies[i];
         if (e.dead || !e.boss) continue;
@@ -685,29 +692,38 @@ G.HUD = (() => {
         let bx, by;
         if (dist > RADAR_RANGE) {
           const a = Math.atan2(dy, dx);
-          bx = cx + Math.cos(a) * (innerRad - 4);
-          by = cy + Math.sin(a) * (innerRad - 4);
+          bx = cx + Math.cos(a) * (innerRad - 5);
+          by = cy + Math.sin(a) * (innerRad - 5);
         } else {
           bx = cx + dx * scale;
           by = cy + dy * scale;
         }
+
+        // Anel de aviso translúcido
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(bx, by, bPulse + 2.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Ponto central do Boss
         ctx.fillStyle = '#f97316';
         ctx.beginPath();
         ctx.arc(bx, by, bPulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       }
     }
 
-    // 3. Rift / Portal (G.Rift.rift) em losango pulsante
+    // 4.3 Rift / Portal (Losango Místico Violeta Neon)
     if (G.Rift && G.Rift.rift) {
       const rift = G.Rift.rift;
       const dx = rift.x - pl.x, dy = rift.y - pl.y;
       const dist = Math.hypot(dx, dy);
       const now = performance.now() / 1000;
-      const rPulse = 4.5 + Math.sin(now * 7) * 1.5;
+      const rPulse = 4.8 + Math.sin(now * 7) * 1.5;
 
       if (dist <= RADAR_RANGE) {
         const rx_p = cx + dx * scale;
@@ -721,12 +737,12 @@ G.HUD = (() => {
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       } else {
-        // Fora do alcance: seta indicadora na borda interna circular apontando a direção
+        // Fora do alcance: seta indicadora chanfrada na borda apontando a direção
         const a = Math.atan2(dy, dx);
-        const edgeR = innerRad - 4;
+        const edgeR = innerRad - 5;
         const ax = cx + Math.cos(a) * edgeR;
         const ay = cy + Math.sin(a) * edgeR;
         ctx.save();
@@ -734,62 +750,122 @@ G.HUD = (() => {
         ctx.rotate(a);
         ctx.fillStyle = '#c084fc';
         ctx.beginPath();
-        ctx.moveTo(7, 0);
-        ctx.lineTo(-4, -4);
+        ctx.moveTo(8, 0);
+        ctx.lineTo(-4, -5);
         ctx.lineTo(-1, 0);
-        ctx.lineTo(-4, 4);
+        ctx.lineTo(-4, 5);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.8;
+        ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
       }
     }
 
-    // 4. Jogador no Centro (Ponto verde com vetor de mira)
+    // 4.4 Jogador no Centro (Esmeralda Vibrante com Ponteiro de Bússola)
     const face = pl.attackFace > 0 || !pl.walking ? pl.aim : pl.moveAngle;
-    const fx = Math.cos(face) * 6;
-    const fy = Math.sin(face) * 6;
-    ctx.strokeStyle = '#4ade80';
-    ctx.lineWidth = 2;
+
+    // Halo suave
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.22)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ponteiro de mira / bússola
+    const arrowLen = 9;
+    const ax = cx + Math.cos(face) * arrowLen;
+    const ay = cy + Math.sin(face) * arrowLen;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + fx, cy + fy);
+    ctx.lineTo(ax, ay);
     ctx.stroke();
 
-    ctx.fillStyle = '#22c55e';
-    ctx.beginPath();
-    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.restore(); // Fecha clip circular
-
-    // Aro externo metálico (#3a4b66) e borda dourada
-    ctx.strokeStyle = '#3a4b66';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(cx, cy, rad - 2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Marcadores cardeais dourados (#ffd700) nos 4 eixos
-    ctx.strokeStyle = '#ffd700';
+    ctx.strokeStyle = '#22c55e';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - rad); ctx.lineTo(cx, cy - rad + 5);
-    ctx.moveTo(cx, cy + rad - 5); ctx.lineTo(cx, cy + rad);
-    ctx.moveTo(cx - rad, cy); ctx.lineTo(cx - rad + 5, cy);
-    ctx.moveTo(cx + rad - 5, cy); ctx.lineTo(cx + rad, cy);
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(ax, ay);
     ctx.stroke();
+
+    // Ponto central do Treinador
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.restore(); // Fecha o clip circular
+
+    // 5. Moldura Chanfrada de Bússola Retro (Estilo DS / GBA)
+    // Aro externo metálico azul-acinzentado (#3a3f58) de 3.5px
+    ctx.strokeStyle = '#3a3f58';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad - 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Anel Dourado Chanfrado de Luxo Pokégear (#f8b800)
+    // Arco de luz superior/esquerdo
+    ctx.strokeStyle = '#ffe868';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad - 4.5, -Math.PI * 0.75, Math.PI * 0.25);
+    ctx.stroke();
+
+    // Arco de sombra inferior/direito
+    ctx.strokeStyle = '#986000';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad - 4.5, Math.PI * 0.25, Math.PI * 1.25);
+    ctx.stroke();
+
+    // Borda chanfrada interna de profundidade (#090a10)
+    ctx.strokeStyle = '#090a10';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad - 6.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 6. Insígnias Cardeais Clássicas nos 4 Eixos
+    // NORTE (N) - Badge de Bússola estilizado no topo
+    const northY = cy - rad + 3;
+    ctx.fillStyle = '#090a10';
+    ctx.fillRect(cx - 7, northY - 4, 14, 11);
+    ctx.strokeStyle = '#f8b800';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(cx - 6.5, northY - 3.5, 13, 10);
+
+    ctx.font = '900 9px "Pixelify", "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('N', cx, northY + 1.5);
+
+    // Rebites / Losangos Dourados nos eixos Leste, Sul e Oeste
+    const drawDiamond = (px, py) => {
+      ctx.fillStyle = '#f8b800';
+      ctx.beginPath();
+      ctx.moveTo(px, py - 3);
+      ctx.lineTo(px + 3, py);
+      ctx.lineTo(px, py + 3);
+      ctx.lineTo(px - 3, py);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ffe868';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    };
+
+    drawDiamond(cx + rad - 4, cy); // Leste
+    drawDiamond(cx, cy + rad - 4); // Sul
+    drawDiamond(cx - rad + 4, cy); // Oeste
+
+    ctx.restore();
   }
 
   // ---------------- TAREFA 2: Painel de Atributos & Status Retro Pixel Art (Estilo DS / GBA) ----------------

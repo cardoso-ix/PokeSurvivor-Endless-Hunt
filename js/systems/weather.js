@@ -511,7 +511,7 @@ const WeatherSystem = (() => {
     drawHUD(ctx, w, h);
   }
 
-  // ---------------- HUD Minimalista de Clima ----------------
+  // ---------------- HUD Retro Pixel Art de Clima (Estilo DS / GBA) ----------------
   function drawHUD(ctx, w, h) {
     const data = getData(currentWeather);
     if (!data) return;
@@ -520,40 +520,133 @@ const WeatherSystem = (() => {
     ctx.imageSmoothingEnabled = false;
 
     const remaining = Math.max(0, Math.ceil(weatherTimer));
-    const label = `${data.icon} ${data.name.toUpperCase()} | ${remaining}s`;
+    const weatherName = (data.name || 'CLIMA').toUpperCase();
 
-    ctx.font = '700 12px "Courier New", monospace';
-    const textWidth = ctx.measureText(label).width;
-    const boxW = Math.max(160, textWidth + 24);
-    const boxH = 28;
+    // Mede largura do texto com tipografia retro pixelada
+    ctx.font = '800 11px "Pixelify", "Press Start 2P", "Courier New", monospace';
+    const textWidth = ctx.measureText(weatherName).width;
 
-    // Posicionado no topo ao lado do cronômetro ou à esquerda do radar
+    const boxH = 38;
+    const boxW = Math.max(195, Math.round(textWidth + 88));
+
+    // Posicionamento no canto superior direito alinhado à esquerda do radar
     const isMobile = w < 640;
-    const x = isMobile ? Math.round((w - boxW) / 2) : Math.round(w - boxW - 175);
-    const y = isMobile ? 68 : 14;
+    const x = isMobile ? Math.round((w - boxW) / 2) : Math.round(w - boxW - 180);
+    const y = isMobile ? 66 : 14;
 
-    // Fundo plano escuro minimalista com borda reta em Pixel Art
-    ctx.fillStyle = 'rgba(10, 14, 22, 0.82)';
-    ctx.fillRect(x, y, boxW, boxH);
+    // 1. Moldura Chanfrada Retro Pixel Art (Estilo Nintendo DS / GBA)
+    // Fundo principal escuro azulado sólido
+    ctx.fillStyle = '#141624';
+    ctx.fillRect(x + 2, y, boxW - 4, boxH);
+    ctx.fillRect(x, y + 2, boxW, boxH - 4);
 
-    // Borda fina com a cor temática do clima
-    ctx.strokeStyle = data.color || '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(x + 0.5, y + 0.5, boxW - 1, boxH - 1);
+    // Borda chanfrada externa (#3a3f58) de 3px
+    ctx.strokeStyle = '#3a3f58';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(x + 1, y + 1, boxW - 2, boxH - 2);
 
-    // Barra de progresso sutil no fundo indicando o tempo restante
-    const progress = Math.max(0, Math.min(1, weatherTimer / weatherDuration));
-    ctx.fillStyle = data.color ? (data.color + '33') : 'rgba(255, 255, 255, 0.2)';
-    ctx.fillRect(x + 2, y + boxH - 5, (boxW - 4) * progress, 3);
+    // Chanfro interno: Relevo de luz no topo/esquerda e sombra na base/direita
+    ctx.fillStyle = '#5c648d'; // Luz
+    ctx.fillRect(x + 3, y + 3, boxW - 6, 1);
+    ctx.fillRect(x + 3, y + 3, 1, boxH - 6);
 
-    // Texto com leve sombra pixelada
+    ctx.fillStyle = '#090a10'; // Sombra profunda
+    ctx.fillRect(x + 3, y + boxH - 4, boxW - 6, 1);
+    ctx.fillRect(x + boxW - 4, y + 3, 1, boxH - 6);
+
+    // Cantoneiras decorativas chanfradas douradas (#f8b800) nos 4 cantos
+    ctx.fillStyle = '#f8b800';
+    ctx.fillRect(x, y, 3, 3);
+    ctx.fillRect(x + boxW - 3, y, 3, 3);
+    ctx.fillRect(x, y + boxH - 3, 3, 3);
+    ctx.fillRect(x + boxW - 3, y + boxH - 3, 3, 3);
+
+    // 2. Badge / Caixa Embutida do Ícone de Clima (Lado Esquerdo)
+    const iconSize = 28;
+    const iconX = x + 5;
+    const iconY = y + 5;
+
+    ctx.fillStyle = '#090a10';
+    ctx.fillRect(iconX, iconY, iconSize, iconSize);
+
+    ctx.strokeStyle = data.color || '#f8b800';
+    ctx.lineWidth = 1.8;
+    ctx.strokeRect(iconX + 0.5, iconY + 0.5, iconSize - 1, iconSize - 1);
+
+    // Ícone do clima centralizado
+    ctx.font = '16px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(label, x + boxW / 2 + 1, y + boxH / 2 - 1);
+    ctx.fillText(data.icon || '☀️', iconX + iconSize / 2, iconY + iconSize / 2 + 1);
 
+    // 3. Informações de Clima: Nome e Temporizador
+    const contentX = iconX + iconSize + 7;
+    const nameY = y + 13;
+
+    // Nome do Clima com sombra chanfrada pixelada
+    ctx.font = '800 11px "Pixelify", "Press Start 2P", "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    // Sombra preta sólida de 1px
+    ctx.fillStyle = '#000000';
+    ctx.fillText(weatherName, contentX + 1, nameY + 1);
+
+    // Cor temática do clima
     ctx.fillStyle = data.color || '#ffffff';
-    ctx.fillText(label, x + boxW / 2, y + boxH / 2 - 2);
+    ctx.fillText(weatherName, contentX, nameY);
+
+    // Badge numérico de tempo restante à direita
+    const timeW = 34;
+    const timeH = 15;
+    const timeX = x + boxW - timeW - 6;
+    const timeY = y + 5;
+
+    ctx.fillStyle = '#090a10';
+    ctx.fillRect(timeX, timeY, timeW, timeH);
+    ctx.strokeStyle = '#2b334d';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(timeX + 0.5, timeY + 0.5, timeW - 1, timeH - 1);
+
+    ctx.font = '800 9px "Pixelify", "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const isUrgent = remaining <= 5;
+    const blink = isUrgent && (Math.floor(remaining * 4) % 2 === 0);
+    ctx.fillStyle = blink ? '#ef4444' : '#fde047';
+    ctx.fillText(`${remaining}s`, timeX + timeW / 2, timeY + timeH / 2);
+
+    // 4. Barra de Progresso RPG (Estilo Barra de Vida / Mega)
+    const barX = contentX;
+    const barY = y + 24;
+    const barW = boxW - (iconSize + 16) - 6;
+    const barH = 7;
+
+    // Trilho escuro embutido
+    ctx.fillStyle = '#090a10';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeStyle = '#232738';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX + 0.5, barY + 0.5, barW - 1, barH - 1);
+
+    // Preenchimento gradiente e chanfrado proporcional ao tempo restante
+    const progress = Math.max(0, Math.min(1, weatherTimer / weatherDuration));
+    const fillW = Math.max(0, Math.round((barW - 2) * progress));
+
+    if (fillW > 0) {
+      // Base da barra com a cor do clima
+      ctx.fillStyle = data.color || '#38bdf8';
+      ctx.fillRect(barX + 1, barY + 1, fillW, barH - 2);
+
+      // Relevo de luz superior (estilo HP retro)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillRect(barX + 1, barY + 1, fillW, 2);
+
+      // Relevo de sombra inferior
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(barX + 1, barY + barH - 3, fillW, 2);
+    }
 
     ctx.restore();
   }
