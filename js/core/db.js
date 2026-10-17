@@ -144,6 +144,18 @@ G.DB = (() => {
     if (G.DEX_BY) for (const coll of ['owned', 'shiny']) {
       for (const d of Object.keys(s[coll] || {})) if (!G.DEX_BY[d]) delete s[coll][d];
     }
+    // Trava estrutural: se o parceiro for estágio 2 ou 3, converte para sua forma base ancestral (Estágio 1)
+    if (s.partner) {
+      const isBase = (typeof isBaseStage === 'function')
+        ? isBaseStage
+        : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
+      if (!isBase(s.partner)) {
+        const getBase = (typeof getBaseAncestor === 'function')
+          ? getBaseAncestor
+          : ((typeof G === 'object' && typeof G.getBaseAncestor === 'function') ? G.getBaseAncestor : () => 1);
+        s.partner = getBase(s.partner) || 1;
+      }
+    }
     // Atajos: 4 huecos con un movimiento que exista (o null), sin repetir.
     if (s.pbind && typeof s.pbind === 'object') {
       for (const d of Object.keys(s.pbind)) {

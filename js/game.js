@@ -122,6 +122,11 @@ G.Game = (() => {
     if (!G.DEX_BY || !G.DEX_BY[partnerDex]) {
       partnerDex = 1;
     }
+    // Trava de segurança absoluta: apenas Pokémon de Estágio 1 podem iniciar partidas
+    if (typeof G === 'object' && typeof G.isBaseStage === 'function' && !G.isBaseStage(partnerDex)) {
+      const root = (typeof G.getBaseAncestor === 'function') ? G.getBaseAncestor(partnerDex) : 1;
+      partnerDex = root || 1;
+    }
     if (save && save.partner !== partnerDex) save.partner = partnerDex;
     const mon = (G.DEX_BY && G.DEX_BY[partnerDex]) || (G.DEX && G.DEX[0]);
     const perks = G.Upgrades.perks(G.DB.upgradesOf(mon.dex));
