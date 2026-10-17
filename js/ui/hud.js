@@ -34,6 +34,9 @@ G.HUD = (() => {
     // Atualiza o HUD Inferior Retro Pixel Art no DOM
     updateBottomRpgHud(pl, st);
 
+    const bottomRpgHud = (typeof document !== 'undefined') ? document.getElementById('bottom-rpg-hud') : null;
+    const hasRpgHud = bottomRpgHud && !bottomRpgHud.classList.contains('hidden');
+
     // ---------- barra de experiencia (borde superior) ----------
     const xpF = pl.xp / pl.xpNext;
     ctx.fillStyle = 'rgba(0,0,0,.5)';
@@ -43,165 +46,173 @@ G.HUD = (() => {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w * G.U.clamp(xpF, 0, 1), 7);
 
-    // ---------- vida + nivel ----------
-    const px = 16, py = 20;
-    ctx.font = F(800, 13);
-    ctx.fillStyle = '#eaf2ff';
-    ctx.textAlign = 'left';
-    ctx.fillText(pl.mon.name, px, py + 10);
+    // ---------- vida + nivel + mega superior (apenas fallback se não houver o HUD RPG inferior) ----------
+    if (!hasRpgHud) {
+      const px = 16, py = 20;
+      ctx.font = F(800, 13);
+      ctx.fillStyle = '#eaf2ff';
+      ctx.textAlign = 'left';
+      ctx.fillText(pl.mon.name, px, py + 10);
 
-    ctx.font = F(700, 11);
-    ctx.fillStyle = '#ffcb3d';
-    ctx.fillText('Nv. ' + pl.level, px, py + 26);
+      ctx.font = F(700, 11);
+      ctx.fillStyle = '#ffcb3d';
+      ctx.fillText('Nv. ' + pl.level, px, py + 26);
 
-    bar(ctx, px + 48, py + 17, 168, 11, pl.hp / pl.maxHp, '#ff5f6d');
-    ctx.font = F(700, 10);
-    ctx.fillStyle = 'rgba(255,255,255,.95)';
-    ctx.textAlign = 'center';
-    ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp), px + 48 + 84, py + 26);
+      bar(ctx, px + 48, py + 17, 168, 11, pl.hp / pl.maxHp, '#ff5f6d');
+      ctx.font = F(700, 10);
+      ctx.fillStyle = 'rgba(255,255,255,.95)';
+      ctx.textAlign = 'center';
+      ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp), px + 48 + 84, py + 26);
 
-    // ---------- BARRA DO MEGA / SUPER FRENZY ----------
-    const mx = px + 48, my = py + 31, mw = 168, mh = 11;
-    const isMegaActive = pl.megaMode && pl.megaMode.active;
-    const megaEnergy = pl.megaEnergy || 0;
-    const megaMaxEnergy = pl.megaMaxEnergy || 100;
-    const isMegaReady = !isMegaActive && megaEnergy >= megaMaxEnergy;
+      // ---------- BARRA DO MEGA / SUPER FRENZY ----------
+      const mx = px + 48, my = py + 31, mw = 168, mh = 11;
+      const isMegaActive = pl.megaMode && pl.megaMode.active;
+      const megaEnergy = pl.megaEnergy || 0;
+      const megaMaxEnergy = pl.megaMaxEnergy || 100;
+      const isMegaReady = !isMegaActive && megaEnergy >= megaMaxEnergy;
 
-    // Rótulo à esquerda alinhado com a barra
-    ctx.font = F(800, 10);
-    ctx.textAlign = 'left';
-    if (isMegaActive) {
-      const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
-      ctx.fillStyle = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
-      ctx.fillText('⚡ MEGA', px, my + 9);
-    } else if (isMegaReady) {
-      ctx.fillStyle = Math.sin(performance.now() / 120) > 0 ? '#ffd700' : '#00e5ff';
-      ctx.fillText('⚡ MEGA', px, my + 9);
-    } else {
-      ctx.fillStyle = '#a78bfa';
-      ctx.fillText('MEGA', px, my + 9);
+      // Rótulo à esquerda alinhado com a barra
+      ctx.font = F(800, 10);
+      ctx.textAlign = 'left';
+      if (isMegaActive) {
+        const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
+        ctx.fillStyle = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
+        ctx.fillText('⚡ MEGA', px, my + 9);
+      } else if (isMegaReady) {
+        ctx.fillStyle = Math.sin(performance.now() / 120) > 0 ? '#ffd700' : '#00e5ff';
+        ctx.fillText('⚡ MEGA', px, my + 9);
+      } else {
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText('MEGA', px, my + 9);
+      }
+
+      if (isMegaActive) {
+        // Mega em funcionamento: barra rainbow drena regressivamente com o tempo restante
+        const totalDur = pl.megaMode.maxTimer || 15;
+        const remTime = Math.max(0, pl.megaMode.timer || 0);
+        const frac = G.U.clamp(remTime / totalDur, 0, 1);
+        const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
+        const rainbowCol = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
+        bar(ctx, mx, my, mw, mh, frac, rainbowCol, 'rgba(30,10,40,.75)');
+
+        // Borda luminosa pulsante
+        roundRect(ctx, mx - 1, my - 1, mw + 2, mh + 2, (mh + 2) / 2);
+        ctx.strokeStyle = rainbowCol;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Tempo de funcionamento regressivo no HUD
+        ctx.font = F(800, 9);
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ FÚRIA: ' + remTime.toFixed(1) + 's', mx + mw / 2, my + 9);
+      } else if (isMegaReady) {
+        // Carga completa (100%): barra dourada pulsante convidando ativação por ESPAÇO
+        const pulseColor = Math.sin(performance.now() / 120) > 0 ? '#ffd700' : '#00f5d4';
+        bar(ctx, mx, my, mw, mh, 1.0, pulseColor, 'rgba(0,0,0,.65)');
+
+        roundRect(ctx, mx - 1, my - 1, mw + 2, mh + 2, (mh + 2) / 2);
+        ctx.strokeStyle = pulseColor;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.font = F(800, 9);
+        ctx.fillStyle = '#0f172a';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ 100% CARREGADO!', mx + mw / 2, my + 9);
+
+        // Permite clicar na própria barra para ativar (mouse ou toque)
+        G.Touch.addButton(mx - 4, my - 4, mw + 8, mh + 8, () => pl.activateMega(15), 6);
+      } else {
+        // Carregando: barra roxa com porcentagem exata de progresso
+        const frac = G.U.clamp(megaEnergy / megaMaxEnergy, 0, 1);
+        bar(ctx, mx, my, mw, mh, frac, '#9333ea', 'rgba(0,0,0,.55)');
+
+        ctx.font = F(700, 9);
+        ctx.fillStyle = 'rgba(255,255,255,.92)';
+        ctx.textAlign = 'center';
+        ctx.fillText('MEGA: ' + Math.floor(megaEnergy) + '%', mx + mw / 2, my + 9);
+      }
+
+      // ---------- BOTÃO DE ACIONAMENTO DO MEGA (CLIQUE / ESPAÇO) ----------
+      const btnX = (w < 600) ? (px + 48) : (px + 48 + mw + 10);
+      const btnY = (w < 600) ? (py + 46) : (py + 17);
+      const btnW = (w < 600) ? mw : 108;
+      const btnH = (w < 600) ? 24 : 25;
+
+      ctx.save();
+      if (isMegaReady) {
+        // Mega Pronto: Botão Dourado e Neon pulsante convidativo
+        const pulse = 0.5 + Math.sin(performance.now() / 100) * 0.5;
+        const bgCol = pulse > 0.4 ? '#ffcb05' : '#00f5d4';
+
+        roundRect(ctx, btnX, btnY, btnW, btnH, 5);
+        ctx.fillStyle = bgCol;
+        ctx.fill();
+
+        // Borda grossa em Pixel Art
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        ctx.font = F(900, 10);
+        ctx.fillStyle = '#090d16';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ MEGA [ESPAÇO]', btnX + btnW / 2, btnY + 16);
+
+        // Registra clique no botão (mouse ou touch)
+        G.Touch.addButton(btnX, btnY, btnW, btnH, () => pl.activateMega(15), 6);
+      } else if (isMegaActive) {
+        // Mega Ativo: Botão Rainbow frenético
+        const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
+        const rCol = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
+
+        roundRect(ctx, btnX, btnY, btnW, btnH, 5);
+        ctx.fillStyle = 'rgba(20, 10, 35, 0.88)';
+        ctx.fill();
+
+        ctx.strokeStyle = rCol;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        const remTime = Math.max(0, pl.megaMode.timer || 0);
+        ctx.font = F(900, 10);
+        ctx.fillStyle = rCol;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ FÚRIA: ' + remTime.toFixed(1) + 's', btnX + btnW / 2, btnY + 16);
+      } else {
+        // Carregando: Botão Translúcido discreto
+        roundRect(ctx, btnX, btnY, btnW, btnH, 5);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+        ctx.fill();
+
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.font = F(700, 9);
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ MEGA [SPACE]', btnX + btnW / 2, btnY + 16);
+
+        // Ao clicar enquanto carrega, avisa o progresso
+        G.Touch.addButton(btnX, btnY, btnW, btnH, () => {
+          if (typeof G === 'object' && G.UI && G.UI.toast) {
+            G.UI.toast('⚡ Carga Mega: ' + Math.floor(megaEnergy) + '% (Aperte [ESPAÇO] ao atingir 100%)', 1800);
+          }
+        }, 6);
+      }
+      ctx.restore();
     }
 
-    if (isMegaActive) {
-      // Mega em funcionamento: barra rainbow drena regressivamente com o tempo restante
-      const totalDur = pl.megaMode.maxTimer || 15;
-      const remTime = Math.max(0, pl.megaMode.timer || 0);
-      const frac = G.U.clamp(remTime / totalDur, 0, 1);
-      const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
-      const rainbowCol = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
-      bar(ctx, mx, my, mw, mh, frac, rainbowCol, 'rgba(30,10,40,.75)');
-
-      // Borda luminosa pulsante
-      roundRect(ctx, mx - 1, my - 1, mw + 2, mh + 2, (mh + 2) / 2);
-      ctx.strokeStyle = rainbowCol;
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      // Tempo de funcionamento regressivo no HUD
-      ctx.font = F(800, 9);
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ FÚRIA: ' + remTime.toFixed(1) + 's', mx + mw / 2, my + 9);
-    } else if (isMegaReady) {
-      // Carga completa (100%): barra dourada pulsante convidando ativação por ESPAÇO
-      const pulseColor = Math.sin(performance.now() / 120) > 0 ? '#ffd700' : '#00f5d4';
-      bar(ctx, mx, my, mw, mh, 1.0, pulseColor, 'rgba(0,0,0,.65)');
-
-      roundRect(ctx, mx - 1, my - 1, mw + 2, mh + 2, (mh + 2) / 2);
-      ctx.strokeStyle = pulseColor;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.font = F(800, 9);
-      ctx.fillStyle = '#0f172a';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ 100% CARREGADO!', mx + mw / 2, my + 9);
-
-      // Permite clicar na própria barra para ativar (mouse ou toque)
-      G.Touch.addButton(mx - 4, my - 4, mw + 8, mh + 8, () => pl.activateMega(15), 6);
-    } else {
-      // Carregando: barra roxa com porcentagem exata de progresso
-      const frac = G.U.clamp(megaEnergy / megaMaxEnergy, 0, 1);
-      bar(ctx, mx, my, mw, mh, frac, '#9333ea', 'rgba(0,0,0,.55)');
-
-      ctx.font = F(700, 9);
-      ctx.fillStyle = 'rgba(255,255,255,.92)';
-      ctx.textAlign = 'center';
-      ctx.fillText('MEGA: ' + Math.floor(megaEnergy) + '%', mx + mw / 2, my + 9);
-    }
-
-    // ---------- BOTÃO DE ACIONAMENTO DO MEGA (CLIQUE / ESPAÇO) ----------
-    const btnX = (w < 600) ? (px + 48) : (px + 48 + mw + 10);
-    const btnY = (w < 600) ? (py + 46) : (py + 17);
-    const btnW = (w < 600) ? mw : 108;
-    const btnH = (w < 600) ? 24 : 25;
-
-    ctx.save();
-    if (isMegaReady) {
-      // Mega Pronto: Botão Dourado e Neon pulsante convidativo
-      const pulse = 0.5 + Math.sin(performance.now() / 100) * 0.5;
-      const bgCol = pulse > 0.4 ? '#ffcb05' : '#00f5d4';
-
-      roundRect(ctx, btnX, btnY, btnW, btnH, 5);
-      ctx.fillStyle = bgCol;
-      ctx.fill();
-
-      // Borda grossa em Pixel Art
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      ctx.font = F(900, 10);
-      ctx.fillStyle = '#090d16';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ MEGA [ESPAÇO]', btnX + btnW / 2, btnY + 16);
-
-      // Registra clique no botão (mouse ou touch)
-      G.Touch.addButton(btnX, btnY, btnW, btnH, () => pl.activateMega(15), 6);
-    } else if (isMegaActive) {
-      // Mega Ativo: Botão Rainbow frenético
-      const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
-      const rCol = RAINBOW[Math.floor(performance.now() / 60) % RAINBOW.length];
-
-      roundRect(ctx, btnX, btnY, btnW, btnH, 5);
-      ctx.fillStyle = 'rgba(20, 10, 35, 0.88)';
-      ctx.fill();
-
-      ctx.strokeStyle = rCol;
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      const remTime = Math.max(0, pl.megaMode.timer || 0);
-      ctx.font = F(900, 10);
-      ctx.fillStyle = rCol;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ FÚRIA: ' + remTime.toFixed(1) + 's', btnX + btnW / 2, btnY + 16);
-    } else {
-      // Carregando: Botão Translúcido discreto
-      roundRect(ctx, btnX, btnY, btnW, btnH, 5);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
-      ctx.fill();
-
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.font = F(700, 9);
-      ctx.fillStyle = '#94a3b8';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡ MEGA [SPACE]', btnX + btnW / 2, btnY + 16);
-
-      // Ao clicar enquanto carrega, avisa o progresso
-      G.Touch.addButton(btnX, btnY, btnW, btnH, () => {
-        if (typeof G === 'object' && G.UI && G.UI.toast) {
-          G.UI.toast('⚡ Carga Mega: ' + Math.floor(megaEnergy) + '% (Aperte [ESPAÇO] ao atingir 100%)', 1800);
-        }
-      }, 6);
-    }
-    ctx.restore();
+    const mega = (typeof G === 'object' && G.Mega) ? G.Mega : null;
+    const isMegaActiveGlobal = (mega && mega.isActive) || (pl.megaMode && pl.megaMode.active);
+    const megaEnergyGlobal = mega ? mega.gauge : (pl.megaEnergy || 0);
+    const megaMaxGlobal = mega ? mega.maxGauge : (pl.megaMaxEnergy || 100);
+    const isMegaReadyGlobal = !isMegaActiveGlobal && (megaEnergyGlobal >= megaMaxGlobal);
 
     // Em telas touch: adiciona também um botão flutuante quando pronto (com posição configurável)
-    if (touch && isMegaReady) {
+    if (touch && isMegaReadyGlobal) {
       const pm = G.Touch.spot('mega');
       const sa = G.Touch.safeArea();
       const tr = 28;
@@ -229,7 +240,8 @@ G.HUD = (() => {
     // buffs activos
     const COL = { atk: '#ff6b4d', spd: '#7fe0ff', def: '#b0b8c8', regen: '#5fe08a' };
     const LBL = { atk: 'ATK', spd: 'VEL', def: 'DEF', regen: 'REG' };
-    let bx = px;
+    let bx = 16;
+    const buffY = hasRpgHud ? 16 : 68;
     ctx.textAlign = 'left';
     for (const k in pl.buffs) {
       const b = pl.buffs[k];
@@ -237,10 +249,10 @@ G.HUD = (() => {
       ctx.font = F(800, 9);
       const txt = LBL[k] + ' ×' + b.n;
       const tw = ctx.measureText(txt).width + 12;
-      roundRect(ctx, bx, py + 48, tw, 15, 7);
+      roundRect(ctx, bx, buffY, tw, 15, 7);
       ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
       ctx.fillStyle = COL[k];
-      ctx.fillText(txt, bx + 6, py + 59);
+      ctx.fillText(txt, bx + 6, buffY + 11);
       bx += tw + 5;
     }
 
@@ -397,8 +409,6 @@ G.HUD = (() => {
     }
 
     // ---------- ranura de movimientos ----------
-    const bottomRpgHud = (typeof document !== 'undefined') ? document.getElementById('bottom-rpg-hud') : null;
-    const hasRpgHud = bottomRpgHud && !bottomRpgHud.classList.contains('hidden');
     if (!hasRpgHud) {
     const S = 54, GAP = 9;
     const n = Math.max(1, pl.slots.length);
