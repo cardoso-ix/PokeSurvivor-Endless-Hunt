@@ -31,6 +31,9 @@ G.HUD = (() => {
     G.Touch.clearButtons();
     const touch = G.Touch.active;
 
+    // Atualiza o HUD Inferior Retro Pixel Art no DOM
+    updateBottomRpgHud(pl, st);
+
     // ---------- barra de experiencia (borde superior) ----------
     const xpF = pl.xp / pl.xpNext;
     ctx.fillStyle = 'rgba(0,0,0,.5)';
@@ -394,6 +397,9 @@ G.HUD = (() => {
     }
 
     // ---------- ranura de movimientos ----------
+    const bottomRpgHud = (typeof document !== 'undefined') ? document.getElementById('bottom-rpg-hud') : null;
+    const hasRpgHud = bottomRpgHud && !bottomRpgHud.classList.contains('hidden');
+    if (!hasRpgHud) {
     const S = 54, GAP = 9;
     const n = Math.max(1, pl.slots.length);
     const totalW = n * S + (n - 1) * GAP;
@@ -484,6 +490,7 @@ G.HUD = (() => {
         ctx.fillStyle = fused ? BOND : col;
         ctx.fillText(fused ? m.name + ' +' + (g.length - 1) : m.name, x + S / 2, y - 7);
       }
+    }
     }
 
     // ---------- vínculo guardado (aún no hay dos movimientos sueltos) ----------
@@ -958,5 +965,192 @@ G.HUD = (() => {
     }
   }
 
-  return { draw, roundRect, bar };
+  let lastMonDex = null;
+  let lastSlotsSignature = '';
+
+  function updateBottomRpgHud(pl, st) {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById('bottom-rpg-hud');
+    if (!el) return;
+
+    if (!pl || (typeof G === 'object' && G.Game && G.Game.state !== 'playing' && G.Game.state !== 'choice' && G.Game.state !== 'levelup')) {
+      if (!el.classList.contains('hidden')) el.classList.add('hidden');
+      return;
+    }
+    if (el.classList.contains('hidden')) {
+      el.classList.remove('hidden');
+    }
+
+    // 1. Avatar Canvas do Líder
+    const cvs = document.getElementById('hud-avatar-canvas');
+    if (cvs && pl.mon && lastMonDex !== pl.mon.dex) {
+      lastMonDex = pl.mon.dex;
+      if (typeof G === 'object' && G.UI && typeof G.UI.sprite === 'function') {
+        G.UI.sprite(cvs, pl.mon.dex, { scale: 1.15, lively: true, hero: true, shiny: !!pl.shiny });
+      }
+    }
+
+    // 2. Badge de Nível
+    const lvlEl = document.getElementById('hud-level-val');
+    if (lvlEl && lvlEl.textContent !== String(pl.level)) {
+      lvlEl.textContent = pl.level;
+    }
+
+    // 3. Nome do Personagem / Líder / Ascensão
+    const nameEl = document.getElementById('hud-char-name');
+    if (nameEl) {
+      const charTitle = (pl.ascensionTitle || (pl.mon && pl.mon.name) || 'TREINADOR').toUpperCase();
+      if (nameEl.textContent !== charTitle) nameEl.textContent = charTitle;
+    }
+
+    // 4. Barra de HP & Ghost Bar
+    const hp = Math.max(0, pl.hp);
+    const maxHp = Math.max(1, pl.maxHp);
+    const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+    const hpBar = document.getElementById('hud-hp-bar');
+    const hpGhost = document.getElementById('hud-hp-ghost');
+    const hpText = document.getElementById('hud-hp-text');
+
+    if (hpText) {
+      const textVal = `HP ${Math.ceil(hp)} / ${Math.round(maxHp)}`;
+      if (hpText.textContent !== textVal) hpText.textContent = textVal;
+    }
+
+    if (hpBar) {
+      hpBar.style.width = hpPct.toFixed(1) + '%';
+      hpBar.classList.remove('high', 'mid', 'low');
+      if (hpPct > 50) {
+        hpBar.classList.add('high');
+      } else if (hpPct >= 20) {
+        hpBar.classList.add('mid');
+      } else {
+        hpBar.classList.add('low');
+      }
+    }
+
+    if (hpGhost) {
+      hpGhost.style.width = hpPct.toFixed(1) + '%';
+    }
+
+    // 5. Barra do Mega Overdrive
+    const mega = (typeof G === 'object' && G.Mega) ? G.Mega : null;
+    const megaBar = document.getElementById('hud-mega-bar');
+    const megaLabel = document.getElementById('hud-mega-label');
+
+    const isMegaActive = (mega && mega.isActive) || (pl.megaMode && pl.megaMode.active);
+    const megaEnergy = mega ? mega.gauge : (pl.megaEnergy || 0);
+    const megaMax = mega ? mega.maxGauge : (pl.megaMaxEnergy || 100);
+    const isMegaReady = !isMegaActive && (megaEnergy >= megaMax);
+
+    if (megaBar) {
+      if (isMegaActive) {
+        const dur = (mega && mega.duration) || (pl.megaMode && pl.megaMode.maxTimer) || 10;
+        const timeLeft = mega ? mega.timeLeft : (pl.megaMode && pl.megaMode.timer) || 0;
+        const pct = Math.max(0, Math.min(100, (timeLeft / dur) * 100));
+        megaBar.style.width = pct.toFixed(1) + '%';
+        megaBar.classList.remove('ready');
+        megaBar.classList.add('active');
+        if (megaLabel) megaLabel.textContent = `MEGA: ${timeLeft.toFixed(1)}s`;
+      } else if (isMegaReady) {
+        megaBar.style.width = '100%';
+        megaBar.classList.add('ready');
+        megaBar.classList.remove('active');
+        if (megaLabel) megaLabel.textContent = '[ ESPAÇO: MEGA PRONTO ]';
+      } else {
+        const pct = Math.max(0, Math.min(100, (megaEnergy / megaMax) * 100));
+        megaBar.style.width = pct.toFixed(1) + '%';
+        megaBar.classList.remove('ready', 'active');
+        if (megaLabel) megaLabel.textContent = `MEGA: ${Math.floor(pct)}%`;
+      }
+    }
+
+    // Suporte ao clique para ativação do Mega
+    const megaTrack = document.querySelector('.mega-track');
+    if (megaTrack && !megaTrack._wired) {
+      megaTrack._wired = true;
+      megaTrack.style.cursor = 'pointer';
+      megaTrack.addEventListener('click', () => {
+        if (pl && typeof pl.activateMega === 'function') {
+          pl.activateMega();
+        }
+      });
+    }
+
+    // 6. Slots de Ataques Ativos
+    const tray = document.getElementById('hud-skills-tray');
+    if (tray && pl.slots) {
+      const n = pl.slots.length;
+      let sig = `${n}-${pl.active}`;
+      for (let i = 0; i < n; i++) {
+        const g = pl.slots[i] || [];
+        const m = g[0];
+        if (m) sig += `_${m.id}_${m.lvl}_${g.length > 1 ? 'f' : ''}`;
+      }
+
+      if (sig !== lastSlotsSignature) {
+        lastSlotsSignature = sig;
+        tray.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+          const g = pl.slots[i] || [];
+          const m = g[0];
+          if (!m) continue;
+
+          const slotEl = document.createElement('div');
+          slotEl.className = `hud-skill-slot ${i === pl.active ? 'active' : ''} ${g.length > 1 ? 'fused' : ''}`;
+          slotEl.title = `${m.name} (Nv. ${m.lvl})`;
+          slotEl.dataset.slotIdx = String(i);
+
+          const iconWrap = document.createElement('div');
+          iconWrap.className = 'hud-skill-icon';
+          if (typeof G === 'object' && G.Icons && typeof G.Icons.html === 'function') {
+            iconWrap.innerHTML = G.Icons.html('move:' + m.id, 28);
+          }
+          slotEl.appendChild(iconWrap);
+
+          const lvlEl = document.createElement('div');
+          lvlEl.className = 'hud-skill-lvl';
+          lvlEl.textContent = `Nv.${m.lvl}`;
+          slotEl.appendChild(lvlEl);
+
+          const sweepEl = document.createElement('div');
+          sweepEl.className = 'hud-cd-sweep';
+          sweepEl.id = `hud-cd-sweep-${i}`;
+          sweepEl.style.height = '0%';
+          slotEl.appendChild(sweepEl);
+
+          slotEl.addEventListener('click', () => {
+            if (typeof G === 'object' && G.Game && G.Game.state === 'playing' && pl.active !== i) {
+              pl.setActive(i);
+              if (G.Audio) G.Audio.sfx('click');
+            }
+          });
+
+          tray.appendChild(slotEl);
+        }
+      }
+
+      // Atualiza altura do cooldown sweep
+      for (let i = 0; i < n; i++) {
+        const g = pl.slots[i] || [];
+        const m = g[0];
+        if (!m) continue;
+        const sweep = document.getElementById(`hud-cd-sweep-${i}`);
+        if (sweep) {
+          const cdFrac = m.kind === 'orbit' ? 0 : Math.max(0, Math.min(1, (m.t || 0) / (m.cd * (pl.cdMul || 1))));
+          sweep.style.height = `${(cdFrac * 100).toFixed(0)}%`;
+        }
+      }
+    }
+  }
+
+  return {
+    draw,
+    roundRect,
+    bar,
+    updateBottomRpgHud,
+    update: () => {
+      const p = (typeof G === 'object' && G.Game) ? G.Game.player : null;
+      if (p) updateBottomRpgHud(p, { time: 0 });
+    }
+  };
 })();

@@ -40,14 +40,15 @@ G.Game = (() => {
         if (typeof G === 'object' && G.Camera && G.Camera.adjustZoom) G.Camera.adjustZoom(-0.05);
       }
     });
+    // Trava rígida de câmera: desativa alteração de zoom pelo scroll do mouse e bloqueia rolagem acidental
+    cv.addEventListener('wheel', e => {
+      e.preventDefault();
+    }, { passive: false });
     addEventListener('wheel', e => {
-      if (state !== 'playing' || (typeof G === 'object' && G.SettingsUI && G.SettingsUI.isOpen)) return;
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (typeof G === 'object' && G.Camera && G.Camera.adjustZoom) {
-        const delta = e.deltaY < 0 ? 0.05 : -0.05;
-        G.Camera.adjustZoom(delta);
+      if (e.target === cv || state === 'playing') {
+        e.preventDefault();
       }
-    }, { passive: true });
+    }, { passive: false });
     G.Touch.init(cv);
     // En móvil: al cambiar de app o girarlo en vertical, la partida se pausa.
     document.addEventListener('visibilitychange', () => { if (document.hidden) autoPause(); });
@@ -161,6 +162,8 @@ G.Game = (() => {
       G.Social.setPlaying(true);
     }
     G.Camera.x = pl.x; G.Camera.y = pl.y; G.Camera.shake = 0;
+    const bHud = document.getElementById('bottom-rpg-hud');
+    if (bHud) bHud.classList.remove('hidden');
     // Hojas de sprites locales: el compañero y los primeros enemigos.
     G.Sprites.preload([mon.dex], 8000, pl.shiny);
     G.Audio.music(G.BIOME_MUSIC[0]);
@@ -324,6 +327,8 @@ G.Game = (() => {
     if (G.Coop.active) G.Coop.end();
     if (coop) G.Social.setPlaying(false);
     state = 'over';
+    const bHud = document.getElementById('bottom-rpg-hud');
+    if (bHud) bHud.classList.add('hidden');
     G.Audio.music(null);
     G.Audio.sfx(dead ? 'gameover' : 'back');
     const save = G.DB.save;

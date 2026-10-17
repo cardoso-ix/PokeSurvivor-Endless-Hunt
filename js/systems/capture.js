@@ -26,6 +26,7 @@ const CaptureSystem = (() => {
   const GOLD_BALL_CONFIG = {
     id: 'goldball',
     name: 'Gold Ball',
+    chance: 0.10,
     isGuaranteed: true,
     isGold: true,
     catchRate: 1.00, // 100% Fixo
@@ -37,6 +38,7 @@ const CaptureSystem = (() => {
     label: '⭐ 100% CAPTURA GARANTIDA!',
     badgeLabel: '⭐ GOLD BALL ATIVA! (100% CAPTURA GARANTIDA + 1.000 OURO)',
     goldReward: 1000,
+    coinBonus: 1000,
     icon: '⭐'
   };
 
@@ -369,50 +371,62 @@ const CaptureSystem = (() => {
   }
 
   /**
-   * Inicia a Sequência de Captura 100% In-Game
+   * Inicia a Sequência de Captura (Suporta Modal HTML e Canvas In-Game)
    */
   function startCaptureSequence(opts = {}, maybeLvl, maybeShiny, maybeForceGold) {
-    let mon = null;
+    let targetSpec = null;
     let boss = null;
     let shiny = false;
     let pLvl = undefined;
     let forceGold = false;
+    let isLegend = false;
     let onComplete = null;
 
     if (typeof opts === 'string' || typeof opts === 'number') {
-      const targetSpec = opts;
-      if (typeof targetSpec === 'number' && G.DEX_BY) mon = G.DEX_BY[targetSpec];
-      else if (typeof targetSpec === 'string') {
-        const lower = targetSpec.toLowerCase().trim();
-        if (G.DEX) mon = G.DEX.find(p => p.name && p.name.toLowerCase() === lower);
-        if (!mon && G.DEX_BY) mon = G.DEX_BY[parseInt(targetSpec, 10)];
-      }
+      targetSpec = opts;
       pLvl = typeof maybeLvl === 'number' ? maybeLvl : undefined;
       shiny = typeof maybeLvl === 'boolean' ? maybeLvl : !!maybeShiny;
       forceGold = !!maybeForceGold;
     } else if (opts && typeof opts === 'object') {
-      mon = opts.mon || (opts.boss && G.DEX_BY && G.DEX_BY[opts.boss.dex]) || (opts.dex ? opts : null);
+      targetSpec = opts.speciesId || opts.mon || (opts.boss && opts.boss.dex) || opts.dex;
       boss = opts.boss || null;
-      shiny = !!opts.isShiny;
-      pLvl = opts.playerLevel !== undefined ? opts.playerLevel : (typeof maybeLvl === 'number' ? maybeLvl : undefined);
+      shiny = !!opts.isShiny || !!opts.shiny;
+      isLegend = !!opts.isLegendary || !!opts.legend;
+      pLvl = opts.level !== undefined ? opts.level : (opts.playerLevel !== undefined ? opts.playerLevel : (typeof maybeLvl === 'number' ? maybeLvl : undefined));
       forceGold = !!opts.forceGold || !!maybeForceGold;
       onComplete = opts.onComplete || null;
     }
 
-    if (!mon && G.DEX) mon = G.DEX[0];
+    let mon = null;
+    if (typeof targetSpec === 'number' && typeof G === 'object' && G.DEX_BY) {
+      mon = G.DEX_BY[targetSpec];
+    } else if (typeof targetSpec === 'string') {
+      const lower = targetSpec.toLowerCase().trim();
+      if (typeof G === 'object' && G.DEX) mon = G.DEX.find(p => p.name && p.name.toLowerCase() === lower);
+      if (!mon && typeof G === 'object' && G.DEX_BY) mon = G.DEX_BY[parseInt(targetSpec, 10)];
+      if (!mon && typeof POKEDEX !== 'undefined') mon = Object.values(POKEDEX).find(p => p.name && p.name.toLowerCase() === lower);
+    } else if (targetSpec && typeof targetSpec === 'object' && targetSpec.dex) {
+      mon = targetSpec;
+    }
+
+    if (!mon && typeof G === 'object' && G.DEX) mon = G.DEX[0];
     if (!mon || !mon.dex) return;
+
+    // Pausa a partida durante a captura
+    if (typeof G === 'object' && G.Game) G.Game.isPaused = true;
+    if (typeof game !== 'undefined') game.isPaused = true;
 
     activeMon = mon;
     activeBoss = boss;
     isShiny = shiny;
     onFinishCb = onComplete;
 
-    const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
+    const pl = (typeof G === 'object' && G.Game) ? G.Game.player : (typeof game !== 'undefined' ? game.player : null);
     playerLevel = (pLvl !== undefined) ? pLvl : (pl ? pl.level : 1);
     activeBallTier = resolveCaptureBall(playerLevel, forceGold);
 
     evoStage = getEvolutionStage(mon);
-    const baseRate = getBaseCatchRate(mon, isShiny);
+    const baseRate = getBaseCatchRate(mon, isShiny || isLegend);
     baseCatchRate = baseRate;
 
     let finalChance;
@@ -425,28 +439,66 @@ const CaptureSystem = (() => {
       captureRate = finalChance;
     }
 
-    const overlayCapRate = document.getElementById('cap-rate');
-    if (overlayCapRate) {
-      if (activeBallTier.isGold || activeBallTier.isGuaranteed) {
-        overlayCapRate.innerHTML = `<span style="color:#ffcb05;font-weight:bold;font-size:14px;">✨ 100% DE CHANCE (CAPTURA GARANTIDA!) ✨</span><br><small style="color:#ffd700;font-weight:bold;">⭐ BÔNUS: +1.000 OURO!</small>`;
-      } else {
-        const basePct = Math.round(baseRate * 100);
-        const bonusPct = Math.round((activeBallTier.bonus || 0) * 100);
-        overlayCapRate.textContent = `Chance de Captura: ${Math.round(finalChance * 100)}% (${basePct}% Base + ${bonusPct}% ${activeBallTier.name})`;
-      }
-    }
-
-    const modalEl = document.getElementById('capture-modal') || document.getElementById('capture-overlay');
-    if (modalEl) {
-      const modalStatus = modalEl.querySelector('#cap-status, .cap-status');
-      if (modalStatus && (activeBallTier.isGold || activeBallTier.isGuaranteed)) {
-        modalStatus.innerHTML = `<span style="color:#ffd700;font-weight:bold;">⭐ GOLD BALL ATIVA! (100% CAPTURA GARANTIDA + 1.000 OURO)</span>`;
-      }
-    }
-
     pokemonLevel = calculatePokemonLevel(mon, activeBoss, pl);
 
-    // Ponto onde o monstro está no chão
+    // Configuração e exibição do modal HTML (#capture-modal ou #capture-overlay) se presente
+    const modalEl = document.getElementById('capture-modal') || document.getElementById('capture-overlay');
+    if (modalEl) {
+      modalEl.style.display = 'flex';
+      modalEl.classList.remove('hidden');
+
+      const nameEl = modalEl.querySelector('#cap-name, #cap-mon-name');
+      if (nameEl) nameEl.textContent = mon.name.toUpperCase();
+
+      const shinyEl = modalEl.querySelector('#cap-shiny-badge');
+      if (shinyEl) shinyEl.classList.toggle('hidden', !isShiny);
+
+      const typesEl = modalEl.querySelector('#cap-types, #cap-mon-types');
+      if (typesEl && Array.isArray(mon.types)) {
+        typesEl.innerHTML = mon.types.map(t => `<span class="tag-type type-${t}" style="padding:3px 8px;border-radius:4px;font-size:11px;font-weight:bold;margin:0 2px;">${t.toUpperCase()}</span>`).join('');
+      }
+
+      const rateEl = modalEl.querySelector('#cap-rate, #cap-rate-text');
+      if (rateEl) {
+        if (activeBallTier.isGold || activeBallTier.isGuaranteed) {
+          rateEl.innerHTML = `<span style="color:#ffcb05;font-weight:bold;font-size:14px;">✨ 100% DE CHANCE (CAPTURA GARANTIDA!) ✨</span><br><small style="color:#ffd700;font-weight:bold;">⭐ BÔNUS: +1.000 OURO!</small>`;
+        } else {
+          const basePct = Math.round(baseRate * 100);
+          const bonusPct = Math.round((activeBallTier.bonus || 0) * 100);
+          rateEl.textContent = `Chance de Captura: ${Math.round(finalChance * 100)}% (${basePct}% Base + ${bonusPct}% ${activeBallTier.name})`;
+        }
+      }
+
+      const statusEl = modalEl.querySelector('#cap-status, #cap-status-msg');
+      if (statusEl) {
+        statusEl.innerHTML = `Lançando ${activeBallTier.name}...`;
+      }
+
+      const btnThrow = modalEl.querySelector('#btn-throw-ball');
+      if (btnThrow) btnThrow.classList.add('hidden');
+
+      const btnCont = modalEl.querySelector('#btn-cap-continue, #cap-continue-btn');
+      if (btnCont) {
+        btnCont.classList.add('hidden');
+        btnCont.onclick = () => {
+          modalEl.style.display = 'none';
+          modalEl.classList.add('hidden');
+          if (typeof G === 'object' && G.Game) G.Game.isPaused = false;
+          if (typeof game !== 'undefined') game.isPaused = false;
+          if (typeof G === 'object' && G.DB && typeof G.DB.addRiftCleared === 'function') G.DB.addRiftCleared(1);
+          if (typeof G === 'object' && G.DB && typeof G.DB.incrementRiftsCleared === 'function') G.DB.incrementRiftsCleared();
+          if (typeof onFinishCb === 'function') onFinishCb(isSuccess);
+        };
+      }
+
+      // Desenha o sprite do Pokémon no canvas do modal se existir
+      const capCanvas = modalEl.querySelector('#cap-canvas, #cap-mon-canvas');
+      if (capCanvas && typeof G === 'object' && G.UI && typeof G.UI.sprite === 'function') {
+        G.UI.sprite(capCanvas, mon.dex, { lively: true, shiny: isShiny, scale: 2.5 });
+      }
+    }
+
+    // Ponto onde o monstro está no chão para renderização no canvas
     if (activeBoss) {
       activeBoss.dead = true;
       activeBoss.fade = 0;
@@ -483,18 +535,14 @@ const CaptureSystem = (() => {
     shards = [];
 
     // Instancia o sprite animado do Pokémon
-    pmdAnimator = new G.Sprites.Animator(mon.dex, 1.2, isShiny);
-    pmdAnimator.loop('Idle');
+    if (typeof G === 'object' && G.Sprites && G.Sprites.Animator) {
+      pmdAnimator = new G.Sprites.Animator(mon.dex, 1.2, isShiny);
+      pmdAnimator.loop('Idle');
+    }
 
     // Sons de arremesso
     if (typeof G === 'object' && G.Audio && G.Audio.sfx) {
       G.Audio.sfx('shot', { kind: 'projectile' });
-    }
-
-    const overlay = document.getElementById('capture-overlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-      overlay.classList.add('hidden');
     }
   }
 
@@ -689,6 +737,17 @@ const CaptureSystem = (() => {
             }
           }
 
+          // Atualiza modal HTML
+          const modalElSuccess = document.getElementById('capture-modal') || document.getElementById('capture-overlay');
+          if (modalElSuccess) {
+            const modalStatus = modalElSuccess.querySelector('#cap-status, .cap-status, #cap-status-msg');
+            if (modalStatus) {
+              modalStatus.innerHTML = `<span style="color:#4ade80;font-weight:bold;font-size:16px;">✨ ${activeMon.name.toUpperCase()} FOI CAPTURADO COM SUCESSO! ✨</span>`;
+            }
+            const btnCont = modalElSuccess.querySelector('#btn-cap-continue, #cap-continue-btn');
+            if (btnCont) btnCont.classList.remove('hidden');
+          }
+
           if (G.Game && G.Game.flash) G.Game.flash('#ffd700', 0.45);
           if (G.Audio && G.Audio.sfx) {
             G.Audio.sfx('confirm');
@@ -733,6 +792,16 @@ const CaptureSystem = (() => {
         } else {
           state = 'escape';
           ballAngle = 0;
+
+          const modalElEscape = document.getElementById('capture-modal') || document.getElementById('capture-overlay');
+          if (modalElEscape) {
+            const modalStatus = modalElEscape.querySelector('#cap-status, .cap-status, #cap-status-msg');
+            if (modalStatus) {
+              modalStatus.innerHTML = `<span style="color:#f87171;font-weight:bold;font-size:16px;">💨 ${activeMon.name.toUpperCase()} escapou da bola!</span>`;
+            }
+            const btnCont = modalElEscape.querySelector('#btn-cap-continue, #cap-continue-btn');
+            if (btnCont) btnCont.classList.remove('hidden');
+          }
 
           if (G.Audio && G.Audio.sfx) G.Audio.sfx('break');
           if (G.Camera) G.Camera.kick(0.5);
@@ -1491,6 +1560,16 @@ if (typeof window !== 'undefined') {
         console.log(`%c[Debug Capture]%c Captura finalizada. Resultado: ${caught ? 'CAPTURADO! 🏆' : 'Fugiu! 💨'}`, 'color:#38bdf8;font-weight:bold', 'color:#e2e8f0');
       }
     });
+  };
+
+  window.debugSpawnRift = function() {
+    if (typeof G === 'object' && G.Rift && typeof G.Rift.start === 'function') {
+      G.Rift.start();
+      console.log("🌀 Rift forçado no mapa!");
+    } else if (window.riftSystem && typeof window.riftSystem.forceSpawnRift === 'function') {
+      window.riftSystem.forceSpawnRift();
+      console.log("🌀 Rift forçado no mapa!");
+    }
   };
 }
 

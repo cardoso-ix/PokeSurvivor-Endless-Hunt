@@ -390,7 +390,11 @@ G.Player = class Player {
   }
 
   get magnet() {
-    return this._magnet != null ? this._magnet : 78;
+    let base = this._magnet != null ? this._magnet : 78;
+    if (typeof G === 'object' && G.Mega && G.Mega.isActive) {
+      base *= 2.0; // +100% de raio de atração no Mega Overdrive (dobra o ímã)
+    }
+    return base;
   }
   set magnet(val) {
     this._magnet = val;
@@ -549,7 +553,8 @@ G.Player = class Player {
     // Con un ataque cuerpo a cuerpo activo se recibe un 25 % menos: hay que
     // estar encima de los enemigos para pegar (iban muy por detrás).
     const close = this.activeGroup().some(m => m.kind === 'melee') ? 0.75 : 1;
-    const d = pure ? Math.max(1, amount) : Math.max(1, amount * (1 - this.reduction) * close);
+    const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive) ? 0.20 : 1.0; // Redução de 80% no dano sofrido (Aura Protetora do Mega)
+    const d = pure ? Math.max(1, amount * megaProt) : Math.max(1, amount * (1 - this.reduction) * close * megaProt);
     this.hp -= d;
     this.invuln = 0.45;
     this.flash = 0.14;
@@ -590,6 +595,7 @@ G.Player = class Player {
       this.level++;
       this.xpNext = Player.xpFor(this.level);
       leveled++;
+      this.checkEvolutionMilestones();
     }
     return leveled;
   }
@@ -638,12 +644,17 @@ G.Player = class Player {
     b.t = dur;
   }
 
-  // ---------------- Modo Mega / Super Frenzy (Super Mario Star) ----------------
+  // ---------------- Modo Mega / Super Overdrive ----------------
   addMegaEnergy(amount) {
-    if (this.dead || this.megaMode.active) return;
+    if (this.dead) return;
+    if (typeof G === 'object' && G.Mega) {
+      G.Mega.addEnergy(amount);
+      this.megaEnergy = G.Mega.gauge;
+      this.megaMaxEnergy = G.Mega.maxGauge;
+      return;
+    }
     const prev = this.megaEnergy;
     this.megaEnergy = Math.min(this.megaMaxEnergy, this.megaEnergy + amount);
-    // Notifica ao atingir 100% de carga
     if (prev < this.megaMaxEnergy && this.megaEnergy >= this.megaMaxEnergy) {
       if (typeof G === 'object') {
         if (G.Audio) G.Audio.sfx('shiny');
@@ -653,7 +664,15 @@ G.Player = class Player {
     }
   }
 
-  activateMega(dur = 15) {
+  activateMega(dur = 10) {
+    if (typeof G === 'object' && G.Mega) {
+      G.Mega.trigger();
+      this.megaEnergy = G.Mega.gauge;
+      this.megaMode.active = G.Mega.isActive;
+      this.megaMode.timer = G.Mega.timeLeft;
+      this.megaMode.maxTimer = G.Mega.duration;
+      return;
+    }
     this.megaEnergy = 0; // Consome a carga acumulada
     this.megaMode.active = true;
     this.megaMode.timer = dur;
@@ -664,9 +683,9 @@ G.Player = class Player {
     this.megaMode.starTimer = 0;
     this.megaMode.touchDmgTimer = 0;
 
-    // Cura total e invulnerabilidade contínua
-    this.hp = this.maxHp;
-    this.invuln = Math.max(this.invuln, dur);
+    // Cura parcial e invulnerabilidade de início
+    this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.3);
+    this.invuln = Math.max(this.invuln, 1.0);
 
     // Zera recarga de todos os golpes aprendidos imediatamente
     if (Array.isArray(this.slots)) {
@@ -675,7 +694,6 @@ G.Player = class Player {
       });
     }
 
-    // Efeitos imediatos audiovisuais e cinemáticos
     if (typeof G === 'object') {
       if (G.Audio) {
         G.Audio.sfx('shiny');
@@ -683,18 +701,6 @@ G.Player = class Player {
       }
       if (G.Camera) G.Camera.kick(0.65);
       if (G.Game && G.Game.flash) G.Game.flash('#ffd700', 0.55);
-      if (G.FX) {
-        const cy = this.y - this.bodyH * 0.5;
-        G.FX.burst(this.x, cy, '#ffd700', 50, 260);
-        G.FX.burst(this.x, cy, '#00e5ff', 40, 220);
-        G.FX.burst(this.x, cy, '#ff3366', 35, 180);
-        G.FX.ring(this.x, this.y, 6, 160, '#ffd700', 0.6, 8);
-        G.FX.ring(this.x, this.y, 10, 230, '#ff3366', 0.8, 10);
-        G.FX.dmgText(this.x, this.y - this.bodyH - 26, '⚡ MEGA FRENZY! ⚡', '#ffd700', true);
-      }
-      if (G.Spawner) {
-        G.Spawner.say(`⚡ ${this.mon.name.toUpperCase()} ATIVOU O MODO MEGA FÚRIA! ⚡`, 3.0, true);
-      }
     }
   }
 
@@ -707,7 +713,24 @@ G.Player = class Player {
   }
 
   updateMega(dt) {
-    if (!this.megaMode.active) return;
+    if (typeof G === 'object' && G.Mega) {
+      G.Mega.update(dt);
+      this.megaEnergy = G.Mega.gauge;
+      this.megaMode.active = G.Mega.isActive;
+      this.megaMode.timer = G.Mega.timeLeft;
+      this.megaMode.maxTimer = G.Mega.duration;
+      if (!G.Mega.isActive) {
+        if (this.megaMode.active) this.deactivateMega();
+        return;
+      }
+    } else {
+      if (!this.megaMode.active) return;
+      this.megaMode.timer -= dt;
+      if (this.megaMode.timer <= 0) {
+        this.deactivateMega();
+        return;
+      }
+    }
     this.megaMode.timer -= dt;
 
     if (this.megaMode.timer <= 0) {
@@ -961,6 +984,11 @@ G.Player = class Player {
   }
 
   draw(ctx) {
+    // Renderiza calamidades e partículas do Mega Overdrive no mundo
+    if (typeof G === 'object' && G.UltimateVFX && typeof G.UltimateVFX.draw === 'function') {
+      G.UltimateVFX.draw(ctx, G.Camera);
+    }
+
     // Efeito pulsante de silhueta e animação clássica de evolução no Canvas
     if (this.evolutionAnim && this.evolutionAnim.timer > 0) {
       const evo = this.evolutionAnim;
@@ -1032,6 +1060,38 @@ G.Player = class Player {
       ctx.restore();
     }
     G.Sprites.drawShadow(ctx, this.dex, this.x, this.y);
+
+    // Aura persistente de Ascensão Mega / Forma Ápice (Nível 21+)
+    if (this.isMegaAscended && !this.dead && !(this.megaMode && this.megaMode.active)) {
+      const now = performance.now();
+      ctx.save();
+      if (this.megaAuraType === 'gold') {
+        const glow = 0.5 + Math.sin(now / 150) * 0.3;
+        ctx.strokeStyle = `rgba(255, 215, 0, ${glow.toFixed(2)})`;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.r * 1.8 + Math.sin(now / 120) * 2, this.r * 0.8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        const count = 4;
+        const ang = now / 240;
+        for (let i = 0; i < count; i++) {
+          const a = ang + (i / count) * Math.PI * 2;
+          const sx = Math.cos(a) * (this.r * 1.6);
+          const sy = Math.sin(a) * (this.r * 0.7);
+          ctx.fillStyle = '#ffd700';
+          ctx.fillRect(Math.round(this.x + sx - 1.5), Math.round(this.y + sy - 1.5), 3, 3);
+        }
+      } else {
+        const RAINBOW_COLS = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#e040fb', '#ff9100'];
+        const curCol = RAINBOW_COLS[Math.floor(now / 90) % RAINBOW_COLS.length];
+        ctx.strokeStyle = curCol;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.r * 1.8 + Math.sin(now / 120) * 2, this.r * 0.8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
 
     // Efeito Mega Frenzy: Aura e Rastros Fantasma (Ghost Trails / Afterimages)
     const isMega = this.megaMode && this.megaMode.active && !this.dead;
@@ -1425,6 +1485,100 @@ G.Player = class Player {
     }
     return this.shiny;
   }
+
+  // ---------------- Marcos Evolutivos nos Níveis 5, 12 e 21 ----------------
+  checkEvolutionMilestones() {
+    this._milestonesReached = this._milestonesReached || new Set();
+
+    // 1. Marco Nível 5: Primeira evolução (Estágio 2)
+    if (this.level >= 5 && !this._milestonesReached.has(5)) {
+      this._milestonesReached.add(5);
+      const evoRaw = (typeof getEvolutionData === 'function') ? getEvolutionData(this.species) : null;
+      if (evoRaw) {
+        const nextTarget = Array.isArray(evoRaw) ? (evoRaw[0] && evoRaw[0].next) : evoRaw.next;
+        if (nextTarget && nextTarget.toLowerCase() !== this.species.toLowerCase()) {
+          this.triggerMilestoneEvolution(nextTarget, 5);
+        }
+      }
+    }
+
+    // 2. Marco Nível 12: Segunda evolução / Estágio Final
+    if (this.level >= 12 && !this._milestonesReached.has(12)) {
+      this._milestonesReached.add(12);
+      const evoRaw = (typeof getEvolutionData === 'function') ? getEvolutionData(this.species) : null;
+      if (evoRaw) {
+        const nextTarget = Array.isArray(evoRaw) ? (evoRaw[0] && evoRaw[0].next) : evoRaw.next;
+        if (nextTarget && nextTarget.toLowerCase() !== this.species.toLowerCase()) {
+          this.triggerMilestoneEvolution(nextTarget, 12);
+        }
+      }
+    }
+
+    // 3. Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
+    if (this.level >= 21 && !this._milestonesReached.has(21)) {
+      this._milestonesReached.add(21);
+      this.triggerMegaAscension();
+    }
+  }
+
+  triggerMilestoneEvolution(nextSpecies, milestoneLevel) {
+    const prevName = (this.mon && this.mon.name) || this.species;
+    this.evolveTo(nextSpecies);
+    const newName = (this.mon && this.mon.name) || this.species;
+
+    if (typeof G === 'object' && G.Game && typeof G.Game.freezeWorld === 'function') {
+      G.Game.freezeWorld(0.2);
+    }
+    if (typeof G === 'object') {
+      if (G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('evolve');
+      if (G.FX) {
+        const cy = this.y - this.bodyH * 0.5;
+        G.FX.burst(this.x, cy, '#ffffff', 36, 220);
+        G.FX.burst(this.x, cy, '#4fd1ff', 24, 160);
+        G.FX.ring(this.x, this.y, 8, 140, '#ffffff', 0.6, 6);
+      }
+      if (G.Spawner && typeof G.Spawner.say === 'function') {
+        G.Spawner.say(`✨ MARCO NÍVEL ${milestoneLevel}: ${prevName.toUpperCase()} EVOLUIU PARA ${newName.toUpperCase()}!`, 2.8, true);
+      }
+    }
+    console.log(`[EVOLUÇÃO] Marco Nv. ${milestoneLevel} atingido: ${prevName} -> ${newName}`);
+  }
+
+  triggerMegaAscension() {
+    const MEGA_SPECIES = new Set([
+      'venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'alakazam', 'slowbro',
+      'gengar', 'kangaskhan', 'pinsir', 'gyarados', 'aerodactyl', 'mewtwo', 'ampharos',
+      'steelix', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken',
+      'swampert', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric',
+      'sharpedo', 'camerupt', 'altaria', 'banette', 'absol', 'glalie', 'salamence',
+      'metagross', 'latias', 'latios', 'rayquaza', 'lopunny', 'garchomp', 'lucario',
+      'abomasnow', 'gallade', 'audino', 'diancie'
+    ]);
+
+    const isMega = MEGA_SPECIES.has(this.species.toLowerCase());
+    this.isMegaAscended = true;
+    this.megaAuraType = isMega ? 'gold' : 'rainbow';
+    this.damageBonus = (this.damageBonus || 1.0) * 1.5;
+    this.atkMul = (this.atkMul || 1.0) * 1.5;
+    const title = isMega ? `Mega ${this.mon.name}` : `Forma Ápice: ${this.mon.name}`;
+    this.ascensionTitle = title;
+
+    if (typeof G === 'object') {
+      if (G.Game && typeof G.Game.freezeWorld === 'function') G.Game.freezeWorld(0.2);
+      if (G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('legend');
+      if (G.FX) {
+        const cy = this.y - this.bodyH * 0.5;
+        const col = isMega ? '#ffd700' : '#e040fb';
+        G.FX.burst(this.x, cy, col, 50, 260);
+        G.FX.burst(this.x, cy, '#ffffff', 30, 180);
+        G.FX.ring(this.x, this.y, 10, 190, col, 0.8, 8);
+      }
+      if (G.Spawner && typeof G.Spawner.say === 'function') {
+        G.Spawner.say(`🌟 MARCO NÍVEL 21: ${title.toUpperCase()}! (+50% DANO)`, 3.5, true);
+      }
+    }
+    console.log(`[ASCENSÃO] Marco Nv. 21 atingido: ${title} (+50% de dano)`);
+  }
 };
 
 // Hooks globais para validação e testes no console do navegador
@@ -1462,6 +1616,41 @@ if (typeof window !== 'undefined') {
   window.debugGod = () => {
     const p = getPl();
     if (p) { p.godMode = !p.godMode; return p.godMode; }
+  };
+  window.debugSetLevel = function(lvl) {
+    const p = getPl();
+    if (!p) {
+      console.warn('[debugSetLevel] Nenhum jogador ativo na partida.');
+      return;
+    }
+    p.level = Math.max(1, parseInt(lvl) || 1);
+    p.checkEvolutionMilestones();
+    console.log(`⚡ [DEBUG] Nível do jogador definido para ${p.level}`);
+    if (typeof G === 'object' && G.HUD && typeof G.HUD.update === 'function') G.HUD.update();
+    return p.level;
+  };
+  window.debugTestHp = function(pct) {
+    const p = getPl();
+    if (!p) {
+      console.warn('[debugTestHp] Nenhum jogador ativo na partida.');
+      return;
+    }
+    let val = parseFloat(pct);
+    if (isNaN(val)) val = 0.5;
+    if (val > 1) val = val / 100;
+    val = Math.max(0.01, Math.min(1.0, val));
+    p.hp = Math.round(p.maxHp * val);
+    console.log(`🩸 [DEBUG] HP do jogador ajustado para ${(val * 100).toFixed(0)}% (${p.hp} / ${p.maxHp})`);
+    if (typeof G === 'object' && G.HUD && typeof G.HUD.update === 'function') G.HUD.update();
+    return p.hp;
+  };
+  window.debugFillMega = function() {
+    const p = getPl();
+    const mega = (typeof G === 'object' && G.Mega) ? G.Mega : null;
+    if (mega) mega.gauge = mega.maxGauge;
+    if (p) p.megaEnergy = p.megaMaxEnergy;
+    console.log('⚡ [DEBUG] Barra de Mega carregada para 100%! Pressione [ESPAÇO] para ativar.');
+    if (typeof G === 'object' && G.HUD && typeof G.HUD.update === 'function') G.HUD.update();
   };
   window.debugTestMetaSwap = function() {
     const pl = window.player || getPl();

@@ -79,10 +79,41 @@
 </script>
 <!-- seo:end -->
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/hud.css">
 </head>
 <body>
 
 <canvas id="game"></canvas>
+
+<!-- ====== Novo HUD Inferior Retro Pixel Art (Estilo DS / GBA) ====== -->
+<div id="bottom-rpg-hud" class="pixel-panel hidden">
+  <div class="hud-profile-card">
+    <div class="hud-avatar-frame">
+      <canvas id="hud-avatar-canvas" width="48" height="48"></canvas>
+      <span class="hud-level-badge">LV <span id="hud-level-val">1</span></span>
+    </div>
+    <div class="hud-bars-container">
+      <div class="hud-name-row">
+        <span id="hud-char-name">TREINADOR</span>
+        <span id="hud-hp-text">100 / 100</span>
+      </div>
+      <!-- Barra de HP -->
+      <div class="hud-bar-track hp-track">
+        <div id="hud-hp-bar" class="hud-bar-fill hp-fill high" style="width: 100%;"></div>
+        <div id="hud-hp-ghost" class="hud-bar-ghost" style="width: 100%;"></div>
+      </div>
+      <!-- Barra de Mega -->
+      <div class="hud-bar-track mega-track">
+        <div id="hud-mega-bar" class="hud-bar-fill mega-fill" style="width: 0%;"></div>
+        <span id="hud-mega-label">MEGA: 0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deck de Ataques Ativos -->
+  <div id="hud-skills-tray" class="hud-skills-row"></div>
+</div>
+
 <!-- En móvil se juega en horizontal -->
 <div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gira el móvil</h2><p class="sub">PokéRift: Endless Hunt se juega en horizontal.</p></div></div>
 
@@ -519,8 +550,8 @@
   <button id="pull-close" class="btn gold hidden">Continuar</button>
 </div>
 
-<!-- ====== Tela de Captura Cinemática via Rifts (Desativada em favor da captura 100% in-game) ====== -->
-<section id="capture-overlay" class="scr dim hidden" style="display:none!important">
+<!-- ====== Tela de Captura Cinemática via Rifts ====== -->
+<section id="capture-modal" class="scr dim hidden capture-overlay">
   <div class="box center capture-box">
     <div class="capture-header">
       <div id="cap-title-bar" class="cap-title-bar">🎯 GUARDIÃO DERROTADO!</div>
@@ -625,6 +656,7 @@
 <script defer src="js/data/funding.js"></script>
 <script defer src="js/data/changelog.js"></script>
 <script defer src="js/data/weather.js"></script>
+<script defer src="js/data/mega_ultimates.js"></script>
 <!-- mundo -->
 <script defer src="js/world/tiles.js"></script>
 <script defer src="js/world/world.js"></script>
@@ -649,6 +681,8 @@
 <script defer src="js/systems/pathing.js"></script>
 <script defer src="js/systems/progress.js"></script>
 <script defer src="js/systems/hazards.js"></script>
+<script defer src="js/systems/ultimate_vfx.js"></script>
+<script defer src="js/systems/mega.js"></script>
 <!-- red: amigos, salas, cooperativo y ranking -->
 <script defer src="js/net/social.js"></script>
 <script defer src="js/net/net.js"></script>

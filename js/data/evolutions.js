@@ -1053,6 +1053,67 @@ function getPokemonEvolutionStage(speciesId) {
   return 2;
 }
 
+/**
+ * Verifica se a espécie é Estágio 1 (Base / Inicial), ou seja,
+ * NÃO descende nem evolui de nenhuma outra espécie anterior.
+ * Espécies de Estágio 2 ou 3 retornam false.
+ *
+ * @param {string|number} speciesId Nome ou dex do Pokémon
+ * @returns {boolean} true se for Estágio 1 Base, false se for evolução (Estágio 2/3)
+ */
+function isBaseStage(speciesId) {
+  if (!speciesId) return false;
+  let id = '';
+  let mon = null;
+
+  if (typeof speciesId === 'number' || /^\d+$/.test(String(speciesId).trim())) {
+    const dexNum = Number(speciesId);
+    if (typeof G === 'object' && G.DEX_BY && G.DEX_BY[dexNum]) {
+      mon = G.DEX_BY[dexNum];
+      id = mon.name.toLowerCase().trim();
+    }
+  }
+  if (!id) {
+    id = String(speciesId).toLowerCase().trim();
+    if (typeof G === 'object' && Array.isArray(G.DEX)) {
+      mon = G.DEX.find(p => p.name && p.name.toLowerCase().trim() === id);
+    }
+  }
+
+  // 1. Se o objeto POKEDEX tiver propriedade indicando ancestral (ex: evolvesFrom / preEvolution)
+  if (typeof POKEDEX !== 'undefined' && POKEDEX[id]) {
+    const entry = POKEDEX[id];
+    if (entry.evolvesFrom || entry.preEvolution) return false;
+  }
+
+  // 2. Se está no EVOLVED_SPECIES_SET ou EVOLUTION_PARENT_MAP (já computados)
+  if (typeof EVOLVED_SPECIES_SET !== 'undefined' && EVOLVED_SPECIES_SET.has(id)) {
+    return false;
+  }
+  if (typeof EVOLUTION_PARENT_MAP !== 'undefined' && EVOLUTION_PARENT_MAP[id]) {
+    return false;
+  }
+
+  // 3. Verificação reversa na tabela POKEMON_EVOLUTIONS:
+  // Se o ID aparece como DESTINO de evolução de qualquer outro Pokémon, ele NÃO é estágio base.
+  for (const baseKey in POKEMON_EVOLUTIONS) {
+    const evo = POKEMON_EVOLUTIONS[baseKey];
+    if (!evo) continue;
+    if (Array.isArray(evo)) {
+      if (evo.some(item => (item.next && item.next.toLowerCase() === id))) return false;
+    } else if (typeof evo === 'object') {
+      if (evo.next && evo.next.toLowerCase() === id) return false;
+      if (evo.nextId && evo.nextId.toLowerCase() === id) return false;
+      if (evo.stage2 && evo.stage2.toLowerCase() === id) return false;
+      if (evo.stage3 && evo.stage3.toLowerCase() === id) return false;
+    } else if (typeof evo === 'string' && evo.toLowerCase() === id) {
+      return false;
+    }
+  }
+
+  return true; // Não descende de ninguém -> É Estágio 1 (Base)!
+}
+
 // Exportação no escopo global e no namespace G do jogo
 if (typeof window !== 'undefined') {
   window.POKEMON_EVOLUTIONS = POKEMON_EVOLUTIONS;
@@ -1064,10 +1125,20 @@ if (typeof window !== 'undefined') {
   window.isEligibleToStartRun = isEligibleToStartRun;
   window.getPokemonEvolutionStage = getPokemonEvolutionStage;
   window.getBaseAncestor = getBaseAncestor;
+  window.isBaseStage = isBaseStage;
+
   window.debugCheckStarter = function(id) {
     const res = isEligibleToStartRun(id);
     console.log(`[ELEGIBILIDADE] "${id}" pode iniciar partida? -> ${res ? '✅ SIM (Elegível)' : '❌ NÃO (Apenas via Evolução)'}`);
     return res;
+  };
+
+  window.debugCheckStages = function() {
+    console.log("=== VERIFICAÇÃO DE ESTÁGIOS DA POKÉDEX ===");
+    const testCases = ['bulbasaur', 'ivysaur', 'venusaur', 'pichu', 'pikachu', 'raichu', 'mewtwo'];
+    testCases.forEach(id => {
+      console.log(`${id.toUpperCase()} -> É Estágio 1 Base?`, isBaseStage(id) ? "✅ SIM (Liberado)" : "❌ NÃO (Travado)");
+    });
   };
 }
 if (typeof G === 'object') {
@@ -1080,6 +1151,8 @@ if (typeof G === 'object') {
   G.isEligibleToStartRun = isEligibleToStartRun;
   G.getPokemonEvolutionStage = getPokemonEvolutionStage;
   G.getBaseAncestor = getBaseAncestor;
+  G.isBaseStage = isBaseStage;
+  G.debugCheckStages = (typeof window !== 'undefined') ? window.debugCheckStages : null;
 }
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -1091,6 +1164,7 @@ if (typeof module !== 'undefined' && module.exports) {
     isLegendaryOrMythical,
     isEligibleToStartRun,
     getPokemonEvolutionStage,
-    getBaseAncestor
+    getBaseAncestor,
+    isBaseStage
   };
 }

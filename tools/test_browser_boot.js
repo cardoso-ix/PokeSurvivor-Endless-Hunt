@@ -9,12 +9,35 @@ class MockElement {
       _set: new Set(),
       add(c) { this._set.add(c); },
       remove(c) { this._set.delete(c); },
+      toggle(c, force) {
+        if (force === undefined) {
+          if (this._set.has(c)) { this._set.delete(c); return false; }
+          else { this._set.add(c); return true; }
+        } else if (force) { this._set.add(c); return true; }
+        else { this._set.delete(c); return false; }
+      },
       contains(c) { return this._set.has(c); }
     };
-    this.style = {};
+    this.style = {
+      setProperty: (k, v) => { this.style[k] = v; },
+      getPropertyValue: (k) => this.style[k] || ''
+    };
     this.children = [];
     this.dataset = {};
+    this.width = 100;
+    this.height = 100;
   }
+  getContext() {
+    return {
+      drawImage() {}, fillRect() {}, clearRect() {}, fill() {}, stroke() {},
+      beginPath() {}, arc() {}, arcTo() {}, moveTo() {}, lineTo() {}, closePath() {},
+      save() {}, restore() {}, clip() {}, scale() {}, translate() {}, rotate() {},
+      fillText() {}, strokeText() {}, measureText() { return { width: 10 }; },
+      getImageData() { return { data: new Uint8Array(16) }; },
+      putImageData() {}, createImageData() { return { data: new Uint8Array(16) }; }
+    };
+  }
+  toDataURL() { return 'data:image/png;base64,mock'; }
   appendChild(c) { this.children.push(c); }
   querySelector() { return null; }
   querySelectorAll() { return []; }

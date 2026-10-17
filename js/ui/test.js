@@ -61,6 +61,7 @@ G.TestUI = (() => {
     const grid = $('starter-grid');
     grid.innerHTML = '';
     for (const s of G.STARTERS) {
+      if (typeof G === 'object' && typeof G.isBaseStage === 'function' && !G.isBaseStage(s.dex)) continue;
       const mon = G.DEX_BY[s.dex];
       const cell = document.createElement('div');
       cell.className = 'cell' + (result && s.dex === result.dex ? ' on' : '');

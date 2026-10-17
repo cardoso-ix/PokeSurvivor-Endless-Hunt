@@ -1168,14 +1168,69 @@ G.DB = (() => {
   }
 
   function getUnlockedPlayable() {
-    if (!save || !save.owned) return [];
-    const checkEligible = (typeof G === 'object' && typeof G.isEligibleToStartRun === 'function')
-      ? G.isEligibleToStartRun
-      : (typeof isEligibleToStartRun === 'function' ? isEligibleToStartRun : () => true);
+    let list = [];
+    try {
+      list = JSON.parse(localStorage.getItem('pokesurvivor_playable') || '[]');
+    } catch (e) {
+      list = [];
+    }
 
-    return Object.keys(save.owned).map(Number)
-      .filter(d => G.DEX_BY && G.DEX_BY[d] && checkEligible(d))
-      .map(d => G.DEX_BY[d].name.toLowerCase());
+    if (!Array.isArray(list)) list = [];
+
+    // Se houver Pokémon no save.owned, adiciona-os também à lista para filtragem
+    if (save && save.owned) {
+      Object.keys(save.owned).forEach(d => {
+        const mon = G.DEX_BY && G.DEX_BY[Number(d)];
+        if (mon && mon.name) {
+          const nm = mon.name.toLowerCase().trim();
+          if (!list.includes(nm)) list.push(nm);
+        }
+      });
+    }
+
+    // Filtro sanitizador: remove qualquer evolução que tenha entrado no save
+    const isBase = (typeof isBaseStage === 'function')
+      ? isBaseStage
+      : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
+
+    const sanitized = list.filter(id => isBase(id));
+
+    // Se a lista estiver vazia por segurança, garante os iniciais base (bulbasaur, charmander, squirtle)
+    if (sanitized.length === 0) {
+      sanitized.push('bulbasaur', 'charmander', 'squirtle');
+    }
+
+    // Salva a versão limpa se houve remoção de evoluções
+    if (sanitized.length !== list.length) {
+      try {
+        localStorage.setItem('pokesurvivor_playable', JSON.stringify(sanitized));
+        console.log("🧹 [DB] Evoluções removidas da lista de jogáveis. Apenas Estágio 1 mantido.");
+      } catch (e) {}
+    }
+
+    return sanitized;
+  }
+
+  function unlockPlayable(speciesId) {
+    if (!speciesId) return false;
+    const id = String(speciesId).toLowerCase().trim();
+    const isBase = (typeof isBaseStage === 'function')
+      ? isBaseStage
+      : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
+
+    if (!isBase(id)) {
+      console.warn(`⛔ [DB] ${id.toUpperCase()} é uma evolução (Estágio 2/3) e não pode ser jogável diretamente.`);
+      return false;
+    }
+
+    let list = getUnlockedPlayable();
+    if (!list.includes(id)) {
+      list.push(id);
+      try {
+        localStorage.setItem('pokesurvivor_playable', JSON.stringify(list));
+      } catch (e) {}
+    }
+    return true;
   }
 
   function isRegionCompleted(region) {
@@ -1418,7 +1473,7 @@ G.DB = (() => {
   const exportObj = {
     ready, register, login, loginWithGoogle, playAsGuest, logout, commit, deleteAccount, flush: pushNow,
     owns, grant, ownsShiny, grantShiny, merge, setName, upgradesOf, getSpeciesUpgrades, getSpeciesUpgradeBonus,
-    addGold, addRiftCleared, unlockPokemon, isRegionCompleted, getUnlockedPlayable,
+    addGold, addRiftCleared, unlockPokemon, isRegionCompleted, getUnlockedPlayable, unlockPlayable,
     getTotalRiftsCleared, setTotalRiftsCleared, getUnlockedPokemon, getShinyCollection,
     getCapturedPokemon, getCapturedShinies, isPokemonCaptured, isPokemonShinyCaptured,
     getCapturedCountByRegion, getTotalCountByRegion,
@@ -1481,6 +1536,16 @@ G.DB = (() => {
       exportObj.unlockPokemon(testTarget);
       console.log("Lista de jogáveis agora inclui:", exportObj.getUnlockedPlayable());
     };
+    window.debugSanitizeSave = function() {
+      let before = [];
+      try { before = JSON.parse(localStorage.getItem('pokesurvivor_playable') || '[]'); } catch (e) { before = []; }
+      const after = exportObj.getUnlockedPlayable();
+      console.log("Antes:", before);
+      console.log("Depois da sanitização (Apenas Estágio 1):", after);
+      return after;
+    };
+    window.unlockPlayable = (id) => exportObj.unlockPlayable(id);
+    window.getUnlockedPlayable = () => exportObj.getUnlockedPlayable();
   }
 
   if (typeof global !== 'undefined') {

@@ -411,18 +411,24 @@ G.Rift = (() => {
       return;
     }
 
-    // Inicia a sequência de captura 100% in-game (sem telas externas)
-    if (G.Capture && G.Capture.startCaptureSequence) {
-      G.Capture.startCaptureSequence({
-        boss: boss,
+    console.log("🌟 Guardião de Rift derrotado:", guardianMon ? guardianMon.name : 'Guardião');
+
+    // Inicia a sequência de captura (Modal ou Canvas)
+    const capSys = (typeof window !== 'undefined' && window.captureSystem) || (typeof G === 'object' && G.Capture);
+    if (capSys && typeof capSys.startCaptureSequence === 'function') {
+      capSys.startCaptureSequence({
+        speciesId: guardianMon ? guardianMon.name : 'mewtwo',
         mon: guardianMon,
+        boss: boss,
         isShiny: isShiny,
-        playerLevel: pl ? pl.level : 1,
+        isLegendary: isLegendaryOrMythical(guardianMon),
+        level: pl ? pl.level : 1,
         onComplete: (caught) => {
           won(caught);
         }
       });
     } else {
+      console.error("❌ captureSystem não está carregado no escopo global!");
       won(false);
     }
   }
@@ -570,6 +576,12 @@ G.Rift = (() => {
     window.selectRiftGuardian = selectRiftGuardian;
     window.debugSimulateRiftSpawn = debugSimulateRiftSpawn;
     window.debugTestRegionFilter = debugTestRegionFilter;
+    window.riftSystem = {
+      forceSpawnRift: (species, shiny) => {
+        if (typeof G === 'object' && G.Rift) G.Rift.start(null, species, shiny);
+      }
+    };
+    window.onGuardianDefeated = handleGuardianDefeated;
   }
   if (typeof global !== 'undefined') {
     global.selectRiftGuardian = selectRiftGuardian;
