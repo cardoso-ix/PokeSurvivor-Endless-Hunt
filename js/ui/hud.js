@@ -792,47 +792,9 @@ G.HUD = (() => {
     ctx.stroke();
   }
 
-  // ---------------- TAREFA 2: Painel de Buffs e Status Ativos (Minimalista) ----------------
+  // ---------------- TAREFA 2: Painel de Atributos & Status Retro Pixel Art (Estilo DS / GBA) ----------------
   function drawBuffsPanel(ctx, w, h, pl) {
-    const pw = 216, ph = 84;
-    const px = 16, py = h - ph - 16;
-
-    // Fundo em gradiente escuro semitransparente estilo HUD militar/cyber
-    const bg = ctx.createLinearGradient(px, py, px + pw, py + ph);
-    bg.addColorStop(0, 'rgba(10, 15, 26, 0.92)');
-    bg.addColorStop(1, 'rgba(15, 23, 42, 0.92)');
-    ctx.fillStyle = bg;
-    ctx.fillRect(px, py, pw, ph);
-
-    // Listras alternadas muito sutis para as linhas (zebra striping)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
-    ctx.fillRect(px + 3, py + 5, pw - 3, 18);
-    ctx.fillRect(px + 3, py + 41, pw - 3, 18);
-
-    // Borda fina externa
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(px, py, pw, ph);
-
-    // Faixa esquerda de destaque em amarelo dourado (#ffcb05)
-    ctx.fillStyle = '#ffcb05';
-    ctx.fillRect(px, py, 3, ph);
-
-    // Cantoneiras douradas para acabamento minimalista
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 1.2;
-    const tc = 4;
-    ctx.beginPath();
-    ctx.moveTo(px + pw - tc, py); ctx.lineTo(px + pw, py); ctx.lineTo(px + pw, py + tc);
-    ctx.moveTo(px + pw, py + ph - tc); ctx.lineTo(px + pw, py + ph); ctx.lineTo(px + pw - tc, py + ph);
-    ctx.stroke();
-
-    // Divisor vertical sutil entre as duas colunas
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-    ctx.beginPath();
-    ctx.moveTo(px + 108, py + 4);
-    ctx.lineTo(px + 108, py + ph - 4);
-    ctx.stroke();
+    if (!pl) return;
 
     // Valores reais percentuais do jogador
     const atkBonus = Math.round((((pl.atk || pl.baseAtk || 1) / (pl.baseAtk || 1)) - 1) * 100);
@@ -856,39 +818,129 @@ G.HUD = (() => {
 
     const regVal = '+' + ((pl.regen || 0)).toFixed(1) + '/s';
 
-    const drawStat = (label, val, x, y, col) => {
-      ctx.font = F(700, 9);
-      ctx.fillStyle = 'rgba(180, 200, 230, 0.75)';
+    // 1. Atualização do Componente DOM Retrô (Estilo DS / GBA idêntico ao de vida)
+    const statsEl = (typeof document !== 'undefined') ? document.getElementById('stats-rpg-panel') : null;
+    if (statsEl) {
+      const isPlaying = (typeof G === 'object' && G.Game && (G.Game.state === 'playing' || G.Game.state === 'choice' || G.Game.state === 'levelup'));
+      if (!isPlaying) {
+        if (!statsEl.classList.contains('hidden')) statsEl.classList.add('hidden');
+        return;
+      }
+      if (statsEl.classList.contains('hidden')) statsEl.classList.remove('hidden');
+
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== val) el.textContent = val;
+      };
+
+      setVal('stat-val-atk', atkVal);
+      setVal('stat-val-def', defVal);
+      setVal('stat-val-spd', spdVal);
+      setVal('stat-val-cda', cdrVal);
+      setVal('stat-val-crt', critVal);
+      setVal('stat-val-mag', magVal);
+      setVal('stat-val-apr', aprVal);
+      setVal('stat-val-reg', regVal);
+      return; // Elemento DOM cuidou da renderização
+    }
+
+    // 2. Fallback Canvas Ampliado no Padrão Retro Pixel Art (se o DOM não estiver disponível)
+    const pw = 290, ph = 114;
+    const px = 16, py = h - ph - 18;
+
+    // Fundo sólido estilo DS / GBA (#141624)
+    ctx.fillStyle = '#141624';
+    roundRect(ctx, px, py, pw, ph, 8);
+    ctx.fill();
+
+    // Chanfro e Borda externa (#3a3f58)
+    ctx.strokeStyle = '#3a3f58';
+    ctx.lineWidth = 4;
+    roundRect(ctx, px, py, pw, ph, 8);
+    ctx.stroke();
+
+    // Chanfro interno de luz (#5c648d) e sombra (#090a10)
+    ctx.strokeStyle = '#5c648d';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px + 4, py + ph - 4);
+    ctx.lineTo(px + 4, py + 4);
+    ctx.lineTo(px + pw - 4, py + 4);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#090a10';
+    ctx.beginPath();
+    ctx.moveTo(px + pw - 4, py + 4);
+    ctx.lineTo(px + pw - 4, py + ph - 4);
+    ctx.lineTo(px + 4, py + ph - 4);
+    ctx.stroke();
+
+    // Cabeçalho / Badge STATUS
+    roundRect(ctx, px + 8, py + 7, 54, 16, 4);
+    ctx.fillStyle = '#f8b800';
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.font = F(900, 9);
+    ctx.fillStyle = '#090a10';
+    ctx.textAlign = 'center';
+    ctx.fillText('STATUS', px + 35, py + 19);
+
+    ctx.font = F(700, 10);
+    ctx.fillStyle = '#8fa3c4';
+    ctx.textAlign = 'right';
+    ctx.fillText('ATRIBUTOS', px + pw - 10, py + 19);
+
+    // Divisor
+    ctx.strokeStyle = '#232738';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px + 8, py + 26);
+    ctx.lineTo(px + pw - 8, py + 26);
+    ctx.stroke();
+
+    // Slots individuais de atributos
+    const drawSlot = (label, val, x, y, col) => {
+      const sw = 132, sh = 18;
+      ctx.fillStyle = '#090a10';
+      roundRect(ctx, x, y, sw, sh, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#282d44';
+      ctx.lineWidth = 1;
+      roundRect(ctx, x, y, sw, sh, 4);
+      ctx.stroke();
+
+      ctx.font = F(700, 10);
+      ctx.fillStyle = '#b4c8e6';
       ctx.textAlign = 'left';
-      ctx.fillText(label, x, y);
-      ctx.font = F(800, 10);
+      ctx.fillText(label, x + 6, y + 13);
+
+      ctx.font = F(800, 11);
       ctx.fillStyle = col;
       ctx.textAlign = 'right';
-      ctx.fillText(val, x + 88, y);
+      ctx.fillText(val, x + sw - 6, y + 13);
     };
 
-    const c1 = px + 10;
-    const c2 = px + 116;
-    const r1 = py + 18;
-    const r2 = py + 36;
-    const r3 = py + 54;
-    const r4 = py + 72;
+    const col1 = px + 8;
+    const col2 = px + 150;
+    const row1 = py + 31;
+    const row2 = py + 51;
+    const row3 = py + 71;
+    const row4 = py + 91;
 
-    // Linha 1: ATK (Potência) e DEF (Coraza)
-    drawStat('⚔ ATK', atkVal, c1, r1, '#ff6b4d');
-    drawStat('🛡 DEF', defVal, c2, r1, '#67e8f9');
+    drawSlot('⚔ ATK', atkVal, col1, row1, '#ff6b4d');
+    drawSlot('🛡 DEF', defVal, col2, row1, '#67e8f9');
 
-    // Linha 2: SPD (Velocidade) e CDR (Recarga)
-    drawStat('👟 SPD', spdVal, c1, r2, '#4ade80');
-    drawStat('⏱ CDR', cdrVal, c2, r2, '#facc15');
+    drawSlot('👟 SPD', spdVal, col1, row2, '#4ade80');
+    drawSlot('⏱ CDA', cdrVal, col2, row2, '#facc15');
 
-    // Linha 3: CRT (Crítico) e MAG (Ímã)
-    drawStat('🎯 CRT', critVal, c1, r3, '#f472b6');
-    drawStat('🧲 MAG', magVal, c2, r3, '#c084fc');
+    drawSlot('🎯 CRT', critVal, col1, row3, '#f472b6');
+    drawSlot('🧲 MAG', magVal, col2, row3, '#c084fc');
 
-    // Linha 4: APR (Aprendizado / EXP) e REG (Síntese / Regeneração)
-    drawStat('📖 APR', aprVal, c1, r4, '#38bdf8');
-    drawStat('🌿 REG', regVal, c2, r4, '#a3e635');
+    drawSlot('📖 APR', aprVal, col1, row4, '#38bdf8');
+    drawSlot('🌿 REG', regVal, col2, row4, '#a3e635');
   }
 
   // ---------------- cooperativo ----------------
@@ -983,8 +1035,10 @@ G.HUD = (() => {
     const el = document.getElementById('bottom-rpg-hud');
     if (!el) return;
 
+    const statsEl = document.getElementById('stats-rpg-panel');
     if (!pl || (typeof G === 'object' && G.Game && G.Game.state !== 'playing' && G.Game.state !== 'choice' && G.Game.state !== 'levelup')) {
       if (!el.classList.contains('hidden')) el.classList.add('hidden');
+      if (statsEl && !statsEl.classList.contains('hidden')) statsEl.classList.add('hidden');
       return;
     }
     if (el.classList.contains('hidden')) {

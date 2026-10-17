@@ -273,3 +273,135 @@
     height: 24px;
   }
 }
+
+/* ==========================================================================
+   Painel Retro de Atributos & Status (Estilo DS / GBA)
+   ========================================================================== */
+#stats-rpg-panel {
+  position: fixed;
+  bottom: 18px;
+  left: 20px;
+  background: #141624;
+  border: 4px solid #3a3f58;
+  border-radius: 8px;
+  box-shadow: inset -4px -4px 0px #090a10, inset 4px 4px 0px #5c648d, 0 6px 16px rgba(0, 0, 0, 0.7);
+  padding: 10px 14px;
+  z-index: 95;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  font-family: 'Pixelify', 'Press Start 2P', monospace;
+  user-select: none;
+  min-width: 290px;
+  box-sizing: border-box;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#stats-rpg-panel.hidden {
+  display: none !important;
+}
+
+.stats-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #232738;
+}
+
+.stats-header-badge {
+  background: #f8b800;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  color: #090a10;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 7px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.stats-header-sub {
+  color: #8fa3c4;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0px #000000;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.stat-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #090a10;
+  border: 2px solid #282d44;
+  border-radius: 5px;
+  box-shadow: inset 1px 1px 0px #3a3f58;
+  padding: 5px 9px;
+  min-width: 125px;
+}
+
+.stat-lbl {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #b4c8e6;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.stat-ico {
+  font-size: 13px;
+}
+
+.stat-val {
+  font-size: 12px;
+  font-weight: 900;
+  text-shadow: 1px 1px 0px #000;
+  letter-spacing: 0.5px;
+}
+
+.stat-atk { color: #ff6b4d; }
+.stat-def { color: #67e8f9; }
+.stat-spd { color: #4ade80; }
+.stat-cda { color: #facc15; }
+.stat-crt { color: #f472b6; }
+.stat-mag { color: #c084fc; }
+.stat-apr { color: #38bdf8; }
+.stat-reg { color: #a3e635; }
+
+/* Evita sobreposição do Bottom HUD em resoluções intermediárias e mobile */
+@media (max-width: 1100px) {
+  #stats-rpg-panel {
+    bottom: 96px;
+    left: 14px;
+    min-width: 260px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  #stats-rpg-panel {
+    bottom: 84px;
+    left: 8px;
+    min-width: 230px;
+    padding: 6px 8px;
+  }
+  .stat-slot {
+    padding: 3px 6px;
+    min-width: 105px;
+  }
+  .stat-lbl {
+    font-size: 10px;
+  }
+  .stat-val {
+    font-size: 11px;
+  }
+}
