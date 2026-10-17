@@ -24,9 +24,21 @@ HTML5 Canvas 2D + Vanilla JavaScript moderno. Versão 1.0 (20/10/2026).
 | `Q` / `E` / `Tab` | Alternar ataque anterior / próximo |
 | `+` / `−` / Roda do mouse | Zoom da câmera (aproximar / afastar) |
 | `Esc` / `P` | Pausa / Reanudar partida |
-| `1` `2` `3` / Clique na carta | Escolher carta ao subir de nível |
+| `1` `2` `3` / Clique na carta | Escolher carta ao subir de nível (inclui upgrades e evolução do trio) |
 | `R` | Rolar cartas ao subir de nível (Reroll) |
 | `F2` / `'` | Painel de Administração / Depuração |
+
+## 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)
+
+- **Estilo Clássico Game Boy / DS (`intro_creation.js`):**
+  - **Escolha do Treinador:** Abas [ 👦 Menino ] e [ 👧 Menina ] com os 8 protagonistas canônicos (Red, Ethan, Brendan, Lucas, Leaf, Lyra, May e Dawn) em pixel art de alta fidelidade.
+  - **Draft Livre dos 3 Iniciais (27 Pokémon):** Escolha livre de 3 companheiros entre todos os iniciais das 9 gerações (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar e Paldea).
+- **Fila Indiana Segura (`posHistory` em `player.js`):**
+  - O Treinador É a entidade `game.player`, preservando 100% da física nativa, colisões de paredes, magnetismo de EXP e movimentação a 60 FPS.
+  - Os 3 Pokémon escoltam em fila indiana fluida com atrasos seguros de histórico (12, 24 e 36 frames atrás), sem molas ou cálculos instáveis.
+- **Ataques Autônomos e Evolução do Trio:**
+  - Cada membro dispara autonomamente contra o monstro mais próximo com seu elemento.
+  - Ao subir de nível, o jogador pode adquirir cartas de reforço (`squad_up`) e cartas de evolução de espécie (`squad_evo`), promovendo os companheiros (ex: Charmander ➔ Charmeleon) ao longo da run.
 
 **En móvil o tablet** (en horizontal): pon el dedo en cualquier sitio y arrastra
 para moverte (el joystick aparece donde tocas), toca un ataque de abajo para
