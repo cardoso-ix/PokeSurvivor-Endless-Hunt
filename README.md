@@ -1,218 +1,185 @@
-# PokeSurvivor: Endless Hunt
+# PokéSurvivor: Endless Hunt
 
-Bullet-heaven com Pokémon ao estilo de Survivor.io e Vampire Survivors, com sprites de
-*Pokémon Mundo Misterioso*, camada roguelike, **966 Pokémon das 9 gerações**,
-Mega Evolução / Super Frenzy, shinies, clima dinâmico e gacha por região. Trilha sonora em piano suave e efeitos compostos para o jogo.
+[![GitHub License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE-NONCOMMERCIAL.md)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![HTML5 Canvas](https://img.shields.io/badge/HTML5-Canvas%202D-orange.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
+[![Docker Ready](https://img.shields.io/badge/Docker-Coolify%20Ready-2496ED.svg)](docs/DEPLOY_COOLIFY.md)
 
-HTML5 Canvas 2D + Vanilla JavaScript moderno. Versão 1.0 (20/10/2026).
+*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive de 10 segundos, sistema de captura em Rifts, clima dinâmico e salas cooperativas online.
 
-> **Aviso sobre criptomonedas / Crypto disclaimer**
->
-> PokéSurvivor **no tiene ninguna criptomoneda, token ni NFT oficial**, y yo no
-> he creado ninguno. Cualquier token que use el nombre del juego lo han creado
-> terceros. **No me hago cargo de ninguna compra, venta o inversión** que hagas
-> con ellos y nada de lo que hay aquí es una recomendación de inversión. El
-> juego es gratis y lo seguirá siendo.
+Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FPS estáveis sem dependências pesadas de frontend.
 
-## Controles & Como Jogar
+---
+
+> [!WARNING]
+> **Aviso sobre Criptomoedas / Crypto Disclaimer**  
+> O PokéSurvivor **NÃO possui nenhuma criptomoeda, token ou NFT oficial**, e nenhum foi criado por nós. Qualquer token usando o nome do jogo é criação não autorizada de terceiros. O jogo é gratuito e de código aberto para fins não-comerciais.
+
+---
+
+## 🎮 Controles & Como Jogar
 
 | Tecla / Controle | Ação |
-|---|---|
-| `W` `A` `S` `D` / Setas | Mover o Pokémon |
-| `Espaço` / `Space` | Ativar Modo Mega / Fúria (ao carregar 100%) |
-| `1` `2` `3` `4` / Clique no ícone | Selecionar ataque ativo |
-| `Q` / `E` / `Tab` | Alternar ataque anterior / próximo |
-| `+` / `−` / Menu Ajustes | Zoom da câmera (escala fixa e calibrada) |
-| `Esc` / `P` | Pausa / Reanudar partida |
-| `1` `2` `3` / Clique na carta | Escolher carta ao subir de nível |
-| `R` | Rolar cartas ao subir de nível (Reroll) |
-| `F2` / `'` | Painel de Administração / Depuração |
+| :--- | :--- |
+| `W` `A` `S` `D` / Setas | Mover o Treinador e seu Pokémon |
+| `Espaço` / `Space` | Ativar **Mega Overdrive** (ao atingir 100% da barra) |
+| `1` `2` `3` `4` / Clique no slot | Selecionar ataque ativo |
+| `Q` / `E` / `Tab` | Alternar entre ataques anterior / próximo |
+| `+` / `−` | Ajustar escala da câmera (zoom calibrado) |
+| `Esc` / `P` | Pausar / Continuar partida |
+| `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível |
+| `R` | Rolar cartas de nível (Reroll) |
+| `F2` / `'` | Abrir Painel de Administração / Depuração |
+
+**No Celular ou Tablet (Modo Paisagem/Horizontal):**  
+Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque nos slots inferiores para trocar de habilidade e pause pelo botão no topo. Pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").
+
+---
 
 ## ✨ Novos Sistemas & Arquitetura de Gameplay
 
-### 1. Trava Rígida de Câmera
-- Zoom 100% fixo e calibrado na partida (1.25x), imune a giros acidentais da roda do mouse (`wheel`).
-- Prevenção nativa de rolagem da página pelo Canvas (`e.preventDefault()`). Ajuste de zoom disponível via menu de Ajustes ou atalhos `+`/`−`.
+### 1. 🧬 Censo Oficial & Trava Estrutural dos 966 Pokémon (Gerações 1 a 9)
+O ecossistema do jogo possui uma árvore genealógica completa baseada nas **540 cadeias evolutivas oficiais da PokeAPI**:
+- **507 Pokémon de Estágio 1 (Base / Iniciais):** Únicos elegíveis para seleção inicial de partida (ex: Bulbasaur, Charmander, Pichu, Magikarp, Riolu, Gastly, Dreepy, Lapras, Heracross, Mewtwo, Cosmog, Kubfu).
+- **459 Pokémon de Estágios 2 e 3 (Evoluções):** Bloqueados com 100% de rigor para seleção inicial. São obtidos exclusivamente via evolução durante a partida ou enfrentados como Guardiões de Rifts.
+- **Sanitização de Saves:** Se o jogador possuir formas evoluídas em saves antigos, o sistema migra automaticamente para a forma base correspondente via `getBaseAncestor()` sem travar o motor.
 
-### 2. Sistema de Captura de Rifts & Gold Ball
-- Ao derrotar o Guardião do Rift, a captura cinemática é iniciada com a Pokébola correspondente ao nível:
-  - **Poké Ball** (Nv. 1–10, +0%)
-  - **Great Ball** (Nv. 11–20, +5%)
-  - **Ultra Ball** (Nv. 21–30, +10%)
-  - **Ultimate Ball** (Nv. 31+, +15%)
-  - **Gold Ball** (Nv. 41+, 10% de chance de ativação: 100% captura garantida + 1.000 moedas de ouro de recompensa)
-- Taxas base balanceadas: 50% para espécies básicas, 20% para lendários, 15% para variantes Shiny.
+---
 
-### 3. Trava Estrutural de Estágio 1 (Base vs Evolução)
-- Varredura e validação pura (`isBaseStage`): apenas formas base/iniciais (que não evoluem de ninguém) podem ser escolhidas para iniciar partidas.
-- Formas evoluídas (Estágios 2 e 3) ficam travadas para seleção inicial e são desbloqueadas e alcançadas exclusivamente durante a jornada.
+### 2. 🌀 Sistema de Captura de Rifts & Mecânica da Gold Ball
+Ao derrotar o Guardião do Rift dimensional, o minigame de captura com animação de arremesso é iniciado:
+- **Escala Dinâmica de Pokébolas por Nível:**
+  - Nv. 1 a 10: **Poké Ball** (+0% de bônus)
+  - Nv. 11 a 20: **Great Ball** (+5% de bônus)
+  - Nv. 21 a 30: **Ultra Ball** (+10% de bônus)
+  - Nv. 31+: **Ultimate Ball** (+15% de bônus)
+- **Mecânica da Gold Ball (Evento Raro Nv. 41+):**
+  - Ao atingir o nível 41 ou superior, há **10% de chance** de a Ultimate Ball ser substituída pela lendária **Gold Ball**.
+  - **Efeito:** **100% de captura garantida** (sem fuga) + **bônus imediato de 1.000 moedas de ouro**.
+- **Regras de Spawn do Guardião:**
+  - *Anti-Duplicação:* Não gera espécies já capturadas na Pokédex do jogador.
+  - *Marco dos Lendários:* Lendários e Míticos só surgem a partir de 300+ Rifts concluídos.
+  - *Pity de Shiny:* A cada 500 Rifts concluídos, o Guardião gerado é 100% garantido Shiny.
 
-### 4. Mega Overdrive Definitivo (10 Segundos Contínuos & 18 Calamidades)
-- Ao atingir 100% da barra de Mega e pressionar `[Espaço]`, o modo Overdrive é ativado:
-  - Duração de 10.0 segundos com drenagem linear regressiva na barra.
-  - Aura Protetora: redução de 80% no dano sofrido (`dmgTakenMul = 0.20`).
-  - Ímã Ampliado: +100% de raio de atração de EXP (`magnetMul = 2.0`).
-  - Calamidade Elemental Contínua cobrindo a arena a cada 0.25s–0.35s baseada no tipo do Pokémon líder (todos os 18 tipos mapeados).
-  - Gerenciamento de partículas e hazards via pooling em `UltimateVFX` a 60 FPS estáveis.
+---
 
-### 5. Novo HUD Inferior Retro Pixel Art (Estilo RPG DS/GBA) & Marcos Evolutivos
-- Painel chanfrado ampliado (+30% a 40%) fixado na base da tela:
-  - Retrato do Líder com badge de nível [LV X].
-  - Barra de Vida (HP) com estágios de cor dinâmicos (Verde >50%, Amarelo 20-50%, Vermelho <20%), indicador numérico e rastro fantasma de dano (*ghost bar*).
-  - Barra de Mega com pulso luminoso em 100% e cronômetro regressivo durante o Overdrive.
-  - Deck de Ataques Ativos com ícones de tipo, nível [Nv. X] e máscara de recarga (*cooldown sweep*).
-- **Marcos de Evolução Automática na Partida:**
-  - **Nível 5:** Primeira evolução (Estágio 2).
-  - **Nível 12:** Segunda evolução / Estágio Final (Estágio 3).
-  - **Nível 21:** Ascensão Mega (+50% de dano e aura dourada cintilante) ou Forma Ápice (+50% de dano e aura arco-íris).
-  - Transição clássica com slowdown de 0.2s, flash de partículas e atualização instantânea de sprites e atributos.
+### 3. 🌟 Mega Overdrive Definitivo (10 Segundos & 18 Calamidades)
+Ao encher a barra de Mega (100%) e pressionar `[Espaço]`, o Treinador entra em estado de Calamidade Elemental:
+- **Duração de 10.0 Segundos:** A barra drena linearmente atuando como cronômetro visual.
+- **Aura Protetora:** Redução de 80% em todo o dano recebido.
+- **Super Ímã:** Dobra o raio de atração de gemas de experiência (+100%).
+- **18 Habilidades Climáticas Únicas:** Disparos contínuos a cada 0.25s–0.35s baseados no tipo primário do Pokémon líder:
+  - `fire`: Chuva de meteoros diagonais gerando poças de lava.
+  - `water`: Chuva torrencial que desacelera inimigos e dispara gêiseres explosivos.
+  - `grass`: Vinhas espinhosas no chão que convertem 15% do dano causado em cura de HP.
+  - `electric`: Relâmpagos verticais com arcos voltaicos em cadeia.
+  - `ice`: Nevasca contínua com estalactites e congelamento de área.
+  - *(Todos os 18 tipos oficiais cobertos, incluindo Dragão, Fantasma, Noturno, Aço e Fada).*
 
-### 🛠️ Atalhos de Depuração no Console (F12)
-- `debugSetLevel(lvl)` — Define o nível instantaneamente e dispara os marcos evolutivos correspondentes.
-- `debugTestHp(pct)` — Simula dano no HP (ex: `0.1` para 10%) para testar cores e a ghost bar do HUD.
-- `debugFillMega()` — Enche a barra de Mega para 100% para acionamento imediato com `[Espaço]`.
-- `debugTriggerCapture(opts)` — Dispara a sequência de captura para a espécie e nível desejados.
-- `debugTriggerGoldBall(opts)` — Força o arremesso da Gold Ball com 100% de captura garantida e bônus de 1.000 ouro.
-- `debugSpawnRift()` — Força o surgimento imediato de um Rift com Guardião no mapa.
-- `debugCheckStages()` — Audita o ecossistema de espécies identificando estágios base vs evoluções.
-- `debugSanitizeSave()` — Purifica o save local expurgando qualquer evolução indevida da lista de jogáveis.
+---
 
-**En móvil o tablet** (en horizontal): pon el dedo en cualquier sitio y arrastra
-para moverte (el joystick aparece donde tocas), toca un ataque de abajo para
-cambiarlo y el botón de arriba a la derecha para pausar. Se puede instalar como
-app ("Añadir a pantalla de inicio"). En **Ajustes** hay sonido, calidad gráfica
-(con modo automático), números de daño, menos sacudidas, FPS y la cuenta.
+### 4. 🎴 Novo HUD Inferior Retro Pixel Art (Estilo DS / GBA)
+- **Moldura Chanfrada:** Design sólido em `#141624` com chanfros de relevo em `#3a3f58`, `#5c648d` e dourado `#f8b800`.
+- **Barra de Vida (HP):** Indicador numérico preciso (`HP 320 / 320`), cores dinâmicas (Verde >50%, Amarelo 25-50%, Vermelho <25%) e efeito de dano recebido com rastro suave (*ghost bar*).
+- **Barra de Mega:** Pulso luminoso neon em 100% e cronômetro de drenagem durante o Overdrive.
+- **Bandeja de Ataques:** Slots ampliados com marcador de nível (`Nv. 3`) e máscara translúcida de recarga (*cooldown sweep*).
 
-El Pokémon ataca solo con el movimiento activo (o con todos los de un
-**vínculo**: cada legendario vencido deja fusionar movimientos para lanzarlos a
-la vez desde un solo hueco, hasta 4). Las rocas, cofres y la hierba
-alta se rompen; las paredes y los árboles bloquean los disparos enemigos; el
-agua frena y la lava quema (también a los enemigos).
+---
 
-En el mapa hay **altares de poder**, **manantiales** que curan, **cofres con
-candado** (quédate a su lado unos segundos) y **trampas** que también dañan a
-los enemigos. A veces se abre una **grieta**: entra y lucharás contra un
-**legendario** en una arena aparte.
+### 5. 📊 Painel Retro de Atributos & Status (`#stats-rpg-panel`)
+Localizado no canto inferior esquerdo, exibe os atributos em tempo real com ícones temáticos e valores precisos:
+- ⚔️ **ATK:** Multiplicador de dano | 🛡️ **DEF:** Redução de dano
+- 👟 **VEL:** Velocidade de movimento | ⏱️ **CD:** Redução de recarga
+- 🎯 **CRT:** Chance crítica | 🔮 **MAG:** Raio de atração de EXP
+- 📐 **APR:** Área dos projéteis | 💖 **REG:** Regeneração por segundo
 
-Hay **tabla de tipos** (un Rayo Burbuja le quita más a un Charmander) y,
-de vez en cuando, **climas** (sol, lluvia, arena, nieve, niebla) que potencian
-unos tipos y debilitan otros.
+---
 
-Cada día hay **misiones** (y semanales) que dan tickets y monedas; los
-**logros** dan medallas y títulos, y tu **perfil** enseña tus 3 Pokémon
-favoritos, tus marcas y tus medallas. En las runs encuentras **objetos** (Restos,
-Cinta Elección...) y tus movimientos **evolucionan** al máximo nivel. Los
-enemigos tienen personalidad: curan, ponen escudos, llaman a su manada o atacan
-con aviso en el suelo.
+### 6. ☀️ Widget de Clima Retro (`js/systems/weather.js`)
+- Localizado no topo direito com moldura chanfrada de RPG de 38px de altura.
+- Badge embutido de 28x28px com o ícone elemental do clima (Sol, Chuva, Neve, Tempestade de Areia, etc.).
+- Temporizador digital embutido com alerta piscante nos últimos 5 segundos.
+- Barra de progresso chanfrada em relevo acompanhando a estética da barra de HP.
 
-Las **mejoras** son de cada Pokémon. El **gacha** va con **tickets** que se
-ganan jugando (×1 de algunos Pokémon, ×10 de jefes y legendarios), y se tira
-en una tragaperras pixel art.
+---
 
-Cada enemigo tiene 1/4096 de salir **shiny**: brilla, una flecha en el borde de
-la pantalla te dice dónde está, y si lo derrotas te lo quedas. En el gacha sale
-shiny 1 de cada 100 tiradas. En la colección eliges tu compañero en versión
-normal o shiny.
+### 7. 🧭 Bússola & Mini-Mapa Retro Pokégear (`js/ui/hud.js`)
+- Raio expandido para 72px (+20% de visibilidade).
+- Aro de bússola chanfrado com relevos metálicos e filete em ouro nobre `#f8b800`.
+- Insígnias cardeais clássicas: Badge de Norte (**N**) no topo e losangos dourados nos eixos Leste, Sul e Oeste.
+- Fundo azul-noite profundo (`#101422`), feixe de varredura suave em ciano e marcadores de alta legibilidade (jogador em verde esmeralda com ponteiro de mira, chefes em fogo pulsante e rifts em violeta).
 
-La música suena tras el primer clic (los navegadores no dejan reproducir sonido
-antes). Volumen y silencio: botón del altavoz arriba a la derecha, o en la pausa.
+---
 
-El guardado vive en el `localStorage` del navegador: si borras los datos del
-sitio, se pierde.
+### 8. ⚡ Marcos de Evolução Automática na Run
+- **Nível 5:** 1ª Evolução (Estágio 2).
+- **Nível 12:** 2ª Evolução (Estágio 3 / Final).
+- **Nível 21:** Forma Mega Ápice (+50% de dano e aura luminosa especial).
 
-En `videos/` hay grabaciones del juego (con su música): un combate contra un
-jefe, la captura de un shiny salvaje y un shiny en el gacha.
+---
 
-## Guardado en la nube y publicación
+## 🚀 Como Colocar Online na VPS com Coolify
 
-- **Base de datos (Firebase):** cuentas con nombre + contraseña o Google, y la
-  partida se sigue en cualquier ordenador. Pasos en [docs/FIREBASE.md](docs/FIREBASE.md).
-  Sin configurar, el juego guarda sólo en el navegador, como antes.
-- **Jugar con amigos (hasta 4) y ranking:** con cuenta en la nube, menú
-  **Amigos** (añadir por apodo, invitar a tu sala) y **Ranking** (tiempo
-  aguantado: solo o grupo, de hoy a histórico, amigos, por Pokémon).
-- **Publicar gratis en GitHub Pages:** [docs/PUBLICAR.md](docs/PUBLICAR.md).
-- Si se juega en dos ordenadores a la vez o sin conexión, las partidas se
-  **fusionan**: las colecciones se unen (nunca se pierde un Pokémon ni un
-  shiny), mejoras y estadísticas se quedan con el máximo, y monedas y
-  compañero con la versión más reciente. Los cambios de otro ordenador llegan
-  en directo.
+O projeto está 100% preparado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:
 
-## Licencia
+### Opção 1: Deploy com 1 Clique no Coolify
+1. No painel do Coolify, adicione um novo recurso: **+ New Resource** ➔ **Public Repository**.
+2. Cole a URL do repositório:
+   ```
+   https://github.com/cardoso-ix/PokeSurvivor-Endless-Hunt.git
+   ```
+3. O Coolify detectará automaticamente o `Dockerfile` e o `docker-compose.yml`.
+4. Defina o seu domínio em **Domains** (ex: `https://jogar.meudominio.com`).
+5. Clique em **Deploy**. O Nginx Alpine e os certificados SSL serão configurados automaticamente!
 
-Código bajo [PolyForm Noncommercial 1.0.0](LICENSE-NONCOMMERCIAL.md) desde el
-14-10-2026: se puede usar, estudiar y modificar, pero **no con fines
-comerciales** (ni vender el juego ni cobrar nada dentro de él). Las versiones
-hasta el commit `b297089` se publicaron bajo MIT. Los sprites (CC BY-NC 4.0),
-la fuente (OFL) y las marcas de Pokémon tienen sus propias condiciones: ver
-[LICENSE](LICENSE) y [CREDITS.md](CREDITS.md). Proyecto de fan sin ánimo de
-lucro.
+📄 Consulte o guia detalhado em: [`docs/DEPLOY_COOLIFY.md`](docs/DEPLOY_COOLIFY.md).
 
-**La única web oficial es [pokesurvivor.com](https://pokesurvivor.com).** El
-juego es y será gratis: si alguien te pide pagar, no somos nosotros.
+### Opção 2: Deploy Direto via Terminal (Docker Compose)
+```bash
+git clone https://github.com/cardoso-ix/PokeSurvivor-Endless-Hunt.git
+cd PokeSurvivor-Endless-Hunt
+docker compose up -d --build
+```
+O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
 
-## Estructura
+---
+
+## 🧪 Comandos e Depuração no Console (F12)
+
+- `debugCheckStages()` — Varre e valida os estágios de qualquer Pokémon no console.
+- `debugCheckStarter('id')` — Testa se a espécie pode iniciar partida (apenas Estágio 1).
+- `debugSetLevel(lvl)` — Altera o nível do jogador e dispara os marcos evolutivos.
+- `debugFillMega()` — Enche a barra de Mega para 100% imediatamente.
+- `debugTriggerGoldBall()` — Força a captura com Gold Ball (100% taxa + 1.000 ouro).
+- `debugSpawnRift()` — Abre um Rift com Guardião na arena.
+
+---
+
+## 📁 Estrutura do Repositório
 
 ```
-index.html              pantallas + orden de carga
-css/style.css           interfaz estilo Mundo Misterioso
-assets/pokemon/{dex}/   hojas de sprites PMD (Idle, Walk, Attack, Shoot, Charge, Hurt, Faint)
-assets/pokemon/{dex}/s/ las mismas en versión shiny
-assets/fonts/           Pixelify Sans (OFL) y su versión con números redibujados (tools/make_font.py)
+index.html              # Interface do jogo e ordem de carregamento em produção
+dev.html                # Ambiente de desenvolvimento local com scripts modulares
+Dockerfile              # Imagem Nginx Alpine ultra-leve para Coolify/VPS
+docker-compose.yml      # Configuração para deploy direto com 1 clique
+nginx.conf              # Configuração Nginx com Gzip e cache inteligente
+assets/                 # Sprites PMD, áudio e fontes
+css/
+  hud.css               # Estilos do novo HUD inferior retro e painel de atributos
+  style.css             # Estilos gerais da interface
 js/
-  net/      social (apodo, amigos, salas), net (WebRTC + relé),
-            coop (partida en grupo), ranking
-  core/     util, db (guardado), audio (sintetizador + efectos), input,
-            sprites (animador PMD), camera
-  data/     pokedex*, sprites-meta*, moves, starters (+ test), enemies,
-            upgrades, music (partituras)
-  world/    tiles (pixel art en código), world (terreno, objetos, colisiones)
-  entities/ player, enemy, projectile, pickup, fx
-  systems/  combat, spawner, levelup, gacha
-  ui/       icons (pixel art), ui, hud, login, test, menu, gacha-ui, run-ui,
-            social-ui, ranking-ui
-  game.js   flujo y bucle principal
-tools/      scripts que regeneran los ficheros marcados con *
+  core/                 # db, audio, input, camera, sprites, util
+  data/                 # evolutions (árvore genealógica das 9 gens), pokedex, moves, mega_ultimates
+  entities/             # player, enemy, projectile, vfx, fx, pickup
+  systems/              # capture, rift, mega, combat, spawner, levelup, weather
+  ui/                   # hud (bússola e canvas), menu, test, run-ui, gacha-ui
+tools/                  # Scripts de teste automatizado e build de produção
 ```
 
-`*` = generado. Para rehacerlos (necesita Python 3 + Pillow e internet, sólo esa vez):
+---
 
-```
-python tools/fetch_sprites.py    # sprites normal y shiny + js/data/sprites-meta.js
-                                 # (~20 min; se puede cortar y relanzar: usa tools/cache/)
-python tools/fetch_pokedex.py    # js/data/pokedex.js
-python tools/fetch_credits.py    # CREDITS.md
-```
+## 📜 Licença e Créditos
 
-## Notas de implementación
-
-- **Sprites PMD.** Columnas = fotogramas, filas = 8 direcciones (Down, DownRight,
-  Right, UpRight, Up, UpLeft, Left, DownLeft — verificado con los `-Offsets.png`).
-  Cada animación tiene su propio tamaño de fotograma, así que se alinean por el
-  **ancla al suelo** sacada del `-Shadow.png`; sin eso el sprite saltaría al atacar.
-- **Coordenadas.** `(x, y)` de una entidad son sus **pies**. Las colisiones
-  ocurren en el plano del suelo; los proyectiles vuelan en ese plano y se dibujan
-  elevados con su sombra debajo.
-- **Mundo.** Chunks de 16×16 tiles: los *datos* (terreno, objetos) son baratos y
-  se generan siempre; la *imagen* se hornea a resolución de arte escribiendo en un
-  `ImageData` (~4 ms por chunk en Chrome) y sólo para los visibles.
-- **Rendimiento.** Rejilla espacial de enemigos reconstruida cada frame. Con 420
-  enemigos, simulación + render completo ≈ 3 ms por frame en Chrome.
-- **Metadatos en `.js`, no `.json`**, porque `fetch()` está bloqueado en `file://`.
-- **Shiny.** Los shiny de SpriteCollab son el mismo dibujo con otra paleta; están
-  en `s/` y sólo 30 tienen geometría distinta (campo `sa` en los metadatos).
-  Las hojas se guardan como PNG con paleta exacta: misma imagen, la mitad de peso.
-- **Audio.** Sintetizador Web Audio con planificador anticipado (programa las
-  notas 150 ms por delante) y reverb por convolución con un impulso generado.
-  Las partituras están en `js/data/music.js` en un formato de texto propio.
-  Los efectos tienen separación mínima entre repeticiones y un tope de voces,
-  para que 400 enemigos golpeados a la vez no saturen.
-- **Iconos.** Mapas de caracteres convertidos a canvas y data URLs; siempre a
-  múltiplos enteros de su tamaño para que el píxel quede limpio.
-
-## Créditos y licencia
-
-Sprites de [SpriteCollab](https://github.com/PMDCollab/SpriteCollab) bajo
-**CC BY-NC 4.0** — uso **no comercial** y con atribución; la lista de artistas
-está en [`CREDITS.md`](CREDITS.md). Pokémon es propiedad de Nintendo, Creatures
-Inc. y GAME FREAK. Proyecto de fan sin ánimo de lucro.
+- Código sob licença [PolyForm Noncommercial 1.0.0](LICENSE-NONCOMMERCIAL.md) (livre para uso não-comercial, estudo e modificação).
+- Sprites de [SpriteCollab](https://github.com/PMDCollab/SpriteCollab) sob licença **CC BY-NC 4.0**.
+- Pokémon é marca registrada de Nintendo, Game Freak e Creatures Inc. Projeto de fã sem fins lucrativos.
