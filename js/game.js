@@ -118,7 +118,12 @@ G.Game = (() => {
     }
     holdBy = []; awayBy = null;
     const save = G.DB.save;
-    const mon = G.DEX_BY[save.partner];
+    let partnerDex = (save && save.partner) || (save && save.starter) || 1;
+    if (!G.DEX_BY || !G.DEX_BY[partnerDex]) {
+      partnerDex = 1;
+    }
+    if (save && save.partner !== partnerDex) save.partner = partnerDex;
+    const mon = (G.DEX_BY && G.DEX_BY[partnerDex]) || (G.DEX && G.DEX[0]);
     const perks = G.Upgrades.perks(G.DB.upgradesOf(mon.dex));
 
     G.UI.hideAll();

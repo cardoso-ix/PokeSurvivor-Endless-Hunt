@@ -1167,7 +1167,13 @@ G.DB = (() => {
     };
   }
 
+  let cachedPlayableList = null;
+
   function getUnlockedPlayable() {
+    if (cachedPlayableList && cachedPlayableList.length > 0) {
+      return cachedPlayableList.slice();
+    }
+
     let list = [];
     try {
       list = JSON.parse(localStorage.getItem('pokesurvivor_playable') || '[]');
@@ -1177,22 +1183,22 @@ G.DB = (() => {
 
     if (!Array.isArray(list)) list = [];
 
-    // Se houver Pokémon no save.owned, adiciona-os também à lista para filtragem
+    const isBase = (typeof isBaseStage === 'function')
+      ? isBaseStage
+      : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
+
+    // Se houver Pokémon no save.owned, adiciona APENAS os que forem Estágio 1 (Base)!
     if (save && save.owned) {
       Object.keys(save.owned).forEach(d => {
         const mon = G.DEX_BY && G.DEX_BY[Number(d)];
         if (mon && mon.name) {
           const nm = mon.name.toLowerCase().trim();
-          if (!list.includes(nm)) list.push(nm);
+          if (isBase(nm) && !list.includes(nm)) list.push(nm);
         }
       });
     }
 
     // Filtro sanitizador: remove qualquer evolução que tenha entrado no save
-    const isBase = (typeof isBaseStage === 'function')
-      ? isBaseStage
-      : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
-
     const sanitized = list.filter(id => isBase(id));
 
     // Se a lista estiver vazia por segurança, garante os iniciais base (bulbasaur, charmander, squirtle)
@@ -1208,7 +1214,8 @@ G.DB = (() => {
       } catch (e) {}
     }
 
-    return sanitized;
+    cachedPlayableList = sanitized;
+    return sanitized.slice();
   }
 
   function unlockPlayable(speciesId) {
@@ -1226,6 +1233,7 @@ G.DB = (() => {
     let list = getUnlockedPlayable();
     if (!list.includes(id)) {
       list.push(id);
+      cachedPlayableList = list;
       try {
         localStorage.setItem('pokesurvivor_playable', JSON.stringify(list));
       } catch (e) {}
@@ -1423,6 +1431,7 @@ G.DB = (() => {
     if (!playable.includes(baseId)) {
       playable.push(baseId);
     }
+    cachedPlayableList = playable;
     try {
       localStorage.setItem('pokesurvivor_playable', JSON.stringify(playable));
     } catch (e) {}
@@ -1432,20 +1441,112 @@ G.DB = (() => {
   }
 
   function adminUnlockAll(isShiny = false) {
-    let allKeys = [];
-    if (typeof G === 'object' && Array.isArray(G.DEX)) {
-      allKeys = G.DEX.map(p => p.name.toLowerCase());
-    } else if (typeof POKEDEX !== 'undefined') {
-      allKeys = Object.keys(POKEDEX).filter(k => isNaN(k));
+    const isBase = (typeof isBaseStage === 'function')
+      ? isBaseStage
+      : ((typeof G === 'object' && typeof G.isBaseStage === 'function') ? G.isBaseStage : () => true);
+
+    const getBase = (typeof G === 'object' && typeof G.getBaseAncestor === 'function')
+      ? G.getBaseAncestor
+      : (typeof getBaseAncestor === 'function' ? getBaseAncestor : (x) => x);
+
+    // Carrega dados existentes uma única vez
+    let capturedList = getCapturedPokemon() || [];
+    let shiniesList = getCapturedShinies() || [];
+    let playableList = getUnlockedPlayable() || [];
+
+    const capturedSet = new Set(capturedList.map(x => String(x).toLowerCase().trim()));
+    const shinySet = new Set(shiniesList.map(x => String(x).toLowerCase().trim()));
+    const playableSet = new Set(playableList.map(x => String(x).toLowerCase().trim()));
+
+    const now = Date.now();
+    let count = 0;
+
+    // Lista de todas as espécies disponíveis
+    const speciesList = (typeof G === 'object' && Array.isArray(G.DEX) && G.DEX.length)
+      ? G.DEX
+      : ((typeof POKEDEX !== 'undefined') ? Object.values(POKEDEX).filter(p => p && p.dex) : []);
+
+    for (const mon of speciesList) {
+      if (!mon || !mon.dex) continue;
+      const dex = Number(mon.dex);
+      const monName = (mon.name || '').toLowerCase().trim();
+      if (!monName) continue;
+
+      count++;
+
+      // 1. Registra no save em memória (sem commit síncrono por iteração)
+      if (save) {
+        if (!save.owned) save.owned = {};
+        if (!save.owned[dex]) save.owned[dex] = { at: now, from: 'admin' };
+        if (isShiny) {
+          if (!save.shiny) save.shiny = {};
+          if (!save.shiny[dex]) save.shiny[dex] = { at: now };
+        }
+      }
+
+      // 2. Registra nos conjuntos de captura
+      capturedSet.add(monName);
+      capturedSet.add(String(dex));
+
+      if (isShiny) {
+        shinySet.add(monName);
+        shinySet.add(String(dex));
+      }
+
+      // 3. Libera o ancestral de Estágio 1 na lista de jogáveis
+      const baseSpecies = getBase(monName);
+      let baseId = monName;
+      let baseDex = dex;
+      if (typeof baseSpecies === 'number') {
+        baseDex = baseSpecies;
+        if (G.DEX_BY && G.DEX_BY[baseDex]) baseId = G.DEX_BY[baseDex].name.toLowerCase();
+      } else if (typeof baseSpecies === 'string') {
+        baseId = baseSpecies.toLowerCase().trim();
+        if (typeof G === 'object' && Array.isArray(G.DEX)) {
+          const found = G.DEX.find(p => p.name.toLowerCase() === baseId);
+          if (found) baseDex = found.dex;
+        }
+      }
+
+      // Apenas espécies que sejam comprovadamente Estágio 1 entram como jogáveis
+      if (isBase(baseId)) {
+        playableSet.add(baseId);
+        if (save) {
+          save.playableStarters = save.playableStarters || [];
+          if (!save.playableStarters.includes(baseDex)) save.playableStarters.push(baseDex);
+          if (!save.playableStarters.includes(baseId)) save.playableStarters.push(baseId);
+        }
+      }
     }
 
-    allKeys.forEach(id => adminUnlock(id, isShiny));
-    if (save) commit();
-    console.log(`🎉 [ADMIN] Todos os ${allKeys.length} Pokémon foram desbloqueados (Shiny: ${isShiny})!`);
-    return allKeys.length;
+    // Se o jogador ainda não tinha parceiro definido, garante Bulbasaur (dex 1) como padrão seguro
+    if (save) {
+      if (!save.partner || !G.DEX_BY || !G.DEX_BY[save.partner]) {
+        save.partner = save.starter || 1;
+      }
+      commit(); // Salva UMA ÚNICA VEZ em disco!
+    }
+
+    // Gravações únicas no LocalStorage
+    try {
+      localStorage.setItem('pokesurvivor_captured', JSON.stringify(Array.from(capturedSet)));
+      if (isShiny) {
+        localStorage.setItem('pokesurvivor_shinies', JSON.stringify(Array.from(shinySet)));
+      }
+      localStorage.setItem('pokesurvivor_playable', JSON.stringify(Array.from(playableSet)));
+    } catch (e) {
+      console.warn('[ADMIN] Falha ao persistir no localStorage:', e);
+    }
+
+    // Invalida e atualiza cache de jogáveis
+    cachedPlayableList = Array.from(playableSet);
+
+    console.log(`🎉 [ADMIN BATCH] Todos os ${count} Pokémon foram desbloqueados com sucesso em lote (Shiny: ${isShiny})!`);
+    return count;
   }
 
   function adminResetDex() {
+    cachedPlayableList = null;
     if (save) {
       const partnerDex = save.partner || save.starter || 1;
       save.owned = {};
