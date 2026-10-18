@@ -840,7 +840,13 @@ G.Game = (() => {
       ctx.fillRect(0, 0, w, h);
     }
     if (G.Capture && G.Capture.drawScreen) G.Capture.drawScreen(ctx, w, h);
-    if (!G.Judgment.cinematic) G.HUD.draw(ctx, w, h, pl, st);
+    if (!G.Judgment.cinematic) {
+      try {
+        G.HUD.draw(ctx, w, h, pl, st);
+      } catch (eHud) {
+        if (loopErrs < 5) console.warn('[Game] HUD draw error caught and isolated:', eHud);
+      }
+    }
     G.Judgment.drawOverlay(ctx, w, h);
     G.Touch.draw(ctx);
     if (G.Settings.get('fps')) {

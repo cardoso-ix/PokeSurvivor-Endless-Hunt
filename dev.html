@@ -1,8 +1,9 @@
 <!doctype html>
 <!-- dev.html: página fuente. Aquí se edita; index.html lo genera tools/build.js. -->
-<html lang="es">
+<html lang="es" translate="no" class="notranslate">
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéRift: Endless Hunt – Fan Game Roguelike</title>
@@ -83,10 +84,10 @@
 </head>
 <body>
 
-<canvas id="game"></canvas>
+<canvas id="game" translate="no" class="notranslate"></canvas>
 
 <!-- ====== Novo HUD Inferior Retro Pixel Art (Estilo DS / GBA) ====== -->
-<div id="bottom-rpg-hud" class="pixel-panel hidden">
+<div id="bottom-rpg-hud" class="pixel-panel notranslate hidden" translate="no">
   <div class="hud-profile-card">
     <div class="hud-avatar-frame">
       <canvas id="hud-avatar-canvas" width="48" height="48"></canvas>
@@ -115,7 +116,7 @@
 </div>
 
 <!-- ====== Painel de Status Retro Pixel Art (Estilo DS / GBA) ====== -->
-<div id="stats-rpg-panel" class="pixel-panel hidden">
+<div id="stats-rpg-panel" class="pixel-panel notranslate hidden" translate="no">
   <div class="stats-panel-header">
     <span class="stats-header-badge">STATUS</span>
     <span class="stats-header-sub">ATRIBUTOS</span>
@@ -663,7 +664,7 @@
   </div>
 </section>
 
-<section id="scr-over" class="scr dim hidden">
+<section id="scr-over" class="scr dim notranslate hidden" translate="no">
   <div class="box center" style="width:min(480px,100%)">
     <h2 id="over-title">Has caído…</h2>
     <div id="over-stats" class="stats"></div>
