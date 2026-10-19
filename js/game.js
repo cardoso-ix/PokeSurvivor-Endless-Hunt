@@ -748,7 +748,12 @@ G.Game = (() => {
 
     const all = everyone();
     const isCapturing = G.Capture && G.Capture.isCapturing;
+    const isMegaCutscene = G.MegaCutscene && G.MegaCutscene.active;
     if (isCapturing) {
+      G.EnemyMgr.rebuildGrid();
+    } else if (isMegaCutscene) {
+      // Câmera lenta cinematográfica (Slow Motion) no mundo durante a Cutscene do Mega
+      G.EnemyMgr.update(dt * 0.12, all);
       G.EnemyMgr.rebuildGrid();
     } else {
       if (!coop || G.Coop.isHost) { G.Path.update(dt, all); G.Spawner.update(dt, all, time); }
@@ -757,7 +762,7 @@ G.Game = (() => {
       G.EnemyMgr.rebuildGrid();
     }
     G.Combat.tick(dt, pl, time);
-    G.Projectiles.update(dt, pl, G.EnemyMgr.all());
+    G.Projectiles.update(isMegaCutscene ? (dt * 0.15) : dt, pl, G.EnemyMgr.all());
     G.Combat.resolve(dt, pl, time);
     G.Combat.updateFields(dt);
     G.Pickups.update(dt, all, onCollect);

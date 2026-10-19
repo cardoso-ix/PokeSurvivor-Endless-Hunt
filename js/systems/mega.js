@@ -10,7 +10,7 @@ window.G = window.G || {};
 const MegaCutscene = {
   active: false,
   timer: 0,
-  duration: 1.15,
+  duration: 2.8, // Duração estendida para 2.8s para visualização ampla e contemplação do Pokémon
   pokemonName: 'POKÉMON',
   pokemonDex: 1,
   isShiny: false,
@@ -22,7 +22,7 @@ const MegaCutscene = {
   start(pl, element, ultimateName) {
     this.active = true;
     this.timer = 0;
-    this.duration = 1.15;
+    this.duration = 2.8;
     this.pl = pl;
     this.pokemonName = (pl && pl.mon && pl.mon.name ? pl.mon.name : (pl && pl.name ? pl.name : 'Pokémon')).toUpperCase();
     this.pokemonDex = (pl && pl.dex) || 1;
@@ -30,15 +30,15 @@ const MegaCutscene = {
     this.element = (element || 'normal').toLowerCase();
     this.ultimateName = (ultimateName || 'PODER SUPREMO').toUpperCase();
 
-    // Gera speedlines para a animação
+    // Speedlines mais suaves e desaceleradas para atmosfera cinematográfica
     this.speedlines = [];
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 26; i++) {
       this.speedlines.push({
         yRel: (Math.random() - 0.5) * 130,
-        len: 90 + Math.random() * 220,
-        speed: 1400 + Math.random() * 1600,
+        len: 120 + Math.random() * 260,
+        speed: 380 + Math.random() * 420, // Velocidade reduzida para slow motion
         x: Math.random() * 1000,
-        alpha: 0.35 + Math.random() * 0.65,
+        alpha: 0.30 + Math.random() * 0.55,
         width: 1.5 + Math.random() * 2.5
       });
     }
@@ -59,7 +59,7 @@ const MegaCutscene = {
   update(dt) {
     if (!this.active) return;
     this.timer += dt;
-    // Atualiza speedlines
+    // Atualiza speedlines em slow motion
     for (const sl of this.speedlines) {
       sl.x -= sl.speed * dt;
       if (sl.x < -sl.len) sl.x = 1000 + Math.random() * 300;
@@ -74,32 +74,49 @@ const MegaCutscene = {
 
   draw(ctx, w, h) {
     if (!this.active) return;
-    const progress = Math.min(1, this.timer / this.duration);
     const centerY = h / 2;
-    const bannerH = 138;
+    const bannerH = 142;
 
-    // Fade in rápido (0 - 0.12s), sustain (0.12 - 0.85s), fade out rápido (0.85 - 1.15s)
-    let alpha = 1;
-    if (progress < 0.12) {
-      alpha = progress / 0.12;
-    } else if (progress > 0.85) {
-      alpha = (1 - progress) / 0.15;
+    // Fases de tempo da Cutscene Estendida (2.8s no total):
+    // 1. Entrada Suave / Slow Ease-in (0.0s - 0.65s)
+    // 2. Sustentação Heroica / Full View (0.65s - 2.30s)
+    // 3. Saída Fluida / Ease-out (2.30s - 2.80s)
+    const tInDur = 0.65;
+    const tOutStart = 2.30;
+    const tOutDur = 0.50;
+
+    let alpha = 1.0;
+    let easeIn = 1.0;
+
+    if (this.timer < tInDur) {
+      const t = this.timer / tInDur;
+      // Curva cúbica suave (ease-out cubic) para entrada compassada e elegante
+      easeIn = 1 - Math.pow(1 - t, 3);
+      alpha = easeIn;
+    } else if (this.timer > tOutStart) {
+      const t = Math.min(1, (this.timer - tOutStart) / tOutDur);
+      alpha = Math.max(0, 1 - t);
+      easeIn = 1.0;
     }
 
     ctx.save();
     ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
 
-    // 1. Escurecimento dramático de fundo (Focus Dim)
-    ctx.fillStyle = 'rgba(6, 10, 22, 0.72)';
+    // 1. Escurecimento dramático de fundo (Focus Dim cinematográfico)
+    ctx.fillStyle = 'rgba(6, 10, 22, 0.78)';
     ctx.fillRect(0, 0, w, h);
 
     // Paletas dos elementos
     const palettes = (typeof ELEMENT_PALETTES !== 'undefined' ? ELEMENT_PALETTES : null) || {};
     const pal = palettes[this.element] || { color: '#f59e0b', accent: '#ef4444', aura: '#fbbf24' };
 
-    // 2. Slash Banner Angular Cortando a Tela
-    const slant = 50;
+    // 2. Slash Banner Angular Deslizando Suavemente Cortando a Tela
+    const slant = 48;
+    const bannerSlide = (1 - easeIn) * -120; // Deslizamento suave na entrada
+
     ctx.save();
+    ctx.translate(bannerSlide, 0);
+
     ctx.beginPath();
     ctx.moveTo(0, centerY - bannerH / 2 - slant * 0.35);
     ctx.lineTo(w, centerY - bannerH / 2 + slant * 0.35);
@@ -121,7 +138,7 @@ const MegaCutscene = {
     ctx.lineWidth = 3.5;
     ctx.stroke();
 
-    // 3. Speedlines cinéticas horizontais dentro do banner
+    // 3. Speedlines cinéticas horizontais dentro do banner (Slow Motion)
     ctx.clip(); // Limita as speedlines dentro da faixa angular
     for (const sl of this.speedlines) {
       ctx.strokeStyle = '#ffffff';
@@ -135,37 +152,65 @@ const MegaCutscene = {
     }
     ctx.restore();
 
-    // 4. Desenho do Sprite do Pokémon Líder Ampliado (3.8x)
+    // 4. Desenho do Sprite do Pokémon Líder Ampliado com Movimento Lento Cinematográfico
     ctx.save();
-    const pkX = Math.round(w * 0.28);
+
+    // Movimento suave do Pokémon entrando da esquerda e respirando na tela
+    const pkBaseX = Math.round(w * 0.28);
+    const pkX = Math.round(pkBaseX + (1 - easeIn) * -90);
     const pkY = Math.round(centerY + 34);
 
-    // Aura elíptica brilhante sob o Pokémon
+    // Escala dinâmica com aproximação suave (câmera lenta de anime)
+    let pkScale = 3.8;
+    if (this.timer < tInDur) {
+      // Zoom-in suave na entrada: de 3.1x até 3.8x
+      pkScale = 3.1 + (3.8 - 3.1) * easeIn;
+    } else if (this.timer <= tOutStart) {
+      // Respiração épica durante a sustentação: sutil oscilação viva
+      const breathe = Math.sin((this.timer - tInDur) * 3.0) * 0.08;
+      pkScale = 3.8 + breathe;
+    } else {
+      // Leve aceleração heroica ao sumir
+      const tOut = (this.timer - tOutStart) / tOutDur;
+      pkScale = 3.8 + tOut * 0.35;
+    }
+
+    // Aura elíptica brilhante sob o Pokémon com pulso suave
+    const auraPulse = 1 + Math.sin(this.timer * 3.5) * 0.12;
     ctx.fillStyle = pal.aura || '#ffd700';
-    ctx.globalAlpha = alpha * 0.65;
+    ctx.globalAlpha = alpha * 0.68;
     ctx.beginPath();
-    ctx.ellipse(pkX, pkY, 72, 24, 0, 0, Math.PI * 2);
+    ctx.ellipse(pkX, pkY, 78 * auraPulse, 26 * auraPulse, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Segundo anel externo da aura
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.0;
+    ctx.globalAlpha = alpha * 0.40;
+    ctx.beginPath();
+    ctx.ellipse(pkX, pkY, 92 * auraPulse, 30 * auraPulse, 0, 0, Math.PI * 2);
+    ctx.stroke();
 
     // Desenha o sprite vivo do Pokémon
     ctx.globalAlpha = alpha;
     if (this.pl && this.pl.anim && typeof this.pl.anim.draw === 'function') {
       ctx.save();
       ctx.translate(pkX, pkY);
-      ctx.scale(3.8, 3.8);
-      // Pulso de energia do Pokémon
-      const shakeX = (Math.random() - 0.5) * 1.5;
-      const shakeY = (Math.random() - 0.5) * 1.5;
+      ctx.scale(pkScale, pkScale);
+      // Pulso sutil de energia do Pokémon
+      const shakeX = (Math.random() - 0.5) * 1.0;
+      const shakeY = (Math.random() - 0.5) * 1.0;
       this.pl.anim.draw(ctx, shakeX, shakeY, { alpha: 1 });
       ctx.restore();
     } else if (typeof G === 'object' && G.Sprites && typeof G.Sprites.drawShadow === 'function') {
-      G.Sprites.drawShadow(ctx, this.pokemonDex, pkX, pkY, 2.5);
+      G.Sprites.drawShadow(ctx, this.pokemonDex, pkX, pkY, pkScale * 0.65);
     }
     ctx.restore();
 
-    // 5. Tipografia Épica de RPG Retrô / Anime Cut-In
+    // 5. Tipografia Épica de RPG Retrô com Deslizamento Suave da Direita
     ctx.save();
-    const textStartX = Math.round(w * 0.44);
+    const textBaseX = Math.round(w * 0.44);
+    const textStartX = Math.round(textBaseX + (1 - easeIn) * 70);
 
     // Linha 1: Badge Superior
     ctx.font = '800 13px Pixelify, monospace';
@@ -317,6 +362,7 @@ const MegaSystem = {
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : (typeof game !== 'undefined' ? game.player : null);
 
     // Atualiza a Cutscene
+    const wasCutsceneActive = MegaCutscene.active;
     MegaCutscene.update(dt);
 
     // Escuta ativação via teclado (Barra de Espaço) quando carregado
@@ -329,6 +375,24 @@ const MegaSystem = {
     }
 
     if (!this.isActive) return;
+
+    // Enquanto a Cutscene Cinematográfica estiver ativa (2.8s) ou finalizando neste frame, preserva os 10.0s inteiros!
+    // A drenagem da barra e os 10 segundos de chuva de poderes começam após a cutscene sumir.
+    if (wasCutsceneActive || MegaCutscene.active) {
+      this.timeLeft = this.duration;
+      this.gauge = this.maxGauge;
+      if (pl) {
+        pl.megaDmgMul = 2.0;
+        pl.dmgTakenMul = 0.20;
+        pl.magnetMul = 2.0;
+        if (pl.megaMode) {
+          pl.megaMode.active = true;
+          pl.megaMode.timer = this.duration;
+          pl.megaMode.element = this.currentElement;
+        }
+      }
+      return;
+    }
 
     this.timeLeft -= dt;
     // Drenagem linear contínua da barra como cronômetro visual de 100% a 0%

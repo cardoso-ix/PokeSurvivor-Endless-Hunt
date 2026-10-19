@@ -100,11 +100,15 @@ A mecânica de captura foi reformulada para ocorrer diretamente no chão do Canv
 
 ---
 
-### 4. 🌟 Mega Overdrive Elemental Dinâmico (Todos os 18 Tipos)
-Ao atingir 100% de energia de Mega, o jogador dispara o Poder Supremo correspondente ao elemento primário do líder da equipe:
-- **Expurgo da Metralhadora Caótica:** Multiplicadores artificiais de cadência de disparo foram removidos. As habilidades da equipe mantêm cadência natural enquanto calamidades cósmicas devastam o campo.
-- **Duração de 10.0 Segundos:** Drenagem linear contínua atuando como temporizador na barra e no botão do HUD.
-- **Aura Luminosa & Super Ímã:** Redução de 80% do dano recebido e dobro de raio de coleta (+100%).
+### 4. 🌟 Mega Overdrive Elemental Dinâmico & Cutscene Cinematográfica Prolongada
+Ao atingir 100% de energia de Mega e pressionar [ESPAÇO] ou o botão no HUD, o jogador dispara o Poder Supremo correspondente ao elemento primário do líder da equipe:
+- **Cutscene Cinematográfica Prolongada (2.8 Segundos):**
+  - **Entrada Lenta & Suave (Slow-Motion Ease-in):** Transição desacelerada com escurecimento de foco (*Focus Dim*), aproximação cinematográfica lenta de câmera (*Zoom-in* suave de 3.1x para 3.8x) e deslizamento lateral do banner angular.
+  - **Sustentação Heroica:** Exibição prolongada do Pokémon líder em tamanho ampliado com olhos em fúria, aura elemental elíptica em pulso contínuo, speedlines compassadas e tipografia épica (*Nome do Pokémon* + *Poder Supremo* + *DANO 2X ATIVO*).
+  - **Slow-Motion Cinematográfico no Mundo:** Hordas inimigas e projéteis desaceleram durante a cutscene, garantindo foco total no herói sem risco de atropelamentos.
+  - **Preservação dos 10 Segundos Úteis:** Durante os 2.8s da cutscene, a barra e o tempo do Mega permanecem intactos em 10.0s cheios. Os 10 segundos inteiros de tempestade cósmica e dano dobrado começam a contar apenas após o término da cutscene!
+- **Duração de 10.0 Segundos de Tempestade Cósmica:** Drenagem linear contínua atuando como temporizador na barra e no botão do HUD logo após a cutscene.
+- **Dano Dobrado (2x) & Super Sobrevivência:** +100% de dano base em todos os golpes, redução de 80% do dano recebido e dobro de raio de coleta (+100%).
 - **Catálogo dos 18 Poderes Supremos (`MEGA_ULTIMATES_DATA`):**
   - 🔥 `fire`: Chuva diagonal de meteoros que abre crateras de fogo e poças de brasa no solo.
   - 💧 `water`: Gêiseres de alta pressão e chuva torrencial que arremessam inimigos e causam lentidão de 40%.
