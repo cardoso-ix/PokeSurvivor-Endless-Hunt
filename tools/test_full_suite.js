@@ -283,12 +283,22 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
       }
     }
 
+    if (this.level >= 20 && !this._milestonesReached.has(20)) {
+      this._milestonesReached.add(20);
+      this.quadComboActive = true;
+    }
+
     if (this.level >= 21 && !this._milestonesReached.has(21)) {
       this._milestonesReached.add(21);
       this.isMegaAscended = true;
       this.atkMul = (this.atkMul || 1.0) * 1.5;
       this.ascensionTitle = 'Mega ' + this.mon.name;
     }
+  };
+
+  mockPlayer.activeGroup = function() {
+    if (this.level >= 20 || this.quadComboActive) return this.moves;
+    return this.slots[this.active] || [];
   };
 
   // Nível 1: Bulbasaur
@@ -303,6 +313,20 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
   mockPlayer.level = 12;
   mockPlayer.checkEvolutionMilestones();
   assert.strictEqual(mockPlayer.species, 'venusaur', 'No nível 12 deve evoluir para Venusaur');
+
+  // Nível 20: Super Combo dos 4 Ataques Ativos juntos
+  mockPlayer.level = 20;
+  mockPlayer.moves = [
+    { id: 'vinewhip', cd: 0.5 },
+    { id: 'razorleaf', cd: 0.8 },
+    { id: 'energyball', cd: 1.0 },
+    { id: 'solarbeam', cd: 2.0 }
+  ];
+  mockPlayer.slots = mockPlayer.moves.map(m => [m]);
+  mockPlayer.active = 0;
+  mockPlayer.checkEvolutionMilestones();
+  assert.strictEqual(mockPlayer.quadComboActive, true, 'No nível 20 deve ativar quadComboActive');
+  assert.strictEqual(mockPlayer.activeGroup().length, 4, 'No nível 20 activeGroup deve retornar todos os 4 ataques juntos');
 
   // Nível 21: Ascensão Mega
   mockPlayer.level = 21;

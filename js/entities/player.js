@@ -133,6 +133,7 @@ G.Player = class Player {
     this.active = 0;           // hueco activo
     this.maxMoves = 4;         // huecos
     this.bonds = 0;            // vínculos por usar (premio de los legendarios)
+    this.quadComboActive = false; // Comba os 4 ataques juntos a partir do Nv 20
 
     this.buffs = {
       atk: { n: 0, t: 0, amount: 0 },
@@ -494,8 +495,13 @@ G.Player = class Player {
     return target;
   }
 
-  /** Movimientos que se lanzan ahora (el grupo del hueco activo). */
-  activeGroup() { return this.slots[this.active] || []; }
+  /** Movimientos que se lanzan ahora (el grupo del hueco activo, o todos juntos a partir del nivel 20). */
+  activeGroup() {
+    if (this.level >= 20 || this.quadComboActive) {
+      return this.moves;
+    }
+    return this.slots[this.active] || [];
+  }
 
   activeMove() { return this.activeGroup()[0]; }
 
@@ -1548,10 +1554,44 @@ G.Player = class Player {
       }
     }
 
+    // Marco Nível 20: Super Combo dos 4 Ataques Ativos juntos
+    if (this.level >= 20 && !this._milestonesReached.has(20)) {
+      this._milestonesReached.add(20);
+      this.triggerQuadComboUnlock();
+    }
+
     // Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
     if (this.level >= 21 && !this._milestonesReached.has(21)) {
       this._milestonesReached.add(21);
       this.triggerMegaAscension();
+    }
+  }
+
+  triggerQuadComboUnlock() {
+    this.quadComboActive = true;
+    const name = (this.mon && this.mon.name) || this.species;
+    console.log(`⚡ [SUPER COMBO NV 20] ${name.toUpperCase()} desbloqueou o Super Combo dos 4 Ataques Simultâneos!`);
+
+    if (typeof G === 'object') {
+      if (G.Audio && typeof G.Audio.sfx === 'function') {
+        G.Audio.sfx('legend');
+        setTimeout(() => { if (G.Audio) G.Audio.sfx('shinyGet'); }, 200);
+      }
+      if (G.Camera && typeof G.Camera.kick === 'function') {
+        G.Camera.kick(1.5);
+      }
+      if (G.FX) {
+        if (typeof G.FX.ring === 'function') {
+          G.FX.ring(this.x, this.y, 8, this.r * 5.2, '#ffd700', 0.85, 4);
+          G.FX.ring(this.x, this.y, 14, this.r * 3.6, '#38bdf8', 0.65, 3);
+        }
+        if (typeof G.FX.dmgText === 'function') {
+          G.FX.dmgText(this.x, this.y - this.bodyH - 26, '⚡ SUPER COMBO ATIVADO! (4 ATAQUES JUNTOS) ⚡', '#ffd700', true);
+        }
+      }
+      if (G.Spawner && typeof G.Spawner.say === 'function') {
+        G.Spawner.say('🌟 NÍVEL 20 ALCANÇADO: TODOS OS 4 ATAQUES AGORA COMBAM JUNTOS!', 4.5, true);
+      }
     }
   }
 

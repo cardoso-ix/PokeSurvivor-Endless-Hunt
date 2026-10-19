@@ -20,8 +20,9 @@ G.Combat = (() => {
 
   function tick(dt, pl, now) {
     if (pl.dead) return;
-    // Vínculos: todos los movimientos del hueco activo, cada uno con su recarga.
-    for (const m of pl.activeGroup()) tickMove(dt, pl, m, now);
+    // Marco do Nível 20: o Pokémon comba todos os 4 ataques da barra abaixo juntos!
+    const movesToTick = (pl.level >= 20 || pl.quadComboActive) ? (pl.moves && pl.moves.length ? pl.moves : pl.activeGroup()) : pl.activeGroup();
+    for (const m of movesToTick) tickMove(dt, pl, m, now);
   }
 
   function tickMove(dt, pl, m, now) {

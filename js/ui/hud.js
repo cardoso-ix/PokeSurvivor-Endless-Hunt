@@ -442,7 +442,8 @@ G.HUD = (() => {
       const g = pl.slots[i] || [];
       const m = g[0];
       const fused = g.length > 1;
-      const on = i === pl.active;
+      const isCombo = (pl.level >= 20 || pl.quadComboActive);
+      const on = isCombo || (i === pl.active);
       const x = sx + i * (S + GAP);
       const y = on ? sy - 6 : sy;
       // Tocar (o hacer clic en) un icono activa ese movimiento.
@@ -454,8 +455,8 @@ G.HUD = (() => {
       ctx.fillStyle = on ? 'rgba(20,30,50,.95)' : 'rgba(10,16,28,.8)';
       ctx.fill();
       ctx.lineWidth = on ? 2.5 : fused || (m && m.evolved) ? 2 : 1.2;
-      // Vínculo: borde rosa. Evolucionado: dorado.
-      ctx.strokeStyle = fused ? BOND : m && m.evolved ? '#ffd23f' : on ? col : 'rgba(140,170,210,.22)';
+      // Vínculo: borde rosa. Evolucionado: dorado. Combo Nv 20: Dourado cintilante.
+      ctx.strokeStyle = isCombo ? '#ffd700' : (fused ? BOND : (m && m.evolved ? '#ffd23f' : (on ? col : 'rgba(140,170,210,.22)')));
       ctx.stroke();
 
       if (!m) continue;
@@ -1306,8 +1307,8 @@ G.HUD = (() => {
       // 6. Slots de Ataques Ativos
       const tray = document.getElementById('hud-skills-tray');
       if (tray && pl.slots) {
-        const n = pl.slots.length;
-        let sig = `${n}-${pl.active}`;
+        const isCombo = (pl.level >= 20 || pl.quadComboActive);
+        let sig = `${n}-${pl.active}-${isCombo ? 'combo' : 'solo'}`;
         for (let i = 0; i < n; i++) {
           const g = pl.slots[i] || [];
           const m = g[0];
@@ -1323,8 +1324,8 @@ G.HUD = (() => {
             if (!m) continue;
 
             const slotEl = document.createElement('div');
-            slotEl.className = `hud-skill-slot ${i === pl.active ? 'active' : ''} ${g.length > 1 ? 'fused' : ''}`;
-            slotEl.title = `${m.name} (Nv. ${m.lvl})`;
+            slotEl.className = `hud-skill-slot ${i === pl.active || isCombo ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
+            slotEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${m.name} (Nv. ${m.lvl})` : `${m.name} (Nv. ${m.lvl})`;
             slotEl.dataset.slotIdx = String(i);
 
             const iconWrap = document.createElement('div');
