@@ -317,12 +317,30 @@ const CaptureSystem = (() => {
       this.roll = Math.random();
       this.isSuccess = this.isGoldBall || (this.roll <= this.finalChance);
 
-      // Posição no mundo
-      this.x = params.x || 0;
-      this.y = params.y || 0;
+      // Coordenadas de origem e destino para o arremesso balístico
+      this.targetX = params.x || 0;
+      this.targetY = params.y || 0;
+      this.fromX = params.fromX !== undefined ? params.fromX : this.targetX;
+      this.fromY = params.fromY !== undefined ? params.fromY : this.targetY;
+
+      const dist = Math.hypot(this.targetX - this.fromX, this.targetY - this.fromY);
+      if (dist > 20) {
+        // Arremesso balístico parabólico saindo do jogador até o guardião
+        this.state = 'FLYING';
+        this.flightDuration = Math.min(0.60, Math.max(0.35, dist / 550));
+        this.x = this.fromX;
+        this.y = this.fromY;
+        this.ballZ = 20;
+        if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('shoot');
+      } else {
+        // Queda vertical direta
+        this.state = 'DROPPING';
+        this.x = this.targetX;
+        this.y = this.targetY;
+        this.ballZ = 120;
+      }
 
       // Física da Queda
-      this.ballZ = 120; // Começa caindo de 120px do céu
       this.vz = 0;
       this.gravity = 980;
       this.bounces = 0;
@@ -332,14 +350,11 @@ const CaptureSystem = (() => {
       this.ballAngle = 0;
       this.variant = 'closed';
 
-      // Máquina de Estados:
-      // 'DROPPING' -> 'BOUNCE' -> 'PAUSE_1' -> 'SHAKE_1' -> 'PAUSE_2' -> 'SHAKE_2' -> 'PAUSE_3' -> 'SHAKE_3' -> 'RESOLVE' -> 'DONE'
-      this.state = 'DROPPING';
       this.stateTimer = 0;
       this.resolved = false;
       this.finished = false;
 
-      console.log(`[WorldCaptureBall] Spawn em (${Math.round(this.x)}, ${Math.round(this.y)}) para ${this.speciesId} | Bola: ${this.ballTier.name} | Taxa: ${Math.round(this.finalChance * 100)}% | Sucesso: ${this.isSuccess}`);
+      console.log(`[WorldCaptureBall] Spawn em (${Math.round(this.targetX)}, ${Math.round(this.targetY)}) para ${this.speciesId} | Bola: ${this.ballTier.name} | Taxa: ${Math.round(this.finalChance * 100)}% | Sucesso: ${this.isSuccess}`);
     }
 
     update(dt) {
@@ -347,6 +362,35 @@ const CaptureSystem = (() => {
       this.stateTimer += dt;
 
       switch (this.state) {
+        case 'FLYING': {
+          const t = Math.min(1, this.stateTimer / this.flightDuration);
+          this.x = this.fromX + (this.targetX - this.fromX) * t;
+          this.y = this.fromY + (this.targetY - this.fromY) * t;
+          this.ballZ = Math.sin(t * Math.PI) * 90; // arco parabólico no ar
+          this.ballAngle += dt * 18; // rotação no ar
+
+          // Rastro cintilante de partículas coloridas da bola
+          if (typeof G === 'object' && G.FX && G.FX.spark && Math.random() < 0.6) {
+            G.FX.spark(this.x, this.y - this.ballZ, this.ballTier.colorTop || '#ef4444', 0, 0, 2);
+          }
+
+          if (t >= 1) {
+            this.x = this.targetX;
+            this.y = this.targetY;
+            this.ballZ = 0;
+            this.state = 'BOUNCE';
+            this.stateTimer = 0;
+            this.vz = -320;
+            if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('ball');
+            if (typeof G === 'object' && G.FX) {
+              if (G.FX.burst) G.FX.burst(this.x, this.y, '#ffffff', 20, 140);
+              if (G.FX.ring) G.FX.ring(this.x, this.y, 8, 90, this.ballTier.colorTop || '#ef4444', 0.5, 4);
+              if (G.FX.dmgText) G.FX.dmgText(this.x, this.y - 36, this.ballTier.name.toUpperCase() + '!', this.ballTier.colorTop || '#ef4444', true);
+            }
+          }
+          break;
+        }
+
         case 'DROPPING': {
           this.vz += this.gravity * dt;
           this.ballZ -= this.vz * dt;
@@ -395,15 +439,17 @@ const CaptureSystem = (() => {
             this.state = 'SHAKE_1';
             this.stateTimer = 0;
             if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('shake');
+            if (typeof G === 'object' && G.FX && G.FX.dmgText) G.FX.dmgText(this.x, this.y - 28, '⚡ 1...', '#facc15', true);
+            if (typeof G === 'object' && G.FX && G.FX.spark) G.FX.spark(this.x, this.y, '#facc15', 0, -1, 4);
           }
           break;
         }
 
         case 'SHAKE_1': {
-          // Balanço 1: para a esquerda até -25° (-0.436 rad) e retorna
+          // Balanço 1: para a esquerda até -28° e retorna
           const dur = 0.4;
           const progress = Math.min(1, this.stateTimer / dur);
-          this.ballAngle = -Math.sin(progress * Math.PI) * (25 * Math.PI / 180);
+          this.ballAngle = -Math.sin(progress * Math.PI) * (28 * Math.PI / 180);
           if (this.stateTimer >= dur) {
             this.ballAngle = 0;
             this.state = 'PAUSE_2';
@@ -414,19 +460,21 @@ const CaptureSystem = (() => {
 
         case 'PAUSE_2': {
           this.ballAngle = 0;
-          if (this.stateTimer >= 0.4) {
+          if (this.stateTimer >= 0.35) {
             this.state = 'SHAKE_2';
             this.stateTimer = 0;
             if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('shake');
+            if (typeof G === 'object' && G.FX && G.FX.dmgText) G.FX.dmgText(this.x, this.y - 28, '⚡ 2...', '#facc15', true);
+            if (typeof G === 'object' && G.FX && G.FX.spark) G.FX.spark(this.x, this.y, '#facc15', 0, -1, 4);
           }
           break;
         }
 
         case 'SHAKE_2': {
-          // Balanço 2: para a direita até +25° (+0.436 rad) e retorna
+          // Balanço 2: para a direita até +28° e retorna
           const dur = 0.4;
           const progress = Math.min(1, this.stateTimer / dur);
-          this.ballAngle = Math.sin(progress * Math.PI) * (25 * Math.PI / 180);
+          this.ballAngle = Math.sin(progress * Math.PI) * (28 * Math.PI / 180);
           if (this.stateTimer >= dur) {
             this.ballAngle = 0;
             this.state = 'PAUSE_3';
@@ -437,19 +485,21 @@ const CaptureSystem = (() => {
 
         case 'PAUSE_3': {
           this.ballAngle = 0;
-          if (this.stateTimer >= 0.4) {
+          if (this.stateTimer >= 0.35) {
             this.state = 'SHAKE_3';
             this.stateTimer = 0;
             if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('shake');
+            if (typeof G === 'object' && G.FX && G.FX.dmgText) G.FX.dmgText(this.x, this.y - 28, '⚡ 3...', '#facc15', true);
+            if (typeof G === 'object' && G.FX && G.FX.spark) G.FX.spark(this.x, this.y, '#facc15', 0, -1, 4);
           }
           break;
         }
 
         case 'SHAKE_3': {
-          // Balanço 3: para a esquerda até -25° (-0.436 rad) e retorna
+          // Balanço 3: para a esquerda até -28° e retorna
           const dur = 0.4;
           const progress = Math.min(1, this.stateTimer / dur);
-          this.ballAngle = -Math.sin(progress * Math.PI) * (25 * Math.PI / 180);
+          this.ballAngle = -Math.sin(progress * Math.PI) * (28 * Math.PI / 180);
           if (this.stateTimer >= dur) {
             this.ballAngle = 0;
             this.state = 'RESOLVE';
@@ -464,7 +514,7 @@ const CaptureSystem = (() => {
             const monName = (this.mon ? this.mon.name : this.speciesId).toUpperCase();
 
             if (this.isSuccess) {
-              // SUCESSO: Trava ao centro, luz estelar, SFX de clique e shiny
+              // SUCESSO: Trava ao centro, luz estelar dourada, SFX de clique e fanfare
               this.variant = 'locked';
               this.ballAngle = 0;
               if (typeof G === 'object' && G.Audio && G.Audio.sfx) {
@@ -472,31 +522,38 @@ const CaptureSystem = (() => {
                 G.Audio.sfx('shinyGet');
               }
               if (typeof G === 'object' && G.FX) {
-                if (G.FX.burst) G.FX.burst(this.x, this.y, '#facc15', 26, 130);
-                if (G.FX.burst) G.FX.burst(this.x, this.y, '#ffffff', 18, 95);
+                if (G.FX.burst) G.FX.burst(this.x, this.y, '#facc15', 36, 160);
+                if (G.FX.burst) G.FX.burst(this.x, this.y, '#ffffff', 24, 110);
+                if (G.FX.ring) G.FX.ring(this.x, this.y, 8, 140, '#ffd700', 0.8, 6);
                 if (G.FX.twinkle) {
-                  for (let k = 0; k < 6; k++) {
-                    G.FX.twinkle(this.x + (Math.random() * 40 - 20), this.y + (Math.random() * 40 - 20));
+                  for (let k = 0; k < 8; k++) {
+                    G.FX.twinkle(this.x + (Math.random() * 50 - 25), this.y + (Math.random() * 50 - 25));
                   }
                 }
                 if (G.FX.dmgText) {
-                  G.FX.dmgText(this.x, this.y - 28, `+ ${monName} CAPTURADO COM SUCESSO!`, '#4ade80', true);
+                  G.FX.dmgText(this.x, this.y - 36, `✨ + ${monName} CAPTURADO COM SUCESSO! ✨`, '#4ade80', true);
                 }
+              }
+              if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+                G.Spawner.say(`🎉 ${monName} capturado e registrado na Pokédex!`, 3.5, true);
               }
               resolveAttempt(this);
             } else {
-              // FALHA: Abre a Pokébola, fumaça cinza e SFX de break
+              // FALHA: Abre a Pokébola, fumaça cinza expansiva e SFX de break
               this.variant = 'open';
               this.ballAngle = 0;
               if (typeof G === 'object' && G.Audio && G.Audio.sfx) {
                 G.Audio.sfx('break');
               }
               if (typeof G === 'object' && G.FX) {
-                if (G.FX.burst) G.FX.burst(this.x, this.y, '#94a3b8', 22, 105);
-                if (G.FX.burst) G.FX.burst(this.x, this.y, '#64748b', 14, 75);
+                if (G.FX.burst) G.FX.burst(this.x, this.y, '#94a3b8', 26, 120);
+                if (G.FX.burst) G.FX.burst(this.x, this.y, '#ef4444', 16, 85);
                 if (G.FX.dmgText) {
-                  G.FX.dmgText(this.x, this.y - 28, 'O POKÉMON ESCAPOU!', '#f87171', true);
+                  G.FX.dmgText(this.x, this.y - 32, '💨 O POKÉMON ESCAPOU!', '#f87171', true);
                 }
+              }
+              if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+                G.Spawner.say(`💨 ${monName} escapou da Pokébola!`, 3.0, true);
               }
               const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
               if (dbObj && typeof dbObj.incrementRiftsCleared === 'function') {
@@ -505,7 +562,7 @@ const CaptureSystem = (() => {
             }
           }
 
-          if (this.stateTimer >= 1.2) {
+          if (this.stateTimer >= 1.4) {
             this.state = 'DONE';
             this.finished = true;
             if (typeof this.onComplete === 'function') {
@@ -522,30 +579,47 @@ const CaptureSystem = (() => {
 
       ctx.save();
 
-      // 1. Sombra circular no chão
+      // 1. Sombra circular realista no chão
       const shadowScale = Math.max(0.2, 1 - (this.ballZ / 150));
       ctx.save();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
       ctx.beginPath();
-      ctx.ellipse(this.x, this.y + 4, 12 * shadowScale, 6 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.ellipse(this.x, this.y + 4, 14 * shadowScale, 7 * shadowScale, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
-      // 2. Sprite da Pokébola em elevação e rotação
+      // 2. Aura mágica pulsante no solo embaixo da Pokébola
+      if (this.state !== 'FLYING') {
+        ctx.save();
+        const auraPulse = 1 + Math.sin(Date.now() / 220) * 0.15;
+        const ballColor = this.ballTier.colorTop || '#ef4444';
+        const aura = ctx.createRadialGradient(this.x, this.y, 4, this.x, this.y, 36 * auraPulse);
+        aura.addColorStop(0, ballColor + 'aa');
+        aura.addColorStop(0.5, ballColor + '33');
+        aura.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 36 * auraPulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. Sprite da Pokébola em escala 1.5x para visibilidade máxima
       const spr = getPokeballSprite(this.variant, this.ballTier);
       if (spr) {
         const renderY = this.y - this.ballZ;
         ctx.save();
         ctx.translate(this.x, renderY);
+        ctx.scale(1.5, 1.5);
         if (this.ballAngle !== 0) {
           ctx.rotate(this.ballAngle);
         }
         ctx.drawImage(spr, -spr.width / 2, -spr.height + 4);
 
         // Estrelas cintilantes se for Gold Ball ou Shiny
-        if (this.isGoldBall && Math.random() < 0.3) {
+        if (this.isGoldBall && Math.random() < 0.35) {
           drawPixelStar(ctx, (Math.random() - 0.5) * 36, -spr.height / 2 + (Math.random() - 0.5) * 24, 6, '#ffd700');
-        } else if (this.isShiny && Math.random() < 0.25) {
+        } else if (this.isShiny && Math.random() < 0.30) {
           drawPixelStar(ctx, (Math.random() - 0.5) * 32, -spr.height / 2 + (Math.random() - 0.5) * 20, 5, '#ffffff');
         }
 
@@ -617,7 +691,67 @@ const CaptureSystem = (() => {
     }
   }
 
-  // Compatibilidade com possíveis chamadas legadas
+  function drawScreen(ctx, w, h) {
+    if (!activeBall || activeBall.finished) return;
+    const b = activeBall;
+    const monName = (b.mon ? b.mon.name : b.speciesId).toUpperCase();
+    const tierName = b.ballTier.name;
+    const chancePct = Math.round(b.finalChance * 100);
+
+    ctx.save();
+    // Card centralizado no topo com cantos arredondados
+    const cardW = 360, cardH = 50;
+    const cardX = (w - cardW) / 2, cardY = 16;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+    ctx.strokeStyle = b.ballTier.colorTop || '#ffd700';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(cardX, cardY, cardW, cardH, 8);
+    } else {
+      ctx.rect(cardX, cardY, cardW, cardH);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    // Texto de cabeçalho da Pokébola e monstro
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 13px monospace, sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(`${b.ballTier.icon || '🔴'} ${tierName} · ${monName} (${chancePct}%)`, w / 2, cardY + 16);
+
+    // Texto dinâmico de status
+    let statusText = 'Lançando...';
+    let statusColor = '#facc15';
+    if (b.state === 'FLYING' || b.state === 'DROPPING') {
+      statusText = 'Arremessando Pokébola no Guardião...';
+      statusColor = '#93c5fd';
+    } else if (b.state === 'BOUNCE' || b.state === 'PAUSE_1') {
+      statusText = '⚡ Contendo Pokémon...';
+      statusColor = '#facc15';
+    } else if (b.state === 'SHAKE_1') {
+      statusText = '⚡ Balanço 1/3...';
+      statusColor = '#fbbf24';
+    } else if (b.state === 'SHAKE_2') {
+      statusText = '⚡⚡ Balanço 2/3...';
+      statusColor = '#f59e0b';
+    } else if (b.state === 'SHAKE_3') {
+      statusText = '⚡⚡⚡ Balanço 3/3...';
+      statusColor = '#ea580c';
+    } else if (b.state === 'RESOLVE' || b.state === 'DONE') {
+      statusText = b.isSuccess ? '✨ POKÉMON CAPTURADO COM SUCESSO! ✨' : '💨 O POKÉMON ESCAPOU!';
+      statusColor = b.isSuccess ? '#4ade80' : '#f87171';
+    }
+
+    ctx.fillStyle = statusColor;
+    ctx.font = 'bold 12px monospace, sans-serif';
+    ctx.fillText(statusText, w / 2, cardY + 34);
+
+    ctx.restore();
+  }
+
   function renderModal(data) {
     console.log('[CaptureSystem] Modal desativado em prol da captura diegética no mapa.');
   }
@@ -634,11 +768,12 @@ const CaptureSystem = (() => {
     init,
     update,
     drawable,
-    draw: (ctx, w, h) => {},
+    drawScreen,
+    draw: (ctx, w, h) => drawScreen(ctx, w, h),
     POKEBALL_TIERS,
     GOLD_BALL_CONFIG,
     WorldCaptureBall,
-    isCapturing: false,
+    get isCapturing() { return !!activeBall && !activeBall.finished; },
     getCameraTarget: () => null,
     get state() { return activeBall ? activeBall.state : 'idle'; },
     get activeData() { return activeBall || activeData; }

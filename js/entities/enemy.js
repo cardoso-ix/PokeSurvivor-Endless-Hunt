@@ -157,6 +157,12 @@
       this.dead = true;
       this.fade = 0.9;
       this.anim.play('Faint', { hold: true });
+
+      // Se for Guardião de Rift, notifica imediatamente o sistema de captura diegética
+      if (this.isRiftGuardian && typeof G === 'object' && G.Rift && typeof G.Rift.onGuardianDefeated === 'function') {
+        G.Rift.onGuardianDefeated(this);
+      }
+
       const col = this.boss ? '#ffd95e' : '#ffffff';
       const cy = this.y - this.bodyH * 0.5;
       G.FX.burst(this.x, cy, col, this.boss ? 34 : 9, this.boss ? 260 : 120);

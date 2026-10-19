@@ -1313,8 +1313,11 @@ G.Player = class Player {
 
     // 5. Atualizar Base Pokédex Stats da nova espécie (considerando multiplicadores de evolução se houver)
     let mult = null;
-    if (typeof getEvolutionData === 'function') {
-      const evoData = getEvolutionData(prevSpecies);
+    const getEvo = (typeof getEvolutionData === 'function' ? getEvolutionData :
+                    (typeof G === 'object' && G.getEvolutionData) ? G.getEvolutionData :
+                    (typeof window !== 'undefined' && window.getEvolutionData) ? window.getEvolutionData : null);
+    if (getEvo) {
+      const evoData = getEvo(prevSpecies);
       if (Array.isArray(evoData)) {
         const match = evoData.find(e => e.next.toLowerCase() === this.species);
         if (match) mult = match.statMultiplier;
@@ -1419,14 +1422,16 @@ G.Player = class Player {
     // 10. Persistência na Pokédex global da conta / save
     if (typeof G === 'object' && G.DB) {
       if (this.shiny) {
-        G.DB.grantShiny(nextMon.dex, 'evolution');
+        if (typeof G.DB.grantShiny === 'function') G.DB.grantShiny(nextMon.dex, 'evolution');
       } else {
-        G.DB.grant(nextMon.dex, 'evolution');
+        if (typeof G.DB.grant === 'function') G.DB.grant(nextMon.dex, 'evolution');
       }
       if (G.DB.save && G.DB.save.stats) {
         G.DB.save.stats.evolutions = (G.DB.save.stats.evolutions || 0) + 1;
       }
-      G.DB.commit('run');
+      if (typeof G.DB.commit === 'function') {
+        G.DB.commit('run');
+      }
     }
 
     return this;
@@ -1441,7 +1446,9 @@ G.Player = class Player {
       this.evolutionHistory.pop();
       previousSpecies = this.evolutionHistory[this.evolutionHistory.length - 1];
     } else {
-      const fn = (typeof getDevolutionData === 'function' ? getDevolutionData : (typeof G === 'object' && G.getDevolutionData));
+      const fn = (typeof getDevolutionData === 'function' ? getDevolutionData :
+                  (typeof G === 'object' && G.getDevolutionData) ? G.getDevolutionData :
+                  (typeof window !== 'undefined' && window.getDevolutionData) ? window.getDevolutionData : null);
       const prevInfo = fn ? fn(this.species) : null;
       if (prevInfo && prevInfo.prev) {
         previousSpecies = prevInfo.prev;
@@ -1495,22 +1502,31 @@ G.Player = class Player {
   checkEvolutionMilestones() {
     this._milestonesReached = this._milestonesReached || new Set();
 
-    if (typeof getEvolutionData === 'function') {
+    const getEvo = (typeof getEvolutionData === 'function' ? getEvolutionData :
+                    (typeof G === 'object' && G.getEvolutionData) ? G.getEvolutionData :
+                    (typeof window !== 'undefined' && window.getEvolutionData) ? window.getEvolutionData : null);
+
+    if (getEvo) {
       let loopGuard = 0;
       while (loopGuard++ < 4) {
-        const evoRaw = getEvolutionData(this.species);
+        const currentSpecies = this.species || (this.mon && this.mon.name ? this.mon.name.toLowerCase() : '') || String(this.dex);
+        const evoRaw = getEvo(currentSpecies);
         if (!evoRaw) break;
 
         const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
-        const adminEvoMode = (typeof G === 'object' && G.adminTools && G.adminTools.evoMode) || 'fast';
+        const adminEvoMode = (typeof G === 'object' && G.adminTools && G.adminTools.evoMode);
 
         let targetEvo = null;
         let reqLevel = 5;
 
         for (const evo of evoList) {
+          // No jogo padrão oficial do PokéSurvivor:
+          // 1º Salto (Estágio 1 -> 2): Nível 5 (ex: Bulbasaur -> Ivysaur)
+          // 2º Salto (Estágio 2 -> 3): Nível 12 (ex: Ivysaur -> Venusaur)
+          const isSecondEvolution = (evo.level && evo.level > 20) || (this.currentEvolutionStage >= 2);
           const lvl = adminEvoMode === 'instant' ? 1 :
-                      adminEvoMode === 'fast' ? (evo.level && evo.level > 20 ? 12 : 5) :
-                      (evo.level || 16);
+                      (adminEvoMode === 'official' && evo.level) ? evo.level :
+                      (isSecondEvolution ? 12 : 5);
 
           if (this.level >= lvl && !this._milestonesReached.has('evo_' + evo.next.toLowerCase())) {
             targetEvo = evo;

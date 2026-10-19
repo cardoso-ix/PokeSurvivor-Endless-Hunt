@@ -409,6 +409,9 @@ G.Game = (() => {
 
   function maybeLevelUp() {
     if (pendingLevels <= 0 || state !== 'playing') return;
+    if (pl && typeof pl.checkEvolutionMilestones === 'function') {
+      pl.checkEvolutionMilestones();
+    }
     if (G.Coop.active) {
       // En grupo, las cartas salen a la vez para todos y se espera a que elijan.
       if (G.Coop.players().every(p => p.dead)) return;
@@ -985,10 +988,16 @@ G.Game = (() => {
     togglePause,
     /** Abandona la partida en curso (p. ej. al cerrar sesión desde Ajustes). */
     quit() { if (state !== 'ui' && state !== 'over') quitRun(); },
-    /** Para grabar vídeos: abre las cartas de subir de nivel. */
-    debugLevelUp() { tampered = true; pl.level++; pendingLevels++; },
+    /** Para gravar vídeos: abre as cartas de subir de nível. */
+    debugLevelUp() {
+      tampered = true;
+      pl.level++;
+      pendingLevels++;
+      if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
+    },
     triggerLevelUp(n = 1) {
       pendingLevels += n;
+      if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
       if (state === 'paused') {
         state = 'playing';
         if (typeof G === 'object' && G.UI) G.UI.hideAll();

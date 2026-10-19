@@ -406,13 +406,15 @@ G.Rift = (() => {
     // Coordenadas do monstro derrotado
     const bossX = (boss && typeof boss.x === 'number') ? boss.x : arena.x;
     const bossY = (boss && typeof boss.y === 'number') ? boss.y : arena.y;
+    const fromX = pl ? pl.x : bossX;
+    const fromY = pl ? pl.y : bossY;
 
     // Colapso visual em partículas vermelhas de energia no solo
     if (typeof G === 'object' && G.FX) {
-      if (G.FX.burst) G.FX.burst(bossX, bossY, '#ef4444', 28, 150);
-      if (G.FX.burst) G.FX.burst(bossX, bossY, '#dc2626', 18, 100);
-      if (G.FX.ring) G.FX.ring(bossX, bossY, 12, 90, '#f87171', 0.5, 4);
-      if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 14);
+      if (G.FX.burst) G.FX.burst(bossX, bossY, '#ef4444', 36, 180);
+      if (G.FX.burst) G.FX.burst(bossX, bossY, '#dc2626', 24, 120);
+      if (G.FX.ring) G.FX.ring(bossX, bossY, 14, 110, '#f87171', 0.6, 5);
+      if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 16);
     }
 
     if (arena.championReward) {
@@ -430,7 +432,11 @@ G.Rift = (() => {
       return;
     }
 
-    console.log("🌟 Guardião de Rift derrotado:", guardianMon ? guardianMon.name : 'Guardião');
+    const monName = guardianMon ? guardianMon.name : 'Guardião';
+    console.log("🌟 Guardião de Rift derrotado:", monName);
+    if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+      G.Spawner.say(`⚡ ${monName.toUpperCase()} DERROTADO! ARREMESSANDO POKÉBOLA!`, 2.5, true);
+    }
 
     // Inicia a captura diegética no chão do mapa
     const capSys = (typeof CaptureSystem !== 'undefined' ? CaptureSystem : (typeof window !== 'undefined' ? (window.captureSystem || window.CaptureSystem) : null)) || (typeof G === 'object' ? G.Capture : null);
@@ -441,6 +447,8 @@ G.Rift = (() => {
         boss: boss,
         x: bossX,
         y: bossY,
+        fromX: fromX,
+        fromY: fromY,
         isShiny: isShiny,
         isLegendary: isLegendaryOrMythical(guardianMon),
         level: pl ? pl.level : 1,
@@ -587,6 +595,8 @@ G.Rift = (() => {
     triggerGuardian(species, shiny) { start(null, species, shiny); },
     /** Para vídeos: la próxima grieta en la que entres será de este tipo. */
     debugNextType(type) { nextType = type; },
+    handleGuardianDefeated,
+    onGuardianDefeated: handleGuardianDefeated,
     selectRiftGuardian,
     isLegendaryOrMythical,
     debugSimulateRiftSpawn,
