@@ -126,7 +126,7 @@ G.RunUI = (() => {
         ${r.moves.map(m => `${G.Icons.html('move:' + m.id, 16)} ${m.name} Nv.${m.lvl}`).join(' · ') || '—'}</b></div>
       ${r.caught && r.caught.length ? `<div style="grid-column:1/-1" class="caught"><span>${G.Icons.html('shiny', 12)} Shinies capturados</span>
         <div class="caught-row" id="over-caught"></div></div>` : ''}
-      ${r.record ? '<div style="grid-column:1/-1;text-align:center" class="gold">¡Novo recorde de tempo!</div>' : ''}
+      ${r.record ? '<div style="grid-column:1/-1;text-align:center" class="gold">🎉 Novo Recorde de Sobrevivência!</div>' : ''}
       ${askSupport(r) ? `<div class="support-ask" id="over-ask" style="grid-column:1/-1">
         <button class="x" type="button" aria-label="Fechar">×</button>
         <p>Está gostando do PokéSurvivor? Ajude nosso projeto para mantermos os servidores ativos!</p>
@@ -140,7 +140,7 @@ G.RunUI = (() => {
       for (const c of r.caught) {
         const w = document.createElement('div');
         w.appendChild(G.UI.spriteCanvas(c.dex, 90, 72, { shiny: true, lively: true, scale: 2 }));
-        w.insertAdjacentHTML('beforeend', `<small>${G.DEX_BY[c.dex].name}${c.isNew ? ' · ¡novo!' : ''}</small>`);
+        w.insertAdjacentHTML('beforeend', `<small>${G.DEX_BY[c.dex].name}${c.isNew ? ' · Novo!' : ''}</small>`);
         row.appendChild(w);
       }
     }

@@ -357,10 +357,10 @@ G.DB = (() => {
   async function registerLocal(name, pass) {
     const accs = read(K_ACC) || {};
     const k = name.toLowerCase();
-    if (accs[k]) return { ok: false, error: 'Ese nombre ya existe.' };
+    if (accs[k]) return { ok: false, error: 'Esse nome de usuário já existe.' };
     const salt = randomSalt();
     accs[k] = { name, salt, hash: await hash(pass, salt), created: Date.now() };
-    if (!write(K_ACC, accs)) return { ok: false, error: 'El navegador no deja guardar datos (¿modo incógnito?).' };
+    if (!write(K_ACC, accs)) return { ok: false, error: 'O navegador não permite salvar dados (modo anônimo?).' };
     beginLocal(k, name);
     write(K_SAVE + k, save);
     return { ok: true, isNew: true };
@@ -370,7 +370,7 @@ G.DB = (() => {
     const accs = read(K_ACC) || {};
     const acc = accs[name.toLowerCase()];
     if (!acc || acc.hash !== await hash(pass || '', acc.salt)) {
-      return { ok: false, error: 'Usuario o contraseña incorrectos.' };
+      return { ok: false, error: 'Usuário ou senha incorretos.' };
     }
     beginLocal(name.toLowerCase(), acc.name);
     return { ok: true, isNew: !save.partner };
@@ -644,25 +644,25 @@ G.DB = (() => {
   function authError(e) {
     const c = (e && e.code) || '';
     const M = {
-      'auth/email-already-in-use': 'Ese nombre ya existe.',
-      'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
-      'auth/invalid-login-credentials': 'Usuario o contraseña incorrectos.',
-      'auth/wrong-password': 'Usuario o contraseña incorrectos.',
-      'auth/user-not-found': 'Usuario o contraseña incorrectos.',
-      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-      'auth/too-many-requests': 'Demasiados intentos seguidos. Espera un poco.',
-      'auth/network-request-failed': 'Sin conexión a internet.',
-      'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes.',
-      'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase (Authentication > Configuración > Dominios autorizados).',
-      'auth/operation-not-allowed': 'Ese método de inicio de sesión no está activado en Firebase.',
-      // Registro de cuentas nuevas desactivado en Firebase (Authentication > Configuración).
-      'auth/admin-restricted-operation': 'Ahora mismo no se pueden crear cuentas nuevas. Si ya tienes cuenta, entra normal; si no, puedes jugar como invitado.',
-      'auth/requires-recent-login': 'Por seguridad, vuelve a iniciar sesión y repite la operación.',
-      'permission-denied': 'La base de datos rechazó el acceso (revisa las reglas de Firestore).',
-      'unavailable': 'Sin conexión con la base de datos.'
+      'auth/email-already-in-use': 'Esse nome de usuário já existe.',
+      'auth/invalid-credential': 'Usuário ou senha incorretos.',
+      'auth/invalid-login-credentials': 'Usuário ou senha incorretos.',
+      'auth/wrong-password': 'Usuário ou senha incorretos.',
+      'auth/user-not-found': 'Usuário ou senha incorretos.',
+      'auth/weak-password': 'A senha deve ter pelo menos 6 caracteres.',
+      'auth/too-many-requests': 'Muitas tentativas seguidas. Aguarde um momento.',
+      'auth/network-request-failed': 'Sem conexão com a internet.',
+      'auth/popup-blocked': 'O navegador bloqueou a janela do Google. Permita pop-ups.',
+      'auth/unauthorized-domain': 'Este domínio não está autorizado no Firebase.',
+      'auth/operation-not-allowed': 'Esse método de login não está ativado no Firebase.',
+      // Registro de contas novas desactivado en Firebase (Authentication > Configuración).
+      'auth/admin-restricted-operation': 'No momento não é possível criar novas contas. Se já possui uma conta, faça login normalmente; caso contrário, pode jogar como convidado.',
+      'auth/requires-recent-login': 'Por segurança, faça login novamente e repita a operação.',
+      'permission-denied': 'O banco de dados recusou o acesso.',
+      'unavailable': 'Sem conexão com o banco de dados.'
     };
     if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '';
-    return M[c] || ('Error: ' + (c || (e && e.message) || 'desconocido'));
+    return M[c] || ('Erro: ' + (c || (e && e.message) || 'desconhecido'));
   }
 
   // =====================================================================
@@ -688,9 +688,9 @@ G.DB = (() => {
 
   async function register(name, pass) {
     name = (name || '').trim();
-    if (!VALID.test(name)) return { ok: false, error: 'El nombre debe tener 3-16 letras, números o _.' };
+    if (!VALID.test(name)) return { ok: false, error: 'O nome deve ter de 3 a 16 letras, números ou _.' };
     const min = mode === 'cloud' ? 6 : 4;
-    if ((pass || '').length < min) return { ok: false, error: `La contraseña debe tener al menos ${min} caracteres.` };
+    if ((pass || '').length < min) return { ok: false, error: `A senha deve ter pelo menos ${min} caracteres.` };
     if (mode === 'local') return registerLocal(name, pass);
     // Tope de cuentas del mes (Firebase cobra a partir de 50.000 al mes).
     try {
@@ -820,7 +820,7 @@ G.DB = (() => {
       // se podía volver a usar.
       const cu = auth.currentUser;
       if (nameAccount()) {
-        if (!pass) return { ok: false, error: 'Escribe tu contraseña.' };
+        if (!pass) return { ok: false, error: 'Digite sua senha.' };
         await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cu.email, pass));
       } else {
         await cu.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());

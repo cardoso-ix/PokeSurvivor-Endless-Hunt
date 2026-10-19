@@ -1,8 +1,6 @@
-/* ============ starters.js — compañeros iniciales y test de personalidad ============
- * Como en Mundo Misterioso: unas preguntas deciden tu personalidad, y tu
- * personalidad decide tu compañero. Puedes rechazarlo y elegir otro.
- *
- * Los stats salen de G.DEX; aquí sólo van los rasgos y el movimiento inicial.
+/* ============ starters.js — companheiros iniciais e teste de personalidade ============
+ * Como em Pokémon Mystery Dungeon: perguntas definem sua personalidade, e sua
+ * personalidade revela seu companheiro inicial ideal. Você também pode escolher livremente.
  */
 G.STARTERS = [
   { dex: 1,   start: 'vine-whip',     traits: ['leal', 'paciente'] },
@@ -39,81 +37,100 @@ G.STARTERS = [
 G.STARTER_BY = {};
 for (const s of G.STARTERS) G.STARTER_BY[s.dex] = s;
 
-/** Movimiento inicial de cualquier Pokémon (starter o del gacha). */
+/** Movimento inicial de qualquer Pokémon (starter ou de catálogo). */
 G.startMoveOf = dex => {
   const s = G.STARTER_BY[dex];
   return s ? s.start : G.Moves.startFor(G.DEX_BY[dex]);
 };
 
-/** Descripción corta de cada rasgo, para la pantalla de resultado. */
+/** Nomes amigáveis em português para cada traço de personalidade */
+G.TRAIT_NAME = {
+  valiente:  'Corajoso',
+  impulsivo: 'Impulsivo',
+  prudente:  'Prudente',
+  leal:      'Leal',
+  paciente:  'Paciente',
+  dulce:     'Gentil',
+  tímido:    'Tímido',
+  travieso:  'Travesso',
+  sereno:    'Sereno',
+  astuto:    'Astuto',
+  alegre:    'Alegre',
+  tenaz:     'Determinado',
+  orgulloso: 'Orgulhoso',
+  solitario: 'Solitário',
+  tranquilo: 'Tranquilo',
+  caótico:   'Imprevisível'
+};
+
+/** Descrição detalhada de cada traço para a tela de resultado */
 G.TRAIT_TEXT = {
-  valiente:  'No te lo piensas dos veces cuando alguien necesita ayuda.',
-  impulsivo: 'Actúas primero y piensas después. ¡A veces sale bien!',
-  prudente:  'Mides cada paso antes de darlo.',
-  leal:      'Tus amigos saben que pueden contar contigo siempre.',
-  paciente:  'Sabes esperar el momento justo.',
-  dulce:     'Tu amabilidad tranquiliza a todos los que te rodean.',
-  tímido:    'Te cuesta dar el primer paso, pero sientes mucho.',
-  travieso:  'Siempre tienes una broma preparada.',
-  sereno:    'Mantienes la calma cuando todo se complica.',
-  astuto:    'Ves soluciones donde otros ven problemas.',
-  alegre:    'Contagias energía allá donde vas.',
-  tenaz:     'Rendirse no entra en tus planes.',
-  orgulloso: 'Te exiges ser el mejor, y casi siempre lo consigues.',
-  solitario: 'Vas a tu aire y no te importa.',
-  tranquilo: 'Nada te altera. Nada.',
-  caótico:   'Ni tú sabes qué vas a hacer después.'
+  valiente:  'Você não pensa duas vezes quando alguém precisa de ajuda.',
+  impulsivo: 'Você age primeiro e pensa depois. Às vezes dá muito certo!',
+  prudente:  'Você calcula e planeja cada passo antes de agir.',
+  leal:      'Seus amigos sabem que sempre podem contar com você.',
+  paciente:  'Você sabe aguardar pacientemente pelo momento ideal.',
+  dulce:     'Sua bondade traz paz e tranquilidade a todos ao seu redor.',
+  tímido:    'Dar o primeiro passo pode ser difícil, mas você tem um coração nobre.',
+  travieso:  'Você sempre tem uma brincadeira divertida na ponta da língua.',
+  sereno:    'Você mantém a calma e o foco mesmo nas situações mais difíceis.',
+  astuto:    'Você enxerga saídas brilhantes onde os outros só veem problemas.',
+  alegre:    'Você contagia todos com seu entusiasmo e positividade.',
+  tenaz:     'Desistir nunca fez nem fará parte dos seus planos.',
+  orgulloso: 'Você busca sempre a excelência e quase sempre a alcança.',
+  solitario: 'Você trilha seu próprio caminho sem se preocupar com a opinião alheia.',
+  tranquilo: 'Nada é capaz de tirar a sua paz interior. Absolutamente nada.',
+  caótico:   'Nem você mesmo sabe o que vai aprontar no instante seguinte.'
 };
 
 G.PERSONALITY_TEST = [
-  { q: '¡Hay una pelea en mitad del pueblo! ¿Qué haces?', a: [
-    { t: 'Me meto a ayudar sin pensarlo.',          p: { valiente: 2, impulsivo: 1 } },
-    { t: 'Busco a alguien que pueda pararla.',       p: { prudente: 2, leal: 1 } },
-    { t: 'Lo observo todo desde lejos.',             p: { sereno: 1, tímido: 1, solitario: 1 } },
-    { t: 'Me río y animo a los dos.',                p: { travieso: 2, caótico: 1 } } ] },
-  { q: 'Te encuentras una cartera en el suelo.', a: [
-    { t: 'La llevo enseguida a la policía.',         p: { leal: 2, dulce: 1 } },
-    { t: 'Busco a su dueño aunque tarde horas.',     p: { tenaz: 2, paciente: 1 } },
-    { t: 'Primero miro qué hay dentro…',            p: { astuto: 2, travieso: 1 } },
-    { t: 'Ni la toco, no vaya a ser.',               p: { prudente: 1, tímido: 2 } } ] },
-  { q: 'Tu día libre ideal es…', a: [
-    { t: 'Una aventura sin ningún plan.',            p: { impulsivo: 2, alegre: 1 } },
-    { t: 'Leer, pensar, estar tranquilo.',           p: { sereno: 2, tranquilo: 1 } },
-    { t: 'Quedar con todos mis amigos.',             p: { alegre: 2, leal: 1 } },
-    { t: 'Entrenar para ser mejor.',                 p: { tenaz: 2, orgulloso: 1 } } ] },
-  { q: 'Mañana tienes un examen importante.', a: [
-    { t: 'Estudio hasta las tantas.',                p: { tenaz: 2, prudente: 1 } },
-    { t: 'Repaso lo justo: confío en mí.',           p: { orgulloso: 2, sereno: 1 } },
-    { t: 'Me agobio muchísimo.',                     p: { tímido: 2, dulce: 1 } },
-    { t: '¿Examen? Ya veré mañana.',                 p: { caótico: 2, tranquilo: 1 } } ] },
-  { q: '¿Qué dicen de ti tus amigos?', a: [
-    { t: 'Que soy lo más divertido del grupo.',      p: { alegre: 2, travieso: 1 } },
-    { t: 'Que siempre pueden contar conmigo.',       p: { leal: 2, dulce: 1 } },
-    { t: 'Que soy un poco misterioso.',              p: { solitario: 2, astuto: 1 } },
-    { t: 'Que no me rindo nunca.',                   p: { valiente: 1, tenaz: 2 } } ] },
-  { q: 'El camino se divide: uno oscuro y corto, otro largo y soleado.', a: [
-    { t: 'El oscuro, ¡más emoción!',                 p: { valiente: 2, impulsivo: 1 } },
-    { t: 'El largo, sin prisa.',                     p: { paciente: 2, prudente: 1 } },
-    { t: 'Me siento a pensarlo un rato.',            p: { tranquilo: 2, sereno: 1 } },
-    { t: 'Ninguno: abro un atajo nuevo.',            p: { astuto: 2, caótico: 1 } } ] },
-  { q: 'Alguien se burla de ti delante de todos.', a: [
-    { t: 'Le contesto en el acto.',                  p: { orgulloso: 2, impulsivo: 1 } },
-    { t: 'Le ignoro por completo.',                  p: { sereno: 2, solitario: 1 } },
-    { t: 'Me afecta, aunque no lo diga.',            p: { tímido: 2, dulce: 1 } },
-    { t: 'Le devuelvo una broma mejor.',             p: { travieso: 2, astuto: 1 } } ] },
-  { q: '¿Qué es lo más importante para ti?', a: [
-    { t: 'La amistad.',                              p: { leal: 2, alegre: 1 } },
-    { t: 'La libertad.',                             p: { solitario: 2, impulsivo: 1 } },
-    { t: 'La calma.',                                p: { tranquilo: 2, paciente: 1 } },
-    { t: 'Ser el mejor.',                            p: { orgulloso: 2, tenaz: 1 } } ] }
+  { q: 'Há uma confusão no centro da cidade! O que você faz?', a: [
+    { t: 'Entro para ajudar sem pensar duas vezes.',           p: { valiente: 2, impulsivo: 1 } },
+    { t: 'Procuro alguém que possa intervir.',                 p: { prudente: 2, leal: 1 } },
+    { t: 'Observo tudo de longe com cautela.',                 p: { sereno: 1, tímido: 1, solitario: 1 } },
+    { t: 'Dou risada e incentivo a disputa.',                  p: { travieso: 2, caótico: 1 } } ] },
+  { q: 'Você encontra uma carteira caída no chão.', a: [
+    { t: 'Levo imediatamente para as autoridades.',            p: { leal: 2, dulce: 1 } },
+    { t: 'Procuro pelo dono mesmo que leve horas.',            p: { tenaz: 2, paciente: 1 } },
+    { t: 'Primeiro vejo o que tem dentro…',                   p: { astuto: 2, travieso: 1 } },
+    { t: 'Nem toco nela, melhor evitar problemas.',            p: { prudente: 1, tímido: 2 } } ] },
+  { q: 'O seu dia de folga perfeito é…', a: [
+    { t: 'Uma aventura cheia de emoção sem planos definidos.', p: { impulsivo: 2, alegre: 1 } },
+    { t: 'Ler, refletir e descansar com calma.',               p: { sereno: 2, tranquilo: 1 } },
+    { t: 'Reunir toda a turma de amigos.',                     p: { alegre: 2, leal: 1 } },
+    { t: 'Treinar intensamente para superar meus limites.',    p: { tenaz: 2, orgulloso: 1 } } ] },
+  { q: 'Amanhã você tem uma prova muito importante.', a: [
+    { t: 'Estudo até altas horas da madrugada.',               p: { tenaz: 2, prudente: 1 } },
+    { t: 'Reviso apenas o essencial: confio no meu potencial.', p: { orgulloso: 2, sereno: 1 } },
+    { t: 'Fico muito ansioso e preocupado.',                   p: { tímido: 2, dulce: 1 } },
+    { t: 'Prova? Amanhã eu decido o que fazer!',               p: { caótico: 2, tranquilo: 1 } } ] },
+  { q: 'O que seus amigos costumam dizer sobre você?', a: [
+    { t: 'Que sou a pessoa mais divertida do grupo.',          p: { alegre: 2, travieso: 1 } },
+    { t: 'Que sempre podem contar com meu apoio incondicional.', p: { leal: 2, dulce: 1 } },
+    { t: 'Que tenho um ar misterioso e fascinante.',           p: { solitario: 2, astuto: 1 } },
+    { t: 'Que tenho uma determinação inabalável.',              p: { valiente: 1, tenaz: 2 } } ] },
+  { q: 'O caminho se divide: um atalho sombrio e rápido, ou uma trilha longa e ensolarada.', a: [
+    { t: 'O caminho sombrio: adoro pura adrenalina!',          p: { valiente: 2, impulsivo: 1 } },
+    { t: 'A trilha longa, com paciência e segurança.',         p: { paciente: 2, prudente: 1 } },
+    { t: 'Sento para ponderar com calma qual escolher.',       p: { tranquilo: 2, sereno: 1 } },
+    { t: 'Nenhum dos dois: abro uma nova trilha por conta própria.', p: { astuto: 2, caótico: 1 } } ] },
+  { q: 'Alguém tenta zombar de você na frente de todos.', a: [
+    { t: 'Respondo e confronto na mesma hora.',                p: { orgulloso: 2, impulsivo: 1 } },
+    { t: 'Ignoro completamente: não vale o meu tempo.',        p: { sereno: 2, solitario: 1 } },
+    { t: 'Fico chateado, embora disfarce por fora.',           p: { tímido: 2, dulce: 1 } },
+    { t: 'Devolvo com uma piada ainda mais afiada.',           p: { travieso: 2, astuto: 1 } } ] },
+  { q: 'O que é mais precioso para você?', a: [
+    { t: 'A verdadeira amizade.',                              p: { leal: 2, alegre: 1 } },
+    { t: 'A minha liberdade.',                                 p: { solitario: 2, impulsivo: 1 } },
+    { t: 'A paz e a tranquilidade.',                           p: { tranquilo: 2, paciente: 1 } },
+    { t: 'Ser o melhor no que faço.',                          p: { orgulloso: 2, tenaz: 1 } } ] }
 ];
 
-/** Puntuaciones de rasgos -> { trait, dex } con el compañero que mejor encaja. */
+/** Pontuações de traços -> { trait, dex } com o companheiro que melhor combina. */
 G.personalityResult = scores => {
   const trait = Object.keys(scores).sort((a, b) => scores[b] - scores[a])[0];
   let best = [], bestScore = -1;
   for (const s of G.STARTERS) {
-    // El rasgo principal pesa el doble.
     const v = (scores[s.traits[0]] || 0) * 2 + (scores[s.traits[1]] || 0);
     if (v > bestScore) { bestScore = v; best = [s]; }
     else if (v === bestScore) best.push(s);

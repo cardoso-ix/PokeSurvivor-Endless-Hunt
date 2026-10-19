@@ -1,7 +1,7 @@
 /* ============ menu.js — menú principal, colección y mejoras ============ */
 G.MenuUI = (() => {
   const $ = G.UI.$;
-  const GEN_NAMES = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'];
+  const GEN_NAMES = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola', 'Galar', 'Paldea'];
   let dexFilter = 'all', dexGen = 1, dexSel = null;
 
   function ensureEligiblePartner(s) {
@@ -48,7 +48,7 @@ G.MenuUI = (() => {
     document.querySelectorAll('[data-back]').forEach(b => { b.onclick = open; });
     G.Social.on(() => { if (G.UI.isOpen('scr-menu')) socialLine(); });
     $('btn-logout').onclick = () => {
-      if (G.DB.guest && !confirm('Eres invitado: se perderá todo el progreso. ¿Salir?')) return;
+      if (G.DB.guest && !confirm('Você está como convidado: todo o progresso não salvo será perdido. Deseja sair?')) return;
       G.Audio.music(null);
       G.DB.logout().then(() => G.Flow.toLogin());
     };
@@ -89,15 +89,15 @@ G.MenuUI = (() => {
 
     const st = s.stats;
     $('menu-stats').innerHTML =
-      `Runs <b style="color:#fff">${st.runs}</b> · Mejor tiempo <b style="color:#fff">${G.U.mmss(st.bestTime)}</b><br>` +
-      `Mejor nivel <b style="color:#fff">${st.bestLevel}</b> · Derrotados <b style="color:#fff">${st.totalKills.toLocaleString('es')}</b>` +
-      (G.DB.guest ? '<br><span style="color:#ffb0b8">Modo invitado: no se guarda</span>' : '');
+      `Partidas <b style="color:#fff">${st.runs}</b> · Melhor Tempo <b style="color:#fff">${G.U.mmss(st.bestTime)}</b><br>` +
+      `Maior Nível <b style="color:#fff">${st.bestLevel}</b> · Derrotados <b style="color:#fff">${st.totalKills.toLocaleString('pt-BR')}</b>` +
+      (G.DB.guest ? '<br><span style="color:#ffb0b8">Modo Convidado: o progresso não é salvo na nuvem</span>' : '');
 
     socialLine();
     // Premios de misiones por recoger.
     G.Progress.checkAch();
     const pend = G.Progress.pending();
-    $('menu-goals-sub').textContent = pend ? pend + (pend === 1 ? ' premio por recoger' : ' premios por recoger') : 'Misiones, logros y perfil';
+    $('menu-goals-sub').textContent = pend ? pend + (pend === 1 ? ' recompensa para resgatar' : ' recompensas para resgatar') : 'Missões, conquistas e perfil';
     $('menu-goals-sub').classList.toggle('gold', pend > 0);
     // Con cuenta en la nube: amigos en línea, invitaciones y (una vez) el apodo.
     if (G.DB.online && !G.Social.started) {
@@ -109,22 +109,22 @@ G.MenuUI = (() => {
     G.InvitePop.refresh();
   }
 
-  /** Texto bajo "Amigos" y "Jugar": quién está en línea, solicitudes, sala. */
+  /** Texto sob "Amigos" e "Jogar": quem está online, solicitações, sala. */
   function socialLine() {
     const room = G.Social.room;
     const play = document.querySelector('#scr-menu [data-go=play] small');
-    if (play) play.textContent = room ? 'Volver a tu sala (' + room.members.length + '/' + G.Social.MAX_PLAYERS + ')' : 'Entra en la mazmorra';
+    if (play) play.textContent = room ? 'Voltar para a sala (' + room.members.length + '/' + G.Social.MAX_PLAYERS + ')' : 'Entrar na Masmorra';
     const fr = G.Social.friends;
     const on = fr.filter(f => f.status === 'ok' && f.online).length;
     const req = fr.filter(f => f.status === 'in').length;
     const parts = [];
-    if (on) parts.push(on + ' en línea');
-    if (req) parts.push(req + (req === 1 ? ' solicitud' : ' solicitudes'));
-    $('menu-friends-sub').textContent = parts.length ? parts.join(' · ') : 'Juega en grupo, hasta 4';
+    if (on) parts.push(on + ' online');
+    if (req) parts.push(req + (req === 1 ? ' solicitação' : ' solicitações'));
+    $('menu-friends-sub').textContent = parts.length ? parts.join(' · ') : 'Jogue em grupo, até 4 jogadores';
     $('menu-friends-sub').classList.toggle('gold', req > 0);
   }
 
-  // ---------------- colección ----------------
+  // ---------------- coleção ----------------
 
   function openDex() {
     G.UI.show('scr-dex', true);
@@ -147,7 +147,7 @@ G.MenuUI = (() => {
       tabs.appendChild(b);
     });
 
-    const F = [['all', 'Todos'], ['own', 'Tengo'], ['miss', 'Me faltan'], ['shiny', 'Shiny'],
+    const F = [['all', 'Todos'], ['own', 'Tenho'], ['miss', 'Faltam'], ['shiny', 'Shiny'],
                ['5', 5], ['4', 4], ['3', 3], ['2', 2], ['1', 1]];
     const fb = $('dex-filters');
     fb.innerHTML = '';
@@ -179,8 +179,8 @@ G.MenuUI = (() => {
       const cell = document.createElement('div');
       cell.className = 'cell' + (own ? '' : ' locked') + (p.dex === dexSel ? ' on' : '');
       cell.insertAdjacentHTML('beforeend', `<span class="no">${String(p.dex).padStart(3, '0')}</span>`);
-      if (p.dex === s.partner) cell.insertAdjacentHTML('beforeend', `<span class="badge-r" title="Compañero">${G.Icons.html('crown', 14)}</span>`);
-      else if (sh) cell.insertAdjacentHTML('beforeend', `<span class="badge-r" title="Tienes su shiny">${G.Icons.html('shiny', 12)}</span>`);
+      if (p.dex === s.partner) cell.insertAdjacentHTML('beforeend', `<span class="badge-r" title="Companheiro">${G.Icons.html('crown', 14)}</span>`);
+      else if (sh) cell.insertAdjacentHTML('beforeend', `<span class="badge-r" title="Você possui a versão Shiny">${G.Icons.html('shiny', 12)}</span>`);
       if (own && !eligible) cell.insertAdjacentHTML('beforeend', `<span class="badge-l" title="Obtido apenas evoluindo na partida!" style="position:absolute;bottom:4px;right:4px;background:rgba(20,20,20,0.85);color:#ffa726;font-size:10px;padding:2px 5px;border-radius:4px;font-weight:bold;z-index:2;border:1px solid rgba(255,167,38,0.4)">🔒 Evo</span>`);
       const useShiny = sh && p.dex === s.partner && s.partnerShiny;
       cell.appendChild(G.UI.spriteCanvas(p.dex, 92, 80, { scale: 2, silhouette: !own, shadow: own, shiny: useShiny }));
@@ -193,7 +193,7 @@ G.MenuUI = (() => {
       };
       grid.appendChild(cell);
     }
-    if (!grid.children.length) grid.innerHTML = '<p class="sub" style="grid-column:1/-1">Ninguno con este filtro.</p>';
+    if (!grid.children.length) grid.innerHTML = '<p class="sub" style="grid-column:1/-1">Nenhum Pokémon encontrado com este filtro.</p>';
   }
 
   // Variante que se está viendo en la ficha (normal o shiny).

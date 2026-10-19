@@ -82,9 +82,9 @@ G.Events = (() => {
 
   function announce() {
     if (!cur) return;
-    if (cur.id === 'horde') say('¡Horda de tipo ' + G.U.TYPE_NAME[cur.type] + '!', 3, G.U.TYPE_COLOR[cur.type]);
-    else if (cur.id === 'gold') say('¡Hora dorada! Doble de experiencia', 3, '#ffd23f');
-    else if (lost) say('¡Un ' + lost.name + ' se ha perdido! Búscalo y llévalo a la marca', 3.4, '#7dffb0');
+    if (cur.id === 'horde') say('Horda do tipo ' + G.U.TYPE_NAME[cur.type] + '!', 3, G.U.TYPE_COLOR[cur.type]);
+    else if (cur.id === 'gold') say('Hora Dourada! Dobro de experiência', 3, '#ffd23f');
+    else if (lost) say('Um ' + lost.name + ' está perdido! Encontre-o e leve-o ao ponto marcado', 3.4, '#7dffb0');
     G.Audio.sfx(cur.id === 'gold' ? 'shiny' : 'surge');
   }
 
@@ -118,8 +118,8 @@ G.Events = (() => {
       e.life = THIEF_LIFE;
       G.EnemyMgr.add(e);
       G.FX.ring(x, y, 4, 40, '#ffd23f', 0.5, 3);
-      G.Spawner.say(gold ? '¡Un ' + mon.name + ' con un ticket ×10! ¡Atrápalo antes de que huya!'
-                         : '¡Un ' + mon.name + ' cargado de monedas! ¡Atrápalo antes de que huya!', 3.2);
+      G.Spawner.say(gold ? 'Um ' + mon.name + ' com um Ticket ×10! Capture-o antes que fuja!'
+                         : 'Um ' + mon.name + ' carregado de PokéMoedas! Capture-o antes que fuja!', 3.2);
       G.Audio.sfx('shiny');
       return;
     }
@@ -188,11 +188,11 @@ G.Events = (() => {
         L.hp -= Math.min(30, hits.reduce((a, e) => a + 4 + e.dmg * 0.12, 0));
         L.flash = 0.1;
         G.FX.burst(L.x, L.y - 10, '#ff5f6d', 4, 60);
-        if (L.hp <= 0) return gone('¡' + L.name + ' se ha asustado y ha huido…!');
+        if (L.hp <= 0) return gone(L.name + ' se assustou e fugiu…!');
       }
     }
     if (L.flash > 0) L.flash -= dt;
-    if (L.t > LOST_TIME) return gone(L.name + ' se ha cansado de esperar y se ha ido…');
+    if (L.t > LOST_TIME) return gone(L.name + ' cansou de esperar e foi embora…');
 
     if (G.Coop.isHost && (L.netT -= dt) <= 0) {
       L.netT = 0.1;
@@ -219,7 +219,7 @@ G.Events = (() => {
     G.FX.burst(lost ? lost.tx : pl.x, lost ? lost.ty - 10 : pl.y, '#7dffb0', 24, 180);
     G.Audio.sfx('legend');
     if (grant && G.onRescue) G.onRescue(dex, name);
-    else say('¡Has llevado a ' + name + ' a casa! Te lo agradece', 3.2, '#7dffb0');
+    else say('Você levou ' + name + ' para casa com segurança! Ele agradece a ajuda', 3.2, '#7dffb0');
   }
 
   function gone(msg) {

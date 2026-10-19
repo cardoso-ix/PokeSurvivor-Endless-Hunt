@@ -64,7 +64,7 @@ G.Updater = (() => {
     const tick = () => {
       if (!safe()) { counting = false; G.UI.toast('', 1); return; }     // ha empezado una partida: se espera
       if (n <= 0) { reload(); return; }
-      G.UI.toast('Hay una versión nueva del juego: actualizando en ' + n + ' s…', 1500);
+      G.UI.toast('Há uma nova versão do jogo: atualizando em ' + n + ' s…', 1500);
       n--;
       setTimeout(tick, 1000);
     };
@@ -85,7 +85,7 @@ G.Updater = (() => {
         setTimeout(reload, 4000);                                         // deja salir récord y ranking
         return;
       }
-      G.UI.toast('Actualización obligatoria: tu partida se guarda y el juego se recarga en ' + n + ' s…', 1500);
+      G.UI.toast('Atualização obrigatória: sua partida será salva e o jogo será recarregado em ' + n + ' s…', 1500);
       n--;
       setTimeout(tick, 1000);
     };

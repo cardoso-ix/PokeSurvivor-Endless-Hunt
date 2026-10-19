@@ -11,7 +11,7 @@
     const miss = NEED.filter(k => typeof G !== 'object' || !G[k]);
     if (!miss.length) return false;
     const el = document.getElementById('boot');
-    el.innerHTML = 'No se pudo cargar todo el juego (¿se cortó la conexión?).<br><button class="btn gold" style="margin-top:12px" onclick="location.reload()">Recargar</button>';
+    el.innerHTML = 'Não foi possível carregar o jogo completamente (a conexão caiu?).<br><button class="btn gold" style="margin-top:12px" onclick="location.reload()">Recarregar</button>';
     console.warn('[Arranque] faltan:', miss.join(', '));
     return true;
   }
@@ -22,15 +22,15 @@
   const MAINTENANCE = false;
   function maintenance() {
     if (!MAINTENANCE || /[?&]dev\b/.test(location.search)) return false;
-    const en = typeof G === 'object' && G.I18n ? G.I18n.lang === 'en' : !/^es/i.test(navigator.language || '');
+    const en = typeof G === 'object' && G.I18n ? G.I18n.lang === 'en' : !/^pt/i.test(navigator.language || '');
     const el = document.getElementById('boot');
     el.setAttribute('translate', 'no');
     el.innerHTML = '<div class="boot-in"><h1>PokéSurvivor</h1>' + (en
       ? '<p><b>We are under maintenance.</b></p><p>We are moving the game to new servers so it can stay free for everyone. ' +
         'Your account, your save and your Pokémon are safe. Please come back in a few hours!</p>'
-      : '<p><b>Estamos en mantenimiento.</b></p><p>Estamos mudando el juego a servidores nuevos para que siga siendo gratis para todos. ' +
-        'Tu cuenta, tu partida y tus Pokémon están a salvo. ¡Vuelve en unas horas!</p>') +
-      '<button class="btn gold" style="margin-top:12px" onclick="location.reload()">' + (en ? 'Try again' : 'Volver a intentarlo') + '</button></div>';
+      : '<p><b>Estamos em manutenção.</b></p><p>Estamos migrando o jogo para novos servidores para que continue gratuito e rápido para todos. ' +
+        'Sua conta, seu progresso e seus Pokémon estão salvos. Volte em algumas horas!</p>') +
+      '<button class="btn gold" style="margin-top:12px" onclick="location.reload()">' + (en ? 'Try again' : 'Tentar novamente') + '</button></div>';
     return true;
   }
 

@@ -1,4 +1,4 @@
-/* ============ test.js — test de personalidad y elección de compañero ============ */
+/* ============ test.js — teste de personalidade e escolha de companheiro ============ */
 G.TestUI = (() => {
   const $ = G.UI.$;
   let idx = 0, scores = {}, result = null, picked = null;
@@ -21,7 +21,7 @@ G.TestUI = (() => {
     const Q = G.PERSONALITY_TEST;
     const q = Q[idx];
     $('test-bar').style.width = (idx / Q.length * 100) + '%';
-    $('test-count').textContent = `Pregunta ${idx + 1} de ${Q.length}`;
+    $('test-count').textContent = `Pergunta ${idx + 1} de ${Q.length}`;
     $('test-q').textContent = q.q;
     const box = $('test-a');
     box.innerHTML = '';
@@ -45,7 +45,10 @@ G.TestUI = (() => {
   function showResult() {
     result = G.personalityResult(scores);
     const mon = G.DEX_BY[result.dex];
-    $('res-trait').textContent = result.trait.charAt(0).toUpperCase() + result.trait.slice(1);
+    const traitDisplay = (G.TRAIT_NAME && G.TRAIT_NAME[result.trait])
+      ? G.TRAIT_NAME[result.trait]
+      : (result.trait.charAt(0).toUpperCase() + result.trait.slice(1));
+    $('res-trait').textContent = traitDisplay;
     $('res-text').textContent = G.TRAIT_TEXT[result.trait] || '';
     $('res-name').textContent = mon.name;
     G.UI.sprite($('res-stage'), mon.dex, { lively: true, scale: 4, hero: true });
@@ -53,11 +56,11 @@ G.TestUI = (() => {
     G.UI.show('scr-result');
   }
 
-  /** Abre la rejilla de starters. `fromMenu` = cambiar compañero inicial más tarde. */
+  /** Abre a grade de Pokémon Iniciais. */
   function openStarters() {
     picked = null;
     $('starter-ok').disabled = true;
-    $('starter-info').textContent = 'Selecciona un Pokémon';
+    $('starter-info').textContent = 'Selecione um Pokémon';
     const grid = $('starter-grid');
     grid.innerHTML = '';
     for (const s of G.STARTERS) {
@@ -72,7 +75,8 @@ G.TestUI = (() => {
         cell.classList.add('on');
         picked = s.dex;
         const mv = G.Moves.BY_ID[s.start];
-        $('starter-info').innerHTML = `${G.UI.typeChips(mon.types)} ${G.Icons.html('move:' + s.start, 16)} ${mv.name} · ${s.traits.join(', ')}`;
+        const traitLabels = s.traits.map(t => (G.TRAIT_NAME && G.TRAIT_NAME[t]) || t).join(', ');
+        $('starter-info').innerHTML = `${G.UI.typeChips(mon.types)} ${G.Icons.html('move:' + s.start, 16)} ${mv.name} · ${traitLabels}`;
         $('starter-ok').disabled = false;
       };
       if (result && s.dex === result.dex) { picked = s.dex; $('starter-ok').disabled = false; }
@@ -88,7 +92,7 @@ G.TestUI = (() => {
     save.personality = result ? { trait: result.trait, scores } : null;
     G.DB.grant(dex, 'starter');
     G.DB.commit();
-    G.UI.toast('¡' + G.DEX_BY[dex].name + ' se une a ti!');
+    G.UI.toast('✨ ' + G.DEX_BY[dex].name + ' se uniu à sua equipe!');
     G.Flow.goMenu();
   }
 

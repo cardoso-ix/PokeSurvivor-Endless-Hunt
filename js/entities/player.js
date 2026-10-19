@@ -566,7 +566,7 @@ G.Player = class Player {
     if (this.hp <= 0 && this.hasItem('focussash') && performance.now() - this.sashT > 60000) {
       this.sashT = performance.now();
       this.hp = 1; this.invuln = 1.2;
-      G.FX.dmgText(this.x, this.y - this.bodyH - 16, '¡Banda Focus!', '#ff9a3d', true);
+      G.FX.dmgText(this.x, this.y - this.bodyH - 16, 'Faixa de Foco!', '#ff9a3d', true);
       G.FX.ring(this.x, this.y, 6, 70, '#ff9a3d', 0.5, 4);
     }
     if (this.hp <= 0) {

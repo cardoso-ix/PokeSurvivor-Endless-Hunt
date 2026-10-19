@@ -313,7 +313,7 @@ G.Game = (() => {
     const isNew = !G.DB.owns(dex);
     if (isNew) { G.DB.grant(dex, 'rescue'); G.DB.commit(true); }
     else pl.coins += 150;
-    G.Spawner.say(isNew ? '¡' + name + ' se une a tu equipo!' : '¡' + name + ' te da las gracias! (+150 monedas, ya lo tenías)', 4);
+    G.Spawner.say(isNew ? name + ' entrou para a sua equipe!' : name + ' agradece a ajuda! (+150 PokéMoedas)', 4);
     G.Audio.sfx('shinyGet');
   };
 
@@ -325,7 +325,7 @@ G.Game = (() => {
     G.DB.save.stats.shinies++;
     G.DB.commit(true);
     caught.push({ dex: e.dex, isNew });
-    G.Spawner.say(isNew ? '¡Has conseguido a ' + e.name + ' shiny!' : '¡Otro ' + e.name + ' shiny! (+300 monedas)', 4);
+    G.Spawner.say(isNew ? 'Você capturou ' + e.name + ' brilhante!' : 'Mais um ' + e.name + ' brilhante! (+300 PokéMoedas)', 4);
     if (!isNew) pl.coins += 300;
     G.Audio.sfx('shinyGet');
   };
@@ -455,7 +455,7 @@ G.Game = (() => {
     if (['scr-bond', 'scr-pause', 'scr-item', 'scr-levelup'].some(G.UI.isOpen)) return;
     const opt = pl.bondOptions();
     if (!opt) {
-      if (!quiet) G.Spawner.say('Guardas el vínculo: aprende otro movimiento para usarlo', 3, true);
+      if (!quiet) G.Spawner.say('Você guardou o vínculo: aprenda outro ataque para usá-lo', 3, true);
       return;
     }
     // Se para el juego; en grupo, para todos hasta que cada uno elige (G.Coop.holdStart).
@@ -467,7 +467,7 @@ G.Game = (() => {
       G.Audio.sfx('legend');
       G.FX.ring(pl.x, pl.y, 8, 130, '#ff8ad8', 0.8, 6);
       G.FX.burst(pl.x, pl.y - pl.bodyH * 0.5, '#ffb3e6', 40, 240);
-      G.Spawner.say('¡Vínculo! ' + group.length + ' movimientos a la vez', 2.6, true);
+      G.Spawner.say('Vínculo! ' + group.length + ' ataques disparados juntos', 2.6, true);
       if (state === 'choice') state = holdBy.length ? 'held' : 'playing';
       if (G.Coop.active) G.Coop.holdEnd();
     });
@@ -506,7 +506,7 @@ G.Game = (() => {
       openItem = null;
       if (got !== pl.item) {
         pl.equip(got);
-        G.Spawner.say('¡Llevas ' + G.Items.BY[got].name + '!', 2.6, true);
+        G.Spawner.say('Você equipou ' + G.Items.BY[got].name + '!', 2.6, true);
         G.Progress.event('item', { id: got });
       }
       if (!mine) { afterLevelUp(); return; }
@@ -515,7 +515,7 @@ G.Game = (() => {
       afterLevelUp();
     };
     if (!pl.item) { take(id); return; }
-    if (pl.item === id) { G.Spawner.say('Ya llevas ' + G.Items.BY[id].name, 2, true); return; }
+    if (pl.item === id) { G.Spawner.say('Você já está usando ' + G.Items.BY[id].name, 2, true); return; }
     // Se para el juego mientras eliges; en grupo, para todos (como con las
     // fusiones). Antes en grupo seguía y te pegaban mientras elegías.
     if (state === 'playing' || state === 'held') {
@@ -553,7 +553,7 @@ G.Game = (() => {
     if (p.kind === 'ticket' || p.kind === 'ticket10') {
       if (p.kind === 'ticket') pl.t1++; else pl.t10++;
       bankTickets();
-      G.FX.dmgText(who.x, who.y - who.bodyH - 8, p.kind === 'ticket' ? '+1 ticket' : '¡Ticket ×10!', p.kind === 'ticket' ? '#ffd23f' : '#d9a6ff', true);
+      G.FX.dmgText(who.x, who.y - who.bodyH - 8, p.kind === 'ticket' ? '+1 Ticket' : 'Ticket ×10!', p.kind === 'ticket' ? '#ffd23f' : '#d9a6ff', true);
       G.FX.ring(who.x, who.y, 6, 50, p.kind === 'ticket' ? '#ffd23f' : '#c47bff', 0.4, 3);
       return;
     }

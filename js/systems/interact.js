@@ -17,10 +17,10 @@ G.Interact = (() => {
   const CHEST_TIME = 3.5;
   const POWER_TIME = 25;
   const POWERS = [
-    { id: 'dmg', name: 'Furia', desc: 'daño ×2', color: '#ff5f6d', on: p => { p.atkMul *= 2; }, off: p => { p.atkMul /= 2; } },
-    { id: 'spd', name: 'Rayo', desc: '+45% velocidad', color: '#5fd4ff', on: p => { p.spdMul *= 1.45; }, off: p => { p.spdMul /= 1.45; } },
-    { id: 'mag', name: 'Imán', desc: 'atraes todo desde lejos', color: '#ff8ad8', on: p => { p.magnet *= 4; }, off: p => { p.magnet /= 4; } },
-    { id: 'cd', name: 'Prisa', desc: '-40% recarga', color: '#ffd23f', on: p => { p.cdMul *= 0.6; }, off: p => { p.cdMul /= 0.6; } }
+    { id: 'dmg', name: 'Fúria', desc: 'dano ×2', color: '#ff5f6d', on: p => { p.atkMul *= 2; }, off: p => { p.atkMul /= 2; } },
+    { id: 'spd', name: 'Raio', desc: '+45% de velocidade', color: '#5fd4ff', on: p => { p.spdMul *= 1.45; }, off: p => { p.spdMul /= 1.45; } },
+    { id: 'mag', name: 'Ímã', desc: 'atrai tudo à distância', color: '#ff8ad8', on: p => { p.magnet *= 4; }, off: p => { p.magnet /= 4; } },
+    { id: 'cd', name: 'Aceleração', desc: '-40% de tempo de recarga', color: '#ffd23f', on: p => { p.cdMul *= 0.6; }, off: p => { p.cdMul /= 0.6; } }
   ];
   const TRAP_R = 74;
   const authority = () => !G.Coop.active || G.Coop.isHost;
@@ -33,8 +33,6 @@ G.Interact = (() => {
       switch (p.type) {
         case 'spring': spring(dt, pl, p, d2); break;
         case 'altar':
-          // Contando el tamaño de tu Pokémon: uno grande (Reshiram, Zekrom...) choca
-          // con el altar antes de llegar a 30 y no lo podía activar.
           if (!p.used && !pl.dead && d2 < Math.max(30, p.r + pl.r + 14) ** 2) usePower(pl, p);
           break;
         case 'bigchest':
@@ -67,7 +65,7 @@ G.Interact = (() => {
       healAcc = 0;
       G.Audio.sfx('xp');
     }
-    if (p.charge <= 0.02) G.Spawner.say('El manantial se ha secado (se recarga solo)', 2.2, true);
+    if (p.charge <= 0.02) G.Spawner.say('A fonte de vida secou (ela se regenera com o tempo)', 2.2, true);
   }
 
   function usePower(pl, p) {
@@ -77,7 +75,7 @@ G.Interact = (() => {
     G.FX.ring(p.x, p.y - 20, 8, 90, pw.color, 0.6, 5);
     G.FX.burst(pl.x, pl.y - pl.bodyH * 0.5, pw.color, 24, 200);
     G.Audio.sfx('legend');
-    G.Spawner.say('¡Poder ' + pw.name + '! ' + pw.desc + ' durante ' + POWER_TIME + ' s', 3, true);
+    G.Spawner.say('Bênção: ' + pw.name + '! ' + pw.desc + ' por ' + POWER_TIME + ' segundos', 3, true);
   }
 
   /**
@@ -111,7 +109,7 @@ G.Interact = (() => {
     if (pl && !pl.dead && G.U.dist2(x, y, pl.x, pl.y) < (TRAP_R * 0.7) ** 2) {
       pl.invuln = 0;
       if (k === 0) pl.hurt(pl.maxHp * 0.1);
-      else if (k === 1) { pl.slowT = 3.5; G.FX.dmgText(pl.x, pl.y - pl.bodyH - 6, '¡Pegajoso!', '#8bd94a'); }
+      else if (k === 1) { pl.slowT = 3.5; G.FX.dmgText(pl.x, pl.y - pl.bodyH - 6, 'Pegajoso!', '#8bd94a'); }
       else pl.hurt(pl.maxHp * 0.2);
     }
   }

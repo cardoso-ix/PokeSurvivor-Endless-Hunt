@@ -37,9 +37,9 @@ G.UI = (() => {
     // Punto de sincronización: verde = guardado en la nube, amarillo = guardando,
     // rojo = sin conexión (se guarda en local y se sube al volver).
     const st = G.DB.guest ? 'guest' : G.DB.syncState;
-    const TIP = { ok: 'Guardado en la nube', syncing: 'Guardando…', pending: 'Guardando…',
-                  offline: 'Sin conexión: se subirá al volver', local: 'Guardado sólo en este navegador', guest: 'Invitado: no se guarda' };
-    $('user-pill').innerHTML = G.Icons.html(G.DB.guest ? 'user' : 'crown', 18) + ' <span translate="no">' + (G.DB.guest ? G.T('Invitado') : (G.DB.user || '')) + '</span>' +
+    const TIP = { ok: 'Salvo na nuvem', syncing: 'Salvando…', pending: 'Salvando…',
+                  offline: 'Sem conexão: enviará ao reconectar', local: 'Salvo neste navegador', guest: 'Convidado: não salvo na nuvem' };
+    $('user-pill').innerHTML = G.Icons.html(G.DB.guest ? 'user' : 'crown', 18) + ' <span translate="no">' + (G.DB.guest ? 'Convidado' : (G.DB.user || '')) + '</span>' +
       `<i class="sync ${st}" title="${TIP[st] || ''}"></i>`;
     $('user-pill').title = TIP[st] || '';
   }
@@ -87,9 +87,9 @@ G.UI = (() => {
     box.innerHTML = `
       <div class="snd-row">${G.Icons.html('sound', 18)}<span>Música</span>
         <input type="range" min="0" max="100" value="${Math.round(st.music * 100)}" data-k="music"></div>
-      <div class="snd-row">${G.Icons.html('sound', 18)}<span>Efectos</span>
+      <div class="snd-row">${G.Icons.html('sound', 18)}<span>Efeitos</span>
         <input type="range" min="0" max="100" value="${Math.round(st.sfx * 100)}" data-k="sfx"></div>
-      <button class="btn small ${st.muted ? 'gold' : ''}" data-mute>${st.muted ? 'Activar sonido' : 'Silenciar todo'}</button>`;
+      <button class="btn small ${st.muted ? 'gold' : ''}" data-mute>${st.muted ? 'Ativar som' : 'Silenciar tudo'}</button>`;
     box.querySelectorAll('input[type=range]').forEach(r => {
       r.oninput = () => G.Audio.setVolume(r.dataset.k, r.value / 100);
       r.onchange = () => G.Audio.sfx('click');
@@ -115,29 +115,23 @@ G.UI = (() => {
     $('legal-repo').href = REPO;
     const canDelete = G.DB.loggedIn && !G.DB.guest;
     $('legal-delete').disabled = !canDelete;
-    $('legal-del-msg').textContent = canDelete ? '' : 'Inicia sesión para poder borrar tu cuenta.';
+    $('legal-del-msg').textContent = canDelete ? '' : 'Inicie uma sessão para poder excluir sua conta.';
     $('scr-legal').classList.remove('hidden');
   }
 
-  /**
-   * "¿Seguro que quieres borrar la cuenta?". Las cuentas de nombre y
-   * contraseña escriben su contraseña (Firebase pide confirmar quién eres);
-   * las de Google la confirman en la ventana de Google al seguir.
-   * Devuelve { pass } o null si se cancela.
-   */
   function confirmDelete() {
-    if (!G.DB.nameAccount) return Promise.resolve(confirm(G.T('Se borrarán tu cuenta y toda tu partida, para siempre. ¿Seguro?')) ? { pass: '' } : null);
+    if (!G.DB.nameAccount) return Promise.resolve(confirm('Sua conta e todo o seu progresso serão excluídos permanentemente. Tem certeza?') ? { pass: '' } : null);
     return new Promise(done => {
       const el = document.createElement('section');
       el.className = 'scr dim';
       el.style.zIndex = 70;
       el.innerHTML = `<div class="box center" style="max-width:380px">
-        <h3>Borrar cuenta</h3>
-        <p class="sub">Se borrarán tu cuenta y toda tu partida, para siempre. Para confirmarlo, escribe tu contraseña.</p>
+        <h3>Excluir Conta</h3>
+        <p class="sub">Sua conta e todo o seu progresso serão excluídos permanentemente. Para confirmar, digite sua senha.</p>
         <input class="field" type="password" maxlength="64" autocomplete="current-password" style="width:100%">
         <div style="display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap">
           <button class="btn ghost" data-a="no">Cancelar</button>
-          <button class="btn danger" data-a="yes">Borrar para siempre</button>
+          <button class="btn danger" data-a="yes">Excluir permanentemente</button>
         </div></div>`;
       document.body.appendChild(el);
       const inp = el.querySelector('input');
@@ -163,7 +157,7 @@ G.UI = (() => {
       const r = await G.DB.deleteAccount(ok.pass);
       if (!r.ok) { $('legal-del-msg').textContent = r.error; $('legal-delete').disabled = false; return; }
       closeLegal();
-      toast('Cuenta borrada');
+      toast('Conta excluída com sucesso.');
       G.Audio.music(null);
       G.Flow.toLogin();
     };

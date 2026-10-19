@@ -546,20 +546,21 @@ def game_en():
     src = re.sub(r'<!-- seo:(begin|end) -->\n?', '', src)
     src = re.sub(r'<meta name="robots" content="noindex">\s*', '', src)
     src = re.sub(r'<!-- dev\.html: página fuente[^>]*-->\n?', '', src)
-    s = src.replace('<html lang="es">', '<html lang="en">')
+    s = src.replace('<html lang="pt-BR" translate="no" class="notranslate">', '<html lang="en">')
+    s = s.replace('<html lang="es">', '<html lang="en">')
     s = s.replace('<head>\n<meta charset="utf-8">', '<head>\n<meta charset="utf-8">\n<base href="../">', 1)
     rep = [
         ('<title>PokéRift: Endless Hunt – Fan Game Roguelike</title>', '<title>PokéRift: Endless Hunt – Free online Pokémon survival game</title>'),
-        ('content="Sobrevive a hordas de Pokémon con tu compañero en este fan game gratis para navegador y móvil: 966 Pokémon, shinies, legendarios y cooperativo con amigos. Sin descargas ni anuncios."',
+        ('content="Sobreviva a hordas de Pokémon com seu parceiro neste jogo gratuito para navegador e celular: 966 Pokémon, shinies, lendários e modo cooperativo com amigos. Sem downloads nem anúncios."',
          f'content="Survive hordes of Pokémon with your partner in this free fan game for browser and mobile: {N} Pokémon, shinies, legendaries and online co-op with friends. No downloads, no ads."'),
         ('<link rel="canonical" href="https://pokesurvivor.com/">', '<link rel="canonical" href="https://pokesurvivor.com/en/">'),
-        ('<meta property="og:locale" content="es_ES">', '<meta property="og:locale" content="en_US">'),
+        ('<meta property="og:locale" content="pt_BR">', '<meta property="og:locale" content="en_US">'),
         ('<meta property="og:url" content="https://pokesurvivor.com/">', '<meta property="og:url" content="https://pokesurvivor.com/en/">'),
-        ('<meta property="og:title" content="PokéSurvivor – Sobrevive a las hordas Pokémon">', '<meta property="og:title" content="PokéSurvivor – Survive the Pokémon hordes">'),
-        ('<meta property="og:description" content="Fan game gratis para navegador y móvil: 966 Pokémon, shinies, legendarios y cooperativo hasta 4 amigos. Sin descargas ni anuncios.">',
+        ('<meta property="og:title" content="PokéSurvivor – Sobreviva às Hordas de Pokémon">', '<meta property="og:title" content="PokéSurvivor – Survive the Pokémon hordes">'),
+        ('<meta property="og:description" content="Jogo gratuito para navegador e celular: 966 Pokémon, shinies, lendários e cooperativo com até 4 amigos. Sem downloads nem anúncios.">',
          f'<meta property="og:description" content="A free fan game for browser and mobile: {N} Pokémon, shinies, legendaries and co-op with up to 4 friends. No downloads, no ads.">'),
-        ('<meta name="twitter:title" content="PokéSurvivor – Sobrevive a las hordas Pokémon">', '<meta name="twitter:title" content="PokéSurvivor – Survive the Pokémon hordes">'),
-        ('<meta name="twitter:description" content="Fan game gratis para navegador y móvil, con cooperativo hasta 4. Sin descargas ni anuncios.">',
+        ('<meta name="twitter:title" content="PokéSurvivor – Sobreviva às Hordas de Pokémon">', '<meta name="twitter:title" content="PokéSurvivor – Survive the Pokémon hordes">'),
+        ('<meta name="twitter:description" content="Jogo gratuito para navegador e celular, com cooperativo para até 4 jogadores. Sem downloads nem anúncios.">',
          '<meta name="twitter:description" content="A free fan game for browser and mobile, with co-op for up to 4. No downloads, no ads.">'),
         ('<p>Jogo de sobrevivência Pokémon, gratuito no navegador e no celular.</p>', '<p>A Pokémon survival game, free in your browser and on mobile.</p>'),
         ('<p class="boot-ld">Carregando…</p>', '<p class="boot-ld">Loading…</p>'),

@@ -50,16 +50,16 @@ G.LayoutUI = (() => {
       <div class="lay-thing lay-mega" data-k="mega"><span>⚡MEGA</span><span class="lay-tag">Modo Mega</span></div>
       <div class="lay-thing lay-stick" data-k="stick"><div class="knob"></div><span class="lay-tag">Joystick</span></div>
       <div class="box lay-panel">
-        <h3>Arrastra los botones a donde quieras</h3>
-        <p class="lay-turn">Gira el móvil: se juega en horizontal.</p>
+        <h3>Arraste os botões para onde preferir</h3>
+        <p class="lay-turn">Gire o celular: jogue na horizontal.</p>
         <div class="chips set-chips" id="lay-mode"><b>Joystick</b>
-          <button class="chip" data-m="float">Flotante</button><button class="chip" data-m="fixed">Fijo</button>
+          <button class="chip" data-m="float">Flutuante</button><button class="chip" data-m="fixed">Fixo</button>
         </div>
-        <small class="lay-help">Flotante: aparece donde pones el dedo. Fijo: siempre en el mismo sitio.</small>
+        <small class="lay-help">Flutuante: surge onde você toca o dedo. Fixo: permanece sempre no mesmo local.</small>
         <div class="row wrap lay-btns">
           <button class="btn small ghost" id="lay-cancel">Cancelar</button>
-          <button class="btn small" id="lay-reset">Restablecer</button>
-          <button class="btn small gold" id="lay-save">Guardar</button>
+          <button class="btn small" id="lay-reset">Restaurar Padrão</button>
+          <button class="btn small gold" id="lay-save">Salvar</button>
         </div>
       </div>`;
     document.body.appendChild(el);

@@ -167,7 +167,7 @@ G.Judgment = (() => {
     const n = G.Game.everyone().length, t = G.Game.st.time;
     const floor = (3200 + t * 9) * 0.35 * G.Coop.scaleHp(n);
     base = Math.max(floor, singleDps() * 3);
-    G.Spawner.say('¡Huye de Arceus! Es invencible', 3, true);
+    G.Spawner.say('Fuja de Arceus! Ele é invencível', 3, true);
   }
 
   // ---------------- cada fotograma ----------------
@@ -510,18 +510,18 @@ G.Judgment = (() => {
         cineAnim.draw(ctx, cx, cy + body * cineAnim.scale * 0.5 + rise, { flash: true });
         ctx.restore();
       }
-      // El título, letra a letra, debajo de la rueda.
+      // O título, letra por letra, sob a roda dourada.
       const size = Math.round(G.U.clamp(Math.min(w / 13, h / 9), 24, 64));
       const ty = cy + R + size * 1.15;
-      title(ctx, 'LA SENTENCIA', cx, ty, size, T_TITLE, a);
+      title(ctx, 'O JULGAMENTO', cx, ty, size, T_TITLE, a);
       title(ctx, 'DE ARCEUS', cx, ty + size * 0.95, Math.round(size * 0.8), T_TITLE + 0.75, a);
       ctx.globalAlpha = a * G.U.clamp((t - T_TITLE - 1.6) / 0.6, 0, 1);
       ctx.font = F(700, Math.round(size * 0.32));
       ctx.textAlign = 'center';
       ctx.fillStyle = '#f3e2b0';
-      ctx.fillText('El tiempo se ha agotado…', cx, ty + size * 1.7);
+      ctx.fillText('O tempo se esgotou…', cx, ty + size * 1.7);
     }
-    // Franjas negras de cine durante la bajada.
+    // Faixas pretas de cinema durante a descida.
     if (t > T_PORT) {
       const k = G.U.clamp((t - T_PORT) / 0.5, 0, 1) * G.U.clamp((T_END - t) / 0.6, 0, 1);
       const bh = Math.round(h * 0.11 * k);
@@ -529,7 +529,7 @@ G.Judgment = (() => {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, w, bh); ctx.fillRect(0, h - bh, w, bh);
     }
-    // ¡Ha descendido!
+    // Arceus desceu dos céus!
     const b = G.U.clamp((t - T_LAND - 0.15) / 0.3, 0, 1) * G.U.clamp((T_END - t) / 0.5, 0, 1);
     if (b > 0) {
       const size = Math.round(G.U.clamp(w / 20, 20, 40));
@@ -538,13 +538,13 @@ G.Judgment = (() => {
       ctx.globalAlpha = b;
       ctx.translate(w / 2, h * 0.24);
       ctx.scale(pop, pop);
-      goldText(ctx, '¡ARCEUS HA DESCENDIDO!', 0, 0, size);
+      goldText(ctx, 'ARCEUS DESCENDEU DOS CÉUS!', 0, 0, size);
       ctx.restore();
       ctx.globalAlpha = b;
       ctx.font = F(700, Math.round(size * 0.45));
       ctx.textAlign = 'center';
       ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.8)';
-      const sub = 'Es invencible: huye y aguanta todo lo que puedas';
+      const sub = 'Ele é invencível: fuja e resista o máximo que puder!';
       ctx.strokeText(sub, w / 2, h * 0.24 + size * 1.1);
       ctx.fillStyle = '#ffe9b0';
       ctx.fillText(sub, w / 2, h * 0.24 + size * 1.1);
@@ -554,8 +554,8 @@ G.Judgment = (() => {
       ctx.font = F(700, 11);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#f3e2b0';
-      ctx.fillText(G.Touch.active ? 'Toca la pantalla para saltar' : 'Pulsa Espacio para saltar', w - 16, h - 14);
-      // Toda la pantalla es un botón (móvil y ratón).
+      ctx.fillText(G.Touch.active ? 'Toque na tela para pular' : 'Pressione Espaço para pular', w - 16, h - 14);
+      // Toda a tela vira botão de pular.
       G.Touch.addButton(0, 0, w, h, skip, 0);
     }
     ctx.restore();
@@ -622,7 +622,7 @@ G.Judgment = (() => {
     ctx.textAlign = 'center';
     ctx.font = F(800, 12);
     ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)';
-    const txt = 'SENTENCIA · ' + G.U.mmss(arenaT) + ' · JEFES ' + downs;
+    const txt = 'JULGAMENTO · ' + G.U.mmss(arenaT) + ' · CHEFES ' + downs;
     ctx.strokeText(txt, w / 2, boss ? 98 : 76);
     ctx.fillStyle = GOLD;
     ctx.fillText(txt, w / 2, boss ? 98 : 76);

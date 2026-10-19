@@ -76,7 +76,7 @@ G.Progress = (() => {
       m.prog = def.mode === 'max' ? Math.max(m.prog, v) : m.prog + v;
       if (done(m) && !m.told) {
         m.told = true;
-        notify('Misión completada: ' + text(m), 'Recoge el premio en Misiones');
+        notify('Missão Concluída: ' + text(m), 'Resgate sua recompensa em Missões');
       }
     }
   }
@@ -189,7 +189,7 @@ G.Progress = (() => {
       if (a.value(s) < a.goal) continue;
       s.ach[a.id] = Date.now();
       grant(a.reward);
-      notify('¡Logro: ' + a.name + '!', a.title ? 'Nuevo título: ' + a.title : '', a);
+      notify('✨ Conquista: ' + a.name + '!', a.title ? 'Novo título: ' + a.title : '', a);
     }
   }
 

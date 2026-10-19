@@ -254,9 +254,9 @@ G.Ranking = (() => {
 
   function announce(better) {
     if (!better.length) return;
-    const names = { d: 'de hoy', w: 'de la semana', m: 'del mes', a: 'histórico' };
+    const names = { d: 'de hoje', w: 'da semana', m: 'do mês', a: 'histórico' };
     const best = PERIODS.map(p => p[0]).filter(p => better.includes(p)).pop();
-    G.UI.toast('¡Nueva mejor marca ' + names[best] + ' en el ranking!', 3400);
+    G.UI.toast('Novo recorde pessoal ' + names[best] + ' na classificação!', 3400);
   }
 
   function submitSolo(r) { return track(submitSoloNow(r)); }

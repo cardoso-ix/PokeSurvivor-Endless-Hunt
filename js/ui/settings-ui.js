@@ -1,7 +1,6 @@
-/* ============ settings-ui.js — pantalla de Ajustes (PC y móvil) ============
- * Se abre por encima de lo que haya (menú o pausa) y al cerrar vuelve ahí.
- * Pestañas: Sonido · Gráficos · Controles · Cuenta · Acerca de.
- * Los ajustes son de este dispositivo (G.Settings / G.Audio en el navegador).
+/* ============ settings-ui.js — tela de Configurações (PC e mobile) ============
+ * Abre sobre a tela atual (menu ou pausa) e ao fechar retorna ao mesmo local.
+ * Abas: Som · Gráficos · Controles · Conta · Sobre.
  */
 G.SettingsUI = (() => {
   const $ = G.UI.$;
@@ -16,7 +15,6 @@ G.SettingsUI = (() => {
     $('btn-settings').innerHTML = G.Icons.html('gear', 20);
     $('btn-settings').onclick = () => open();
     $('btn-pause-settings').onclick = () => open('sound');
-    // Pantalla completa (si el navegador la permite; en iPhone, cómo conseguirla).
     if (canFull() || iosTip()) {
       $('btn-full').classList.remove('hidden');
       $('btn-full').innerHTML = G.Icons.html('full', 20);
@@ -35,28 +33,23 @@ G.SettingsUI = (() => {
   function close() { $('scr-settings').classList.add('hidden'); }
   const isOpen = () => !$('scr-settings').classList.contains('hidden');
 
-  // ---------------- pantalla completa ----------------
   function canFull() { return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }
   function isFull() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
-  // iPhone: Safari no deja poner una web a pantalla completa (por eso a veces
-  // no salía la opción). Sí se puede abriéndola desde la pantalla de inicio.
   const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = () => !!navigator.standalone || (window.matchMedia && matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches);
   function iosTip() { return IOS && !canFull() && !standalone(); }
-  const IOS_TIP = 'En iPhone, Safari no deja poner las webs a pantalla completa. Pulsa Compartir y luego "Añadir a pantalla de inicio": abriendo el juego desde ese icono se juega a pantalla completa.';
+  const IOS_TIP = 'No iPhone, o Safari não permite tela cheia direta. Toque em Compartilhar e selecione "Adicionar à Tela de Início" para jogar em tela cheia.';
   function toggleFull() {
     if (!canFull()) { if (iosTip()) G.UI.toast(IOS_TIP, 9000); return; }
     if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     else {
       const el = document.documentElement;
       const p = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
-      // En móvil, además se intenta fijar la pantalla en horizontal.
-      if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) { /* nada */ } }).catch(() => {});
+      if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {});
     }
     setTimeout(() => { if (isOpen()) render(); }, 300);
   }
 
-  // ---------------- piezas ----------------
   function section(title, sub) { return `<h3 class="set-h">${esc(title)}</h3>${sub ? `<p class="sub">${sub}</p>` : ''}`; }
   function toggle(key, label, desc, onText = 'Ativado', offText = 'Desativado') {
     const on = !!G.Settings.get(key);
@@ -96,6 +89,9 @@ G.SettingsUI = (() => {
   }
 
   function render() {
+    const curLang = (window.i18n && window.i18n.currentLang) || (G.I18n && G.I18n.currentLang) || 'pt-BR';
+    const isPT = curLang === 'pt-BR';
+
     const tabLabels = {
       sound: window.i18n ? window.i18n.t('settings.tabs.sound') : 'Som',
       gfx: window.i18n ? window.i18n.t('settings.tabs.gfx') : 'Gráficos',
@@ -117,8 +113,6 @@ G.SettingsUI = (() => {
       box.innerHTML = section(window.i18n ? window.i18n.t('settings.tabs.sound') : 'Som') + '<div id="set-sound" class="sound-inline"></div>';
       G.UI.soundControls($('set-sound'));
     } else if (tab === 'gfx') {
-      const curLang = (window.i18n && window.i18n.currentLang) || (G.I18n && G.I18n.currentLang) || 'pt-BR';
-      const isPT = curLang === 'pt-BR';
       const langOptions = [
         ['pt-BR', '🇧🇷 Português (BR)'],
         ['en-US', '🇺🇸 English']
@@ -146,65 +140,78 @@ G.SettingsUI = (() => {
              <button class="btn small" id="set-full">${isFull() ? (isPT ? 'Sair' : 'Exit') : (isPT ? 'Ativar' : 'Enable')}</button></div>`
            : iosTip() ? `<div class="set-row"><div class="grow"><b>${isPT ? 'Tela Cheia' : 'Fullscreen'}</b><small>${esc(IOS_TIP)}</small></div></div>` : '');
     } else if (tab === 'ctl') {
-      box.innerHTML = section('En móvil o tablet')
-        + `<p class="sub">Pon el dedo en cualquier parte y arrastra para moverte: el joystick aparece donde tocas. Toca un ataque de abajo para cambiarlo, el botón ⚡ MEGA para activar la furia y el botón de arriba a la derecha para pausar. Se juega en horizontal.</p>`
-        + `<div class="set-row"><div class="grow"><b>Tamaño del joystick</b><small>Cuánto hay que arrastrar el dedo.</small></div></div>`
-        + choice('stick', [[0.8, 'Pequeño'], [1, 'Normal'], [1.25, 'Grande']])
-        + `<div class="set-row"><div class="grow"><b>Colocar los botones</b><small>Pon los ataques, la pausa, el botón MEGA y el joystick (fijo, si quieres) donde quieras de la pantalla.</small></div>
-             <button class="btn small" id="set-layout">Colocar</button></div>`
-        + section('En PC')
+      box.innerHTML = section(isPT ? 'No Celular ou Tablet' : 'On Mobile or Tablet')
+        + `<p class="sub">${isPT ? 'Toque e arraste em qualquer parte para se mover: o joystick surge onde você tocar. Toque em um ataque abaixo para selecioná-lo, use o botão ⚡ MEGA para ativar o Supremo e o botão superior direito para pausar. Jogue na horizontal.' : 'Touch and drag anywhere to move: the virtual joystick appears where you touch. Tap an attack below to switch, tap ⚡ MEGA to unleash Ultimate, and top-right to pause. Play in landscape mode.'}</p>`
+        + `<div class="set-row"><div class="grow"><b>${isPT ? 'Tamanho do Joystick' : 'Joystick Size'}</b><small>${isPT ? 'Distância necessária para arrastar o dedo.' : 'Finger drag sensitivity distance.'}</small></div></div>`
+        + choice('stick', [[0.8, isPT ? 'Pequeno' : 'Small'], [1, isPT ? 'Normal' : 'Normal'], [1.25, isPT ? 'Grande' : 'Large']])
+        + `<div class="set-row"><div class="grow"><b>${isPT ? 'Posicionamento de Botões' : 'Button Layout'}</b><small>${isPT ? 'Ajuste os ataques, pausa, botão MEGA e joystick livremente pela tela.' : 'Position attack slots, pause, MEGA button and joystick anywhere on screen.'}</small></div>
+             <button class="btn small" id="set-layout">${isPT ? 'Ajustar Layout' : 'Customize'}</button></div>`
+        + section(isPT ? 'No Computador (PC)' : 'On PC')
         + `<div class="keys">
-             <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / flechas</div><span>moverse</span>
-             <div><kbd>Espacio</kbd> / <kbd>Space</kbd></div><span>activar modo Mega / Furia (al 100%)</span>
-             <div><kbd>1</kbd>–<kbd>4</kbd> / clic en icono</div><span>elegir ataque</span>
-             <div><kbd>Q</kbd> / <kbd>E</kbd> / <kbd>Tab</kbd></div><span>ataque anterior / siguiente</span>
-             <div><kbd>+</kbd> / <kbd>−</kbd> / rueda ratón</div><span>zoom de la cámara (ampliar / reducir)</span>
-             <div><kbd>Esc</kbd> / <kbd>P</kbd></div><span>pausa / reanudar</span>
-             <div><kbd>1</kbd>–<kbd>3</kbd> / clic carta</div><span>elegir carta al subir de nivel</span>
-             <div><kbd>R</kbd></div><span>cambiar cartas al subir de nivel (reroll)</span>
-             <div><kbd>F2</kbd> / <kbd>'</kbd></div><span>panel de administración / depuración</span>
+             <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / setas</div><span>${isPT ? 'mover-se' : 'move'}</span>
+             <div><kbd>Espaço</kbd> / <kbd>Space</kbd></div><span>${isPT ? 'ativar Modo Mega / Supremo (com 100%)' : 'activate Mega / Ultimate mode (at 100%)'}</span>
+             <div><kbd>1</kbd>–<kbd>4</kbd> / clique no ícone</div><span>${isPT ? 'selecionar ataque' : 'select attack'}</span>
+             <div><kbd>Q</kbd> / <kbd>E</kbd> / <kbd>Tab</kbd></div><span>${isPT ? 'ataque anterior / próximo' : 'previous / next attack'}</span>
+             <div><kbd>+</kbd> / <kbd>−</kbd> / roda do mouse</div><span>${isPT ? 'zoom da câmera (aproximar / afastar)' : 'camera zoom (in / out)'}</span>
+             <div><kbd>Esc</kbd> / <kbd>P</kbd></div><span>${isPT ? 'pausar / continuar' : 'pause / resume'}</span>
+             <div><kbd>1</kbd>–<kbd>3</kbd> / clique na carta</div><span>${isPT ? 'escolher carta ao subir de nível' : 'choose level-up card'}</span>
+             <div><kbd>R</kbd></div><span>${isPT ? 'trocar cartas ao subir de nível (reroll)' : 'reroll cards on level up'}</span>
+             <div><kbd>F2</kbd> / <kbd>'</kbd></div><span>${isPT ? 'painel de depuração / admin' : 'debug / admin panel'}</span>
            </div>`;
     } else if (tab === 'acc') {
-      renderAccount(box);
+      renderAccount(box, isPT);
     } else {
-      box.innerHTML = `<div class="about-logo" translate="no">PokéRift: Endless Hunt</div><p class="sub center">Versión ${esc(VERSION)}</p>`
-        + `<p class="sub">Juego de fans <b>gratuito y sin ánimo de lucro</b>: sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.</p>`
-        + section('Créditos')
+      box.innerHTML = `<div class="about-logo" translate="no">PokéRift: Endless Hunt</div><p class="sub center">${isPT ? 'Versão' : 'Version'} ${esc(VERSION)}</p>`
+        + `<p class="sub">${isPT ? 'Jogo feito por fãs <b>gratuito e sem fins lucrativos</b>: sem anúncios nem microtransações. Pokémon e seus personagens são marcas registradas de Nintendo, Creatures e GAME FREAK. Este projeto não possui afiliação oficial.' : 'Free and non-profit fan-made game: no ads, no in-app purchases. Pokémon and its characters are trademarks of Nintendo, Creatures and GAME FREAK.'}</p>`
+        + section(isPT ? 'Créditos' : 'Credits')
         + `<ul class="credits">
-             <li><b>Sprites:</b> PMD SpriteCollab y sus artistas (CC BY-NC 4.0).</li>
-             <li><b>Datos de los Pokémon:</b> PokéAPI.</li>
-             <li><b>Música y sonidos:</b> originales, generados por el propio juego.</li>
-             <li><b>Fuente:</b> Pixelify Sans (OFL).</li>
+             <li><b>Sprites:</b> PMD SpriteCollab e artistas participantes (CC BY-NC 4.0).</li>
+             <li><b>Dados dos Pokémon:</b> PokéAPI.</li>
+             <li><b>Música e efeitos sonoros:</b> originais gerados pelo próprio jogo.</li>
+             <li><b>Fonte:</b> Pixelify Sans (OFL).</li>
            </ul>`
         + `<div class="row wrap" style="justify-content:center;gap:8px">
-             ${window.PS_PAGES ? `<a class="btn small" href="${G.I18n.lang === 'en' ? 'en/guide/' : 'guia/'}" target="_blank">Guía y preguntas</a>
+             ${window.PS_PAGES ? `<a class="btn small" href="${G.I18n.lang === 'en' ? 'en/guide/' : 'guia/'}" target="_blank">${isPT ? 'Guia e Dúvidas' : 'Guide & FAQ'}</a>
              <a class="btn small" href="${G.I18n.lang === 'en' ? 'en/pokedex/' : 'pokedex/'}" target="_blank">Pokédex</a>` : ''}
-             <button class="btn small" data-legal>Aviso legal y privacidad</button>
-             <a class="btn small" href="contacto/" target="_blank" rel="noopener">Contacto</a>
-             <a class="btn small" href="${REPO}" target="_blank" rel="noopener">Código (GitHub)</a>
+             <button class="btn small" data-legal>${isPT ? 'Aviso Legal e Privacidade' : 'Legal Notice & Privacy'}</button>
+             <a class="btn small" href="contacto/" target="_blank" rel="noopener">${isPT ? 'Contato' : 'Contact'}</a>
+             <a class="btn small" href="${REPO}" target="_blank" rel="noopener">${isPT ? 'Código Fonte (GitHub)' : 'Source Code (GitHub)'}</a>
            </div>`;
     }
     wire(box);
   }
 
-  function renderAccount(box) {
+  function renderAccount(box, isPT = true) {
     const st = G.DB.guest ? 'guest' : G.DB.syncState;
-    const SYNC = { ok: 'Guardado en la nube', syncing: 'Guardando…', pending: 'Pendiente de subir (se sube al salir del juego)',
-                   offline: 'Sin conexión: se subirá al volver', local: 'Guardado sólo en este navegador', guest: 'Invitado: no se guarda' };
+    const SYNC = isPT ? {
+      ok: 'Salvo na nuvem',
+      syncing: 'Salvando…',
+      pending: 'Pendente de envio (salvo ao sair)',
+      offline: 'Sem conexão: enviará ao reconectar',
+      local: 'Salvo neste navegador',
+      guest: 'Convidado: não salvo na nuvem'
+    } : {
+      ok: 'Saved to cloud',
+      syncing: 'Saving…',
+      pending: 'Pending upload (saved on exit)',
+      offline: 'Offline: will upload on return',
+      local: 'Saved in this browser only',
+      guest: 'Guest: not saved to cloud'
+    };
     if (G.DB.guest) {
-      box.innerHTML = section('Cuenta', 'Estás jugando como <b>invitado</b>: tu progreso no se guarda al salir.')
-        + `<button class="btn gold" id="set-login">Crear cuenta o entrar</button>`;
+      box.innerHTML = section(isPT ? 'Conta' : 'Account', isPT ? 'Você está jogando como <b>convidado</b>: seu progresso não é salvo na nuvem ao sair.' : 'You are playing as <b>guest</b>: progress is not saved to cloud on exit.')
+        + `<button class="btn gold" id="set-login">${isPT ? 'Criar conta ou entrar' : 'Create account or login'}</button>`;
       return;
     }
     const nick = G.Social.me ? G.Social.me.name : (G.DB.user || '');
-    const kind = G.DB.mode === 'local' ? 'Cuenta de este navegador' : G.DB.nameAccount ? 'Nombre y contraseña' : 'Google';
-    box.innerHTML = section('Cuenta')
-      + `<div class="set-row"><div class="grow"><b>Apodo</b><small>Es único y no se puede cambiar.</small></div><span class="gold" translate="no">${esc(nick)}</span></div>`
-      + `<div class="set-row"><div class="grow"><b>Tipo de cuenta</b></div><span>${esc(kind)}</span></div>`
-      + `<div class="set-row"><div class="grow"><b>Partida</b></div><span>${esc(SYNC[st] || st)}</span></div>`
+    const kind = G.DB.mode === 'local' ? (isPT ? 'Conta local deste navegador' : 'Local browser account') : G.DB.nameAccount ? (isPT ? 'Nome de Usuário e Senha' : 'Username and Password') : 'Google';
+    box.innerHTML = section(isPT ? 'Conta' : 'Account')
+      + `<div class="set-row"><div class="grow"><b>${isPT ? 'Apelido de Treinador' : 'Trainer Nickname'}</b><small>${isPT ? 'Identificador único da sua conta.' : 'Unique identifier for your account.'}</small></div><span class="gold" translate="no">${esc(nick)}</span></div>`
+      + `<div class="set-row"><div class="grow"><b>${isPT ? 'Tipo de Conta' : 'Account Type'}</b></div><span>${esc(kind)}</span></div>`
+      + `<div class="set-row"><div class="grow"><b>${isPT ? 'Sincronização da Partida' : 'Save Synchronization'}</b></div><span>${esc(SYNC[st] || st)}</span></div>`
       + `<div class="row wrap" style="gap:8px;margin-top:12px">
-           <button class="btn" id="set-logout">Cerrar sesión</button>
-           <button class="btn danger" id="set-delete">Borrar cuenta</button>
+           <button class="btn" id="set-logout">${isPT ? 'Encerrar Sessão' : 'Log Out'}</button>
+           <button class="btn danger" id="set-delete">${isPT ? 'Excluir Conta' : 'Delete Account'}</button>
          </div><p class="note" id="set-msg"></p>`;
   }
 
@@ -262,15 +269,14 @@ G.SettingsUI = (() => {
       const r = await G.DB.deleteAccount(ok.pass);
       if (!r.ok) { $('set-msg').textContent = r.error; del.disabled = false; return; }
       close();
-      G.UI.toast('Cuenta borrada');
+      G.UI.toast('Conta excluída com sucesso.');
       G.Audio.music(null);
       G.Flow.toLogin();
     };
   }
 
-  /** Cerrar sesión (si estás en una partida, se abandona). */
   function leave() {
-    if (G.DB.guest && !confirm('Eres invitado: se perderá todo el progreso. ¿Salir?')) return;
+    if (G.DB.guest && !confirm('Você está como convidado: todo o progresso não salvo será perdido. Deseja sair?')) return;
     if (G.Game.state !== 'ui') G.Game.quit && G.Game.quit();
     G.Audio.music(null);
     G.DB.logout().then(() => G.Flow.toLogin());

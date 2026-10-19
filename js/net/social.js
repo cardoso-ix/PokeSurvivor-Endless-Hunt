@@ -101,7 +101,7 @@ G.Social = (() => {
   /** Reserva un apodo único y crea el perfil público. */
   async function claimNick(name) {
     name = (name || '').trim();
-    if (!VALID.test(name)) return { ok: false, error: 'El apodo debe tener 3-16 letras, números o _.' };
+    if (!VALID.test(name)) return { ok: false, error: 'O apelido deve ter de 3 a 16 letras, números ou _.' };
     const lower = name.toLowerCase();
     try {
       await fb.fs.runTransaction(async tx => {
@@ -113,8 +113,8 @@ G.Social = (() => {
           { name, lower, at: firebase.firestore.FieldValue.serverTimestamp() });
       });
     } catch (e) {
-      if (e && e.code === 'taken') return { ok: false, error: 'Ese apodo ya lo tiene otro jugador.' };
-      return { ok: false, error: 'No se pudo guardar el apodo (' + ((e && e.code) || 'error') + ').' };
+      if (e && e.code === 'taken') return { ok: false, error: 'Este apelido já está em uso por outro jogador.' };
+      return { ok: false, error: 'Não foi possível salvar o apelido (' + ((e && e.code) || 'erro') + ').' };
     }
     me = { uid, name };
     try { localStorage.setItem('ps.nick.' + uid, name); } catch (e) { /* nada */ }
@@ -251,15 +251,15 @@ G.Social = (() => {
   /** Envía una solicitud de amistad (o acepta la que ya te había mandado). */
   async function request(name) {
     name = (name || '').trim();
-    if (!me) return { ok: false, error: 'Primero elige tu apodo.' };
-    if (!VALID.test(name)) return { ok: false, error: 'Escribe el apodo exacto de tu amigo.' };
+    if (!me) return { ok: false, error: 'Primeiro escolha seu apelido.' };
+    if (!VALID.test(name)) return { ok: false, error: 'Digite o apelido exato do seu amigo.' };
     const n = await fb.fs.collection('names').doc(name.toLowerCase()).get().catch(() => null);
-    if (!n || !n.exists) return { ok: false, error: 'No hay ningún jugador con ese apodo.' };
+    if (!n || !n.exists) return { ok: false, error: 'Nenhum jogador encontrado com esse apelido.' };
     const other = n.data().uid;
-    if (other === uid) return { ok: false, error: 'Ese eres tú.' };
+    if (other === uid) return { ok: false, error: 'Este é você mesmo.' };
     const f = friends.get(other);
-    if (f && f.status === 'ok') return { ok: false, error: 'Ya sois amigos.' };
-    if (f && f.status === 'out') return { ok: false, error: 'Ya le enviaste una solicitud.' };
+    if (f && f.status === 'ok') return { ok: false, error: 'Vocês já são amigos.' };
+    if (f && f.status === 'out') return { ok: false, error: 'Você já enviou uma solicitação de amizade.' };
     if (f && f.status === 'in') return accept(other);
     const prof = await fb.fs.collection('profiles').doc(other).get().catch(() => null);
     const otherName = prof && prof.exists ? prof.data().name : name;

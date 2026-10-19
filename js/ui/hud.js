@@ -267,7 +267,7 @@ G.HUD = (() => {
     ctx.fillText(G.U.mmss(st.time), w / 2, 42);
     ctx.font = F(600, 10);
     ctx.fillStyle = '#8fa3c4';
-    ctx.fillText(G.World.biomeName().toUpperCase() + '  ·  ' + pl.kills + ' DERROTADOS  ·  ' + pl.coins + ' MONEDAS', w / 2, 58);
+    ctx.fillText(G.World.biomeName().toUpperCase() + '  ·  ' + pl.kills + ' DERROTADOS  ·  ' + pl.coins + ' POKÉMOEDAS', w / 2, 58);
 
     // ---------- clima (gerenciado via WeatherSystem) ----------
 
@@ -1133,7 +1133,7 @@ G.HUD = (() => {
       ctx.textAlign = 'center';
       ctx.font = F(800, 20);
       ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.75)';
-      const msg = G.Coop.players().every(p => p.dead) ? 'Habéis caído todos…' : 'Has caído: un compañero puede levantarte';
+      const msg = G.Coop.players().every(p => p.dead) ? 'Todos foram derrotados…' : 'Você caiu: um companheiro pode reviver você';
       ctx.strokeText(msg, w / 2, h * 0.62);
       ctx.fillStyle = '#ffb0b8';
       ctx.fillText(msg, w / 2, h * 0.62);
