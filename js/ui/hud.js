@@ -245,7 +245,7 @@ G.HUD = (() => {
     const COL = { atk: '#ff6b4d', spd: '#7fe0ff', def: '#b0b8c8', regen: '#5fe08a' };
     const LBL = { atk: 'ATK', spd: 'VEL', def: 'DEF', regen: 'REG' };
     let bx = 16;
-    const buffY = hasRpgHud ? 16 : 68;
+    const buffY = hasRpgHud ? 154 : 68;
     ctx.textAlign = 'left';
     for (const k in pl.buffs) {
       const b = pl.buffs[k];
@@ -311,7 +311,7 @@ G.HUD = (() => {
         ctx.font = F(800, 9);
         ctx.textAlign = 'left';
         const tw = ctx.measureText(txt).width + 12;
-        const powerY = hasRpgHud ? 16 : (py + 48);
+        const powerY = hasRpgHud ? 154 : (py + 48);
         roundRect(ctx, bx, powerY, tw, 15, 7);
         ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
         ctx.fillStyle = pw.def.color || '#ffd23f';

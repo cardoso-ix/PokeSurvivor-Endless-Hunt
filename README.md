@@ -131,8 +131,9 @@ Ao atingir 100% de energia de Mega e pressionar [ESPAÇO] ou o botão no HUD, o 
 
 ---
 
-### 5. 🎴 HUD Inferior Retro Pixel Art & Deck de Ataques do Super Combo Nível 20
-- **Design Estilo GBA / Nintendo DS:** Moldura chanfrada de alta definição com relevo e paleta retro fixada na parte inferior da tela.
+### 5. 🎴 HUD Superior Esquerdo Retro Pixel Art & Deck de Ataques do Super Combo Nível 20
+- **Design Estilo GBA / Nintendo DS:** Moldura chanfrada sólida com relevo pixel art posicionada no **canto superior esquerdo da tela**, integrando Perfil, Vida, Mega e Deck de Habilidades em um único bloco organizado sem obstruir a visão da arena ou o cronômetro central.
+- **Card de Perfil & Vida:** Avatar com sprite do Pokémon e badge de nível, nome do herói, barra de HP com indicador numérico (`PV 85 / 100`) e transição tricromática (verde/amarelo/vermelho), além da barra de Overdrive Mega.
 - **Deck de Ataques do Super Combo (`.hud-combo-container`):**
   - **Exibição Contínua dos Ataques:** Mostra todos os ataques que o jogador pegou para combar, com **Ícone Pixel Art**, **Nome Completo** (ex: *Chicote de Vinha*, *Folha Navalha*, *Bomba de Lodo*) e **Nível Atual** em badge destacado (ex: `NV. 3`, `NV. 5 MAX`).
   - **Status de Combagem em Tempo Real:**
