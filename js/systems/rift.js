@@ -363,36 +363,40 @@ G.Rift = (() => {
 
   /** En cada ordenador: viaje a la arena. */
   function begin(cfg) {
-    const pl = G.Game.player;
+    const pl = (G.Game && G.Game.player) ? G.Game.player : { x: 0, y: 0 };
     const ts = TS();
     arena = Object.assign({}, cfg, {
       x: cfg.tx * ts + ts / 2, y: cfg.ty * ts + ts / 2,
-      back: { x: pl.x, y: pl.y }, biome: G.World.biome, t: 0, phase: 'fight', endT: 0, bossId: 0
+      back: { x: pl.x, y: pl.y }, biome: (G.World && G.World.biome) || 'grass', t: 0, phase: 'fight', endT: 0, bossId: 0
     });
     rift = null; asked = false; downT = 0;
-    if (authority()) G.EnemyMgr.stash(); else G.EnemyMgr.clearRemote();
-    G.Projectiles.clear();
-    G.Combat.clearFields();
-    G.Hazards.clear();
-    G.World.setArena({ tx: cfg.tx, ty: cfg.ty, r: cfg.r, type: cfg.type });
-    G.World.setBiome(G.Tiles.arenaBiome(cfg.type), true);
+    if (G.EnemyMgr) {
+      if (authority()) G.EnemyMgr.stash(); else G.EnemyMgr.clearRemote();
+    }
+    if (G.Projectiles) G.Projectiles.clear();
+    if (G.Combat) G.Combat.clearFields();
+    if (G.Hazards) G.Hazards.clear();
+    if (G.World && G.World.setArena) G.World.setArena({ tx: cfg.tx, ty: cfg.ty, r: cfg.r, type: cfg.type });
+    if (G.World && G.World.setBiome && G.Tiles && G.Tiles.arenaBiome) G.World.setBiome(G.Tiles.arenaBiome(cfg.type), true);
     // Cada arena trae su clima (el volcán, sol; el glaciar, nieve...).
-    const th = G.Tiles.ARENA_THEMES[cfg.type];
-    if (th && th.weather) G.Weather.force(th.weather, ARENA_TIME + 15);
+    if (G.Tiles && G.Tiles.ARENA_THEMES) {
+      const th = G.Tiles.ARENA_THEMES[cfg.type];
+      if (th && th.weather && G.Weather && G.Weather.force) G.Weather.force(th.weather, ARENA_TIME + 15);
+    }
     // Todos al sur de la arena, en fila; el legendario aparece al norte.
-    const ps = G.Game.everyone();
+    const ps = (G.Game && G.Game.everyone) ? G.Game.everyone() : [pl];
     ps.forEach((p, i) => { p.x = arena.x + (i - (ps.length - 1) / 2) * 34; p.y = arena.y + ts * 3; });
-    G.Camera.x = pl.x; G.Camera.y = pl.y;
-    G.Game.flash('#c9a6ff', 0.9);
-    G.Audio.sfx('rift');
-    G.Spawner.say('Você entrou na fenda dimensional…', 2.4, true);
+    if (G.Camera) { G.Camera.x = pl.x; G.Camera.y = pl.y; }
+    if (G.Game && G.Game.flash) G.Game.flash('#c9a6ff', 0.9);
+    if (G.Audio && G.Audio.sfx) G.Audio.sfx('rift');
+    if (G.Spawner && G.Spawner.say) G.Spawner.say('Você entrou na fenda dimensional…', 2.4, true);
   }
 
   function spawnLegend() {
     const mon = G.DEX_BY[arena.dex];
     const stage = arena.stage || getMonStage(mon.dex || mon.name) || 1;
-    const t = G.Game.st.time;
-    const n = G.Game.everyone().length;
+    const t = (G.Game && G.Game.st) ? G.Game.st.time : 0;
+    const n = (G.Game && G.Game.everyone) ? G.Game.everyone().length : 1;
     const ts = TS();
 
     let def;
@@ -457,14 +461,15 @@ G.Rift = (() => {
     e.r *= (stage === 3 ? 1.25 : (stage === 2 ? 1.12 : 1.0));
     e.bodyH *= (stage === 3 ? 1.25 : (stage === 2 ? 1.12 : 1.0));
 
-    G.EnemyMgr.add(e);
+    if (G.EnemyMgr) G.EnemyMgr.add(e);
     arena.bossId = e.id;
+    arena.bossObj = e;
 
     const stageLabel = stage === 3 ? ' (Estágio 3 - Forma Suprema)' : (stage === 2 ? ' (Estágio 2)' : ' (Estágio 1)');
     const stageStars = stage === 3 ? '⚡⚡⚡ ' : (stage === 2 ? '⚡⚡ ' : '⚡ ');
-    G.Spawner.say(stageStars + e.name + (e.shiny ? ' Shiny' : '') + stageLabel + ' é o Guardião da Fenda!', 3.4);
-    G.Camera.kick(1.1);
-    G.Audio.sfx('boss');
+    if (G.Spawner && G.Spawner.say) G.Spawner.say(stageStars + e.name + (e.shiny ? ' Shiny' : '') + stageLabel + ' é o Guardião da Fenda!', 3.4);
+    if (G.Camera && G.Camera.kick) G.Camera.kick(1.1);
+    if (G.Audio && G.Audio.sfx) G.Audio.sfx('boss');
   }
 
   /** Nadie sale del círculo de la arena (por si algo empuja demasiado). */
@@ -746,8 +751,12 @@ G.Rift = (() => {
       },
       getArena: () => (typeof G === 'object' && G.Rift) ? G.Rift.arena : null,
       getBoss: () => {
-        if (typeof G === 'object' && G.Rift && G.Rift.arena && G.EnemyMgr) {
-          return G.EnemyMgr.get(G.Rift.arena.bossId);
+        if (typeof G === 'object' && G.Rift && G.Rift.arena) {
+          if (G.EnemyMgr && G.EnemyMgr.get) {
+            const b = G.EnemyMgr.get(G.Rift.arena.bossId);
+            if (b) return b;
+          }
+          return G.Rift.arena.bossObj || null;
         }
         return null;
       }
