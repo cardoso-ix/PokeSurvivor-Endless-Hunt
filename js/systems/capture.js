@@ -278,21 +278,28 @@ const CaptureSystem = (() => {
       data.isDuplicate = !!isAlreadyCaptured;
 
       if (isAlreadyCaptured) {
-        // RECOMPENSA DE REPETIDO: +500 PokéMoedas e +500 Tickets para a Roleta Gacha
+        // RECOMPENSA DE REPETIDO ESCALONADA POR ESTÁGIO:
+        // Estágio 1: 500 Moedas / 500 Tickets | Estágio 2: 750 Moedas / 750 Tickets | Estágio 3: 1000 Moedas / 1000 Tickets
+        const stage = data.stage || 1;
+        const duplicateCoins = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
+        const duplicateTickets = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
+        data.rewardCoins = duplicateCoins;
+        data.rewardTickets = duplicateTickets;
+
         if (dbObj.save) {
-          dbObj.save.coins = (dbObj.save.coins || 0) + RIFT_DUPLICATE_COINS;
+          dbObj.save.coins = (dbObj.save.coins || 0) + duplicateCoins;
           if (dbObj.save.stats) {
-            dbObj.save.stats.coinsEarned = (dbObj.save.stats.coinsEarned || 0) + RIFT_DUPLICATE_COINS;
+            dbObj.save.stats.coinsEarned = (dbObj.save.stats.coinsEarned || 0) + duplicateCoins;
           }
           dbObj.save.tickets = dbObj.save.tickets || { t1: 0, t10: 0 };
-          dbObj.save.tickets.t1 = (dbObj.save.tickets.t1 || 0) + RIFT_DUPLICATE_TICKETS;
+          dbObj.save.tickets.t1 = (dbObj.save.tickets.t1 || 0) + duplicateTickets;
         }
 
         // Atualiza a entidade do player em tempo real se a partida estiver em execução
         const pl = (typeof G === 'object' && G.Game && G.Game.player) || (typeof game !== 'undefined' && game && game.player) || null;
         if (pl) {
-          pl.coins = (pl.coins || 0) + RIFT_DUPLICATE_COINS;
-          pl.t1 = (pl.t1 || 0) + RIFT_DUPLICATE_TICKETS;
+          pl.coins = (pl.coins || 0) + duplicateCoins;
+          pl.t1 = (pl.t1 || 0) + duplicateTickets;
         }
 
         // Se a duplicata for Shiny e o jogador ainda não possuía a forma Shiny, registra na coleção Shiny
@@ -599,8 +606,10 @@ const CaptureSystem = (() => {
                 }
                 if (G.FX.dmgText) {
                   if (this.isDuplicate) {
+                    const c = this.rewardCoins || 500;
+                    const tk = this.rewardTickets || 500;
                     G.FX.dmgText(this.x, this.y - 44, `✨ ${monName} REPETIDO! ✨`, '#ffd23f', true);
-                    G.FX.dmgText(this.x, this.y - 20, `+500 MOEDAS · +500 TICKETS!`, '#4ade80', true);
+                    G.FX.dmgText(this.x, this.y - 20, `+${c} MOEDAS · +${tk} TICKETS!`, '#4ade80', true);
                   } else {
                     G.FX.dmgText(this.x, this.y - 36, `✨ + ${monName} CAPTURADO COM SUCESSO! ✨`, '#4ade80', true);
                   }
@@ -608,7 +617,9 @@ const CaptureSystem = (() => {
               }
               if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
                 if (this.isDuplicate) {
-                  G.Spawner.say(`🎉 ${monName} repetido! Você ganhou +500 PokéMoedas e +500 Tickets para a Roleta!`, 4.0, true);
+                  const c = this.rewardCoins || 500;
+                  const tk = this.rewardTickets || 500;
+                  G.Spawner.say(`🎉 ${monName} repetido! Você ganhou +${c} PokéMoedas e +${tk} Tickets para a Roleta!`, 4.0, true);
                 } else {
                   G.Spawner.say(`🎉 ${monName} capturado e registrado na Pokédex!`, 3.5, true);
                 }
@@ -817,7 +828,9 @@ const CaptureSystem = (() => {
       statusColor = '#ea580c';
     } else if (b.state === 'RESOLVE' || b.state === 'DONE') {
       if (b.isSuccess) {
-        statusText = b.isDuplicate ? '✨ REPETIDO! +500 MOEDAS · +500 TICKETS! ✨' : '✨ POKÉMON CAPTURADO COM SUCESSO! ✨';
+        const c = b.rewardCoins || 500;
+        const tk = b.rewardTickets || 500;
+        statusText = b.isDuplicate ? `✨ REPETIDO! +${c} MOEDAS · +${tk} TICKETS! ✨` : '✨ POKÉMON CAPTURADO COM SUCESSO! ✨';
         statusColor = b.isDuplicate ? '#ffd23f' : '#4ade80';
       } else {
         statusText = '💨 O POKÉMON ESCAPOU!';

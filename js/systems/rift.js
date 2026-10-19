@@ -107,21 +107,35 @@ G.Rift = (() => {
     return !!(mon.leg || (mon.rarity && mon.rarity >= 5));
   }
 
+  function getMonStage(monOrDex) {
+    if (!monOrDex) return 1;
+    if (typeof getPokemonEvolutionStage === 'function') {
+      return getPokemonEvolutionStage(monOrDex);
+    }
+    if (typeof G === 'object' && typeof G.getPokemonEvolutionStage === 'function') {
+      return G.getPokemonEvolutionStage(monOrDex);
+    }
+    if (typeof window !== 'undefined' && typeof window.getPokemonEvolutionStage === 'function') {
+      return window.getPokemonEvolutionStage(monOrDex);
+    }
+    return 1;
+  }
+
   /**
-   * Sorteio do Pokémon Guardião do Rift com Deduplicação e Balanceamento Matemático Rigoroso:
-   * 1. Rolagem de Raridade de 1 a 100:
+   * Sorteio do Pokémon Guardião do Rift com Deduplicação, Balanceamento e Regra Estrita de Estágios:
+   * 1. Regra de Nível do Treinador:
+   *    - Até Lv. 20: Apenas Pokémon Estágio 1 (Base / Baby / Inicial).
+   *    - Lv. 21 até 41: Apenas Pokémon Estágio 2 (Primeira evolução / intermediário).
+   *    - Lv. 42+: Apenas Pokémon Estágio 3 (Segunda evolução / forma final).
+   * 2. Rolagem de Raridade de 1 a 100:
    *    - roll <= 75 (75%): Pokémon Comum/Regional Normal.
    *    - roll > 75 && roll <= 90 (15%): Pokémon Comum/Regional Shiny.
    *    - roll > 90 && roll <= 99 (9%): Pokémon Lendário Normal (Se rifts < 30, rebaixa para Comum Normal).
    *    - roll > 99 (1%): Pokémon Lendário Shiny (Se rifts < 30, rebaixa para Comum Shiny).
-   * 2. Pity dos 500 Rifts: Múltiplo de 500 (total > 0 && total % 500 === 0) garante variante Shiny.
-   * 3. Deduplicação Pokedex:
-   *    - Comum Normal: prioriza espécies da região ainda NÃO capturadas.
-   *    - Comum Shiny: prioriza espécies da região ainda sem versão Shiny.
-   *    - Lendários: prioriza lendários ainda NÃO capturados / sem versão Shiny.
-   * 4. Região 100% Concluída: Caso todas as espécies normais tenham sido capturadas, concede a Caixa de Recompensas de Campeão (+5.000 Ouro e EXP).
+   * 3. Pity dos 500 Rifts: Múltiplo de 500 (total > 0 && total % 500 === 0) garante variante Shiny.
+   * 4. Deduplicação Pokedex: Prioriza espécies ainda NÃO capturadas no estágio alvo.
    */
-  function selectRiftGuardian(forceType) {
+  function selectRiftGuardian(forceType, forceLevel) {
     const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
     let riftsCleared = 0;
     if (typeof localStorage !== 'undefined') {
@@ -131,6 +145,25 @@ G.Rift = (() => {
     if (!riftsCleared && dbObj) {
       if (typeof dbObj.getRiftsCleared === 'function') riftsCleared = dbObj.getRiftsCleared();
       else if (typeof dbObj.getTotalRiftsCleared === 'function') riftsCleared = dbObj.getTotalRiftsCleared();
+    }
+
+    // Identificar Nível do Jogador e Regra Oficial de Estágios:
+    let playerLevel = 1;
+    if (forceLevel !== undefined && forceLevel !== null) {
+      playerLevel = Number(forceLevel);
+    } else if (typeof G === 'object' && G.Game && G.Game.player && typeof G.Game.player.level === 'number') {
+      playerLevel = G.Game.player.level;
+    } else if (typeof window !== 'undefined' && window.game && window.game.player && typeof window.game.player.level === 'number') {
+      playerLevel = window.game.player.level;
+    }
+
+    let targetStage = 1;
+    if (playerLevel >= 42) {
+      targetStage = 3;
+    } else if (playerLevel >= 21) {
+      targetStage = 2;
+    } else {
+      targetStage = 1;
     }
 
     // Identificar a Região Ativa
@@ -199,46 +232,62 @@ G.Rift = (() => {
     let willBeShiny = (targetTier === 'common_shiny' || targetTier === 'legend_shiny');
     const isLegend = (targetTier === 'legend_normal' || targetTier === 'legend_shiny');
 
-    const targetPool = isLegend ? (legendPool.length ? legendPool : commonPool) : (commonPool.length ? commonPool : regionPool);
+    let targetPool = isLegend ? (legendPool.length ? legendPool : commonPool) : (commonPool.length ? commonPool : regionPool);
+
+    // =========================================================================
+    // FILTRO ESTRITO POR ESTÁGIO EVOLUTIVO
+    // Regra: Nível <= 20: Stg 1 | Nível 21..41: Stg 2 | Nível 42+: Stg 3
+    // =========================================================================
+    let stagePool = targetPool.filter(p => getMonStage(p.dex || p.name) === targetStage);
+    if (!stagePool.length) {
+      // Se na targetPool da região não houver espécies deste estágio, busca na basePool global
+      stagePool = basePool.filter(p => getMonStage(p.dex || p.name) === targetStage);
+    }
+    if (!stagePool.length) {
+      // Fallback de segurança para não travar
+      stagePool = targetPool.slice();
+    }
+
     let candidates = [];
     let isChampionReward = false;
 
     if (willBeShiny) {
       // Deduplicação Shiny: só exclui se o jogador já possuir sua versão Shiny
-      candidates = targetPool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
+      candidates = stagePool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
       if (!candidates.length) {
         // Se já tiver todos os Shinies da categoria, permite re-sorteio
-        candidates = targetPool.slice();
+        candidates = stagePool.slice();
       }
     } else {
       // Deduplicação Normal: exclui estritamente todas as espécies já capturadas
-      candidates = targetPool.filter(p => !capturedSet.has(p.name.toLowerCase()) && !capturedSet.has(String(p.dex)));
+      candidates = stagePool.filter(p => !capturedSet.has(p.name.toLowerCase()) && !capturedSet.has(String(p.dex)));
       if (!candidates.length) {
         if (!isLegend) {
-          // Se todos os comuns já foram capturados, verifica se faltam Shinies comuns
-          const missingShinies = targetPool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
+          // Se todos os comuns do estágio já foram capturados, verifica se faltam Shinies comuns
+          const missingShinies = stagePool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
           if (missingShinies.length > 0 && Math.random() < 0.25) {
             willBeShiny = true;
             candidates = missingShinies;
           } else {
-            // Região 100% capturada: Caixa de Recompensas de Campeão
-            candidates = targetPool.slice();
+            // Estágio 100% capturado: Caixa de Recompensas de Campeão
+            candidates = stagePool.slice();
             isChampionReward = true;
           }
         } else {
-          candidates = targetPool.slice();
+          candidates = stagePool.slice();
         }
       }
     }
 
     if (!candidates.length) {
-      candidates = targetPool.length ? targetPool.slice() : (basePool.length ? basePool.slice() : [{ dex: 25, name: 'Pikachu', types: ['electric'] }]);
+      candidates = stagePool.length ? stagePool.slice() : [{ dex: 25, name: 'Pikachu', types: ['electric'] }];
     }
 
     const selectedMon = candidates[Math.floor(Math.random() * candidates.length)] || candidates[0];
     const selectedName = selectedMon ? selectedMon.name.toLowerCase() : 'pikachu';
     const selectedDex = selectedMon ? selectedMon.dex : 25;
     const finalIsLegend = isRegionalLeg(selectedMon);
+    const finalStage = getMonStage(selectedMon.dex || selectedMon.name) || targetStage;
 
     return {
       mon: selectedMon,
@@ -247,6 +296,7 @@ G.Rift = (() => {
       isShiny: willBeShiny,
       isLegendary: finalIsLegend,
       isChampionReward: isChampionReward,
+      stage: finalStage,
       tier: targetTier,
       roll: roll
     };
@@ -255,13 +305,14 @@ G.Rift = (() => {
   /** Quien manda: elige guardian y lugar, y avisa a todos. */
   let nextType = null;          // pruebas/vídeos: tipo de la próxima arena
 
-  function start(forceType, forceSpecies, forceShiny) {
+  function start(forceType, forceSpecies, forceShiny, forceLevel) {
     if (arena) return;
     forceType = forceType || nextType; nextType = null;
 
     let mon = null;
     let isShiny = false;
     let championReward = false;
+    let detectedStage = 1;
 
     if (forceSpecies !== undefined && forceSpecies !== null) {
       if (typeof forceSpecies === 'number') {
@@ -279,20 +330,24 @@ G.Rift = (() => {
         const totalClears = (typeof G === 'object' && G.DB && G.DB.getTotalRiftsCleared) ? G.DB.getTotalRiftsCleared() : 0;
         isShiny = (totalClears > 0 && totalClears % 500 === 0) || Math.random() < 0.001;
       }
+      detectedStage = mon ? getMonStage(mon.dex || mon.name) : 1;
     } else {
-      const guardian = selectRiftGuardian(forceType);
+      const guardian = selectRiftGuardian(forceType, forceLevel);
       mon = guardian.mon;
       isShiny = forceShiny !== undefined ? !!forceShiny : guardian.isShiny;
       championReward = !!guardian.isChampionReward;
+      detectedStage = guardian.stage || (mon ? getMonStage(mon.dex || mon.name) : 1);
     }
 
     if (!mon && typeof G === 'object' && G.DEX) {
       mon = G.DEX[0];
+      detectedStage = getMonStage(mon.dex || mon.name);
     }
 
     const cfg = {
       tx: 5000 + Math.floor(Math.random() * 3000), ty: 5000 + Math.floor(Math.random() * 3000), r: ARENA_R,
       dex: mon.dex, shiny: isShiny,
+      stage: detectedStage,
       championReward: championReward,
       // La arena es la de uno de sus tipos, al azar.
       type: forceType || ((G.U && G.U.pick) ? G.U.pick(mon.types) : mon.types[0])
@@ -331,27 +386,79 @@ G.Rift = (() => {
 
   function spawnLegend() {
     const mon = G.DEX_BY[arena.dex];
+    const stage = arena.stage || getMonStage(mon.dex || mon.name) || 1;
     const t = G.Game.st.time;
     const n = G.Game.everyone().length;
     const ts = TS();
-    const def = {
-      dex: mon.dex, name: mon.name,
-      hp: Math.round((3800 + t * 12) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 3), // Status aumentado: 3x HP de elite
-      spd: Math.round(G.U.clamp(48 + (mon.spd - 78) * 0.6, 48, 105)),
-      dmg: Math.round(36 + t / 20), xp: Math.round(500 + t * 1.2),
-      behavior: mon.types.some(x => ['psychic', 'electric', 'ghost', 'fairy', 'fire', 'water', 'ice', 'dragon'].includes(x)) ? 'ranged' : 'charger',
-      shotDmg: Math.round(18 + t / 40), shotCd: 0.9, range: 300
-    };
+
+    let def;
+    if (stage === 1) {
+      // =======================================================================
+      // ESTÁGIO 1 (Até Lvl 20): Mais Fraco em Todas as Características
+      // =======================================================================
+      def = {
+        dex: mon.dex, name: mon.name, stage: 1,
+        hp: Math.round((2600 + t * 9) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 2.2),
+        spd: Math.round(G.U.clamp(42 + (mon.spd - 78) * 0.45, 42, 70)),
+        dmg: Math.round(22 + t / 25),
+        xp: Math.round(380 + t * 0.9),
+        behavior: mon.types.some(x => ['psychic', 'electric', 'ghost', 'fairy', 'fire', 'water', 'ice', 'dragon'].includes(x)) ? 'ranged' : 'charger',
+        shotDmg: Math.round(14 + t / 45),
+        shotCd: 1.25,
+        range: 260
+      };
+    } else if (stage === 2) {
+      // =======================================================================
+      // ESTÁGIO 2 (Lvl 21 a 41): Mais Forte que Estágio 1 em Todas Características
+      // =======================================================================
+      def = {
+        dex: mon.dex, name: mon.name, stage: 2,
+        hp: Math.round((4200 + t * 14) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 3.0),
+        spd: Math.round(G.U.clamp(55 + (mon.spd - 78) * 0.6, 55, 95)),
+        dmg: Math.round(44 + t / 18),
+        xp: Math.round(800 + t * 1.5),
+        behavior: mon.types.some(x => ['psychic', 'electric', 'ghost', 'fairy', 'fire', 'water', 'ice', 'dragon'].includes(x)) ? 'ranged' : 'charger',
+        shotDmg: Math.round(25 + t / 35),
+        shotCd: 0.85,
+        range: 330
+      };
+    } else {
+      // =======================================================================
+      // ESTÁGIO 3 (Lvl 42+): Mais Forte que Estágio 1 e 2 em Todas Características
+      // =======================================================================
+      def = {
+        dex: mon.dex, name: mon.name, stage: 3,
+        hp: Math.round((6800 + t * 22) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 4.0),
+        spd: Math.round(G.U.clamp(68 + (mon.spd - 78) * 0.75, 68, 118)),
+        dmg: Math.round(68 + t / 14),
+        xp: Math.round(1500 + t * 2.2),
+        behavior: mon.types.some(x => ['psychic', 'electric', 'ghost', 'fairy', 'fire', 'water', 'ice', 'dragon'].includes(x)) ? 'ranged' : 'charger',
+        shotDmg: Math.round(38 + t / 25),
+        shotCd: 0.55,
+        range: 420
+      };
+    }
+
     const e = new G.Enemy(def, arena.x, arena.y - ts * 3.5, { hp: 1, spd: 1, dmg: 1 }, true);
     e.legend = true;
     e.isRiftGuardian = true;
-    // Choca con las paredes y columnas como tú: si volara por encima de las
-    // rocas, tus disparos no podrían alcanzarle (bug de Celebi).
+    e.stage = stage;
+    // Choca com as paredes e colunas da arena
     e.flying = false;
     if (arena.shiny) e.makeShiny();
+
+    // Escala e porte físico de acordo com o estágio
+    const scaleMul = stage === 3 ? 1.30 : (stage === 2 ? 1.15 : 1.0);
+    e.scale *= scaleMul;
+    e.r *= (stage === 3 ? 1.25 : (stage === 2 ? 1.12 : 1.0));
+    e.bodyH *= (stage === 3 ? 1.25 : (stage === 2 ? 1.12 : 1.0));
+
     G.EnemyMgr.add(e);
     arena.bossId = e.id;
-    G.Spawner.say('⚡ ' + e.name + (e.shiny ? ' Shiny' : '') + ' é o Guardião da Fenda!', 3.2);
+
+    const stageLabel = stage === 3 ? ' (Estágio 3 - Forma Suprema)' : (stage === 2 ? ' (Estágio 2)' : ' (Estágio 1)');
+    const stageStars = stage === 3 ? '⚡⚡⚡ ' : (stage === 2 ? '⚡⚡ ' : '⚡ ');
+    G.Spawner.say(stageStars + e.name + (e.shiny ? ' Shiny' : '') + stageLabel + ' é o Guardião da Fenda!', 3.4);
     G.Camera.kick(1.1);
     G.Audio.sfx('boss');
   }
@@ -433,6 +540,7 @@ G.Rift = (() => {
     // Inicia a captura diegética no chão do mapa
     const capSys = (typeof CaptureSystem !== 'undefined' ? CaptureSystem : (typeof window !== 'undefined' ? (window.captureSystem || window.CaptureSystem) : null)) || (typeof G === 'object' ? G.Capture : null);
     if (capSys && typeof capSys.startCaptureSequence === 'function') {
+      const bossStage = arena.stage || (guardianMon ? getMonStage(guardianMon.dex || guardianMon.name) : 1);
       capSys.startCaptureSequence({
         speciesId: guardianMon ? guardianMon.name : 'mewtwo',
         mon: guardianMon,
@@ -443,6 +551,7 @@ G.Rift = (() => {
         fromY: fromY,
         isShiny: isShiny,
         isLegendary: isLegendaryOrMythical(guardianMon),
+        stage: bossStage,
         level: pl ? pl.level : 1,
         onComplete: (caught, isDuplicate) => {
           if (arena && arena.championReward) {
@@ -473,10 +582,14 @@ G.Rift = (() => {
     G.Progress.event('rift', { type: arena.type });
     G.Pickups.pullAll();
     const mon = G.DEX_BY[arena.dex];
+    const stage = arena.stage || (mon ? getMonStage(mon.dex || mon.name) : 1);
+    const coinsReward = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
+    const ticketsReward = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
+
     const msg = arena.championReward
       ? ('🏆 ' + mon.name + ' derrotado! Recompensas de Campeão resgatadas!')
       : (caught
-          ? (isDuplicate ? ('✨ ' + mon.name + ' repetido! +500 Moedas e +500 Tickets resgatados!') : ('✨ ' + mon.name + ' foi capturado com sucesso!'))
+          ? (isDuplicate ? ('✨ ' + mon.name + ` repetido! +${coinsReward} Moedas e +${ticketsReward} Tickets resgatados!`) : ('✨ ' + mon.name + ' foi capturado com sucesso!'))
           : (mon.name + ' escapou, mas você concluiu o Rift!'));
     G.Spawner.say(msg, 3.4, true);
     G.Audio.sfx('legend');
@@ -598,10 +711,11 @@ G.Rift = (() => {
     get inArena() { return !!arena; },
     get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
     debugOpen() { open(); },
+    start,
     /** Para pruebas: arena de un tipo ya o guardián específico. */
-    debugArena(type, species, shiny) { start(type, species, shiny); },
+    debugArena(type, species, shiny, level) { start(type, species, shiny, level); },
     /** Forçar entrada imediata contra guardião específico */
-    triggerGuardian(species, shiny) { start(null, species, shiny); },
+    triggerGuardian(species, shiny, level) { start(null, species, shiny, level); },
     /** Para vídeos: la próxima grieta en la que entres será de este tipo. */
     debugNextType(type) { nextType = type; },
     handleGuardianDefeated,

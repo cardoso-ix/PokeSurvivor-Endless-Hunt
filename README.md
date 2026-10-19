@@ -168,20 +168,37 @@ O jogo conta com um sistema de Roleta Gacha temático acessível pelo Menu Princ
 
 ---
 
-### 7. 🌌 Sistema de Batalha de Rift & Compensação de Repetidos (+500 Moedas e +500 Tickets)
-As Fendas Dimensionais (Rifts) oferecem desafios de alto risco contra chefes e Guardiões Lendários:
+### 7. 🌌 Sistema de Batalha de Rift & Regras de Estágios por Nível
+As Fendas Dimensionais (Rifts) oferecem desafios épicos em arenas dimensionais fechadas contra Guardiões e Chefes Pokémon, com geração estritamente atrelada ao nível atual do Treinador na partida:
+
+- **Regra de Seleção de Estágio do Chefe por Nível:**
+  - 🐣 **Até Nível 20 (Lv 1 a 20) ➔ Apenas Pokémon de Estágio 1:** Aparecem exclusivamente Pokémon na forma base / inicial / bebê (ex: *Charmander, Bulbasaur, Slowpoke, Pichu, Gastly*).
+  - ⚡ **Nível 21 até 41 (Lv 21 a 41) ➔ Apenas Pokémon de Estágio 2:** Aparecem exclusivamente Pokémon no primeiro estágio de evolução intermediário (ex: *Charmeleon, Ivysaur, Magneton, Haunter, Pikachu*).
+  - 👑 **Nível 42+ (Lv 42 em diante) ➔ Apenas Pokémon de Estágio 3:** Aparecem exclusivamente Pokémon em sua forma final suprema e ápice evolutivo (ex: *Charizard, Venusaur, Nidoqueen, Gengar, Raichu, Alakazam*).
+
+- **Escalonamento Matemático de Características por Estágio (`Stg 1 < Stg 2 < Stg 3`):**
+  O Chefe de Estágio 1 é calibrado como o mais fraco, o Estágio 2 é balanceado para ser substancialmente mais forte que o Estágio 1, e o Estágio 3 é o monstro supremo, superando ambos em todas as características:
+
+  | Característica / Atributo | 🐣 Estágio 1 (Até Lv 20) | ⚡ Estágio 2 (Lv 21 até 41) | 👑 Estágio 3 (Lv 42+) |
+  | :--- | :--- | :--- | :--- |
+  | **Multiplicador de HP Base** | `0.65×` (~5.7k – 7.5k HP) | `1.15×` (~13k – 16.5k HP) | `1.85×` (~28k – 35k HP) |
+  | **Dano de Colisão Base** | ~22 a 26 de dano | ~44 a 50 de dano | ~68 a 78 de dano |
+  | **Dano dos Projéteis** | ~13 a 17 de dano | ~25 a 30 de dano | ~38 a 46 de dano |
+  | **Cadência de Disparo (`shotCd`)** | `1.25s` (disparos espaçados) | `0.85s` (ritmo constante) | `0.55s` (rajadas agressivas) |
+  | **Velocidade de Movimento (`spd`)** | `42 a 70 px/s` (lento/moderado) | `55 a 95 px/s` (rápido) | `68 a 118 px/s` (feroz/implacável) |
+  | **Raio de Perseguição (`range`)** | `260 px` | `330 px` | `420 px` |
+  | **Escala Visual no Canvas** | `1.00×` (tamanho padrão) | `1.15×` (porte ampliado) | `1.30×` (colosso imponente) |
+  | **EXP de Recompensa** | `+380 a 650 EXP` | `+800 a 1.250 EXP` | `+1.500 a 2.500 EXP` |
+  | **Recompensa de Repetido na Dex** | 💰 `+500 Moedas` · 🎟️ `+500 Tickets` | 💰 `+750 Moedas` · 🎟️ `+750 Tickets` | 💰 `+1.000 Moedas` · 🎟️ `+1.000 Tickets` |
+
 - **Captura Diegética no Mapa:** Ao derrotar o Guardião da Fenda, a Pokébola apropriada ao nível do jogador é arremessada no chão do mapa com física e animação de balanço em 3 estágios.
-- **Regra de Pokémon Repetido na Pokédex:**
-  - Se o jogador capturar um Pokémon que **já possui registrado na Pokédex**:
-    - 💰 **+500 PokéMoedas** creditadas imediatamente no save permanente (`save.coins`) e no personagem ativo em jogo (`player.coins`).
-    - 🎟️ **+500 Tickets da Roleta Gacha** creditados imediatamente (`save.tickets.t1` e `player.t1`), permitindo acumular giros para concorrer a Lendários e Shinies na Roleta.
-  - Se for um Pokémon **inédito**: registra a nova espécie na Pokédex permanente e desbloqueia seu ancestral de Estágio 1 na lista de iniciais jogáveis.
-  - Se for uma versão **Shiny repetida na Dex normal**: entrega as 500 moedas e 500 tickets de repetido e também registra a versão brilhante na coleção Shiny (`save.shiny`).
+- **Regra de Compensação por Pokémon Repetido:**
+  - Se o jogador capturar um Pokémon que **já possui registrado na Pokédex**, recebe a bonificação escalonada de **Moedas** (para Melhorias permanentes) e **Tickets** (para a Roleta Gacha) conforme o estágio do monstro capturado.
+  - Se for um Pokémon **inédito**, registra a nova espécie na Pokédex permanente e desbloqueia seu ancestral de Estágio 1 na lista de iniciais jogáveis.
+  - Se for uma versão **Shiny**, registra na coleção Shiny permanente com brilho estelar.
 - **Feedback Visual & Sonoro Diegético no Canvas:**
-  - Card superior com aviso: `✨ REPETIDO! +500 MOEDAS · +500 TICKETS! ✨`.
-  - Textos flutuantes ao redor da Pokébola: `✨ [NOME] REPETIDO! ✨` e `+500 MOEDAS · +500 TICKETS!`.
-  - Anúncio do Spawner no topo: `🎉 [NOME] repetido! Você ganhou +500 PokéMoedas e +500 Tickets para a Roleta!`.
-  - Atualização instantânea dos contadores de saldo do HUD superior e inferior.
+  - Card superior com aviso em tempo real com valores dinâmicos (`✨ REPETIDO! +X MOEDAS · +X TICKETS! ✨`).
+  - Textos flutuantes ao redor da Pokébola e anúncio global do Spawner no topo.
 
 ---
 
