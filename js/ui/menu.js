@@ -37,7 +37,7 @@ G.MenuUI = (() => {
         else if (go === 'dex') openDex();
         else if (go === 'upgrades') openUpgrades();
         else if (go === 'gacha') {
-          if (G.UI && G.UI.toast) G.UI.toast('O Gacha foi desativado! Novos Pokémon são obtidos através de Rifts.', 3000);
+          if (G.GachaUI && G.GachaUI.open) G.GachaUI.open();
         }
         else if (go === 'goals') G.GoalsUI.open();
         else if (go === 'friends') G.FriendsUI.open();

@@ -25,7 +25,10 @@ G.Gacha = (() => {
   const PITY_5 = 70;
   const SHINY_RATE = 1 / 100;
   const REFUND = { 1: 15, 2: 30, 3: 60, 4: 120, 5: 300 };
+  const ROULETTE_COST = 5000;
+  const ROULETTE_DUPLICATE_COINS = 1000;
   let forceShiny = 0;           // para pruebas y vídeos: las N próximas salen shiny
+  let forceLegendary = 0;       // para testes da roleta lendária
 
   const RARITY_NAME = { 1: 'Comum', 2: 'Incomum', 3: 'Raro', 4: 'Épico', 5: 'Lendário' };
   const RARITY_COLOR = { 1: '#9fb1c9', 2: '#5fe08a', 3: '#4fb4ff', 4: '#c47bff', 5: '#ffcb3d' };
@@ -35,7 +38,7 @@ G.Gacha = (() => {
     { gen: 2, name: 'Johto',   color: ['#5a2a1a', '#7a3d1f', '#2d4a6e'] },
     { gen: 3, name: 'Hoenn',   color: ['#0f4d6e', '#1b6a5a', '#2a3d78'] },
     { gen: 4, name: 'Sinnoh',  color: ['#2a2a5e', '#3d3d8a', '#5a2a6e'] },
-    { gen: 5, name: 'Teselia', color: ['#1a1a2a', '#3a3a4e', '#2a4a6e'] },
+    { gen: 5, name: 'Unova',   color: ['#1a1a2a', '#3a3a4e', '#2a4a6e'] },
     { gen: 6, name: 'Kalos',   color: ['#4a1a3a', '#2a3a7a', '#1a5a7a'] },
     { gen: 7, name: 'Alola',   color: ['#7a3a1a', '#1a6a6a', '#2a4a8a'] },
     { gen: 8, name: 'Galar',   color: ['#4a1a5a', '#1a3a6a', '#6a1a3a'] },
@@ -124,7 +127,123 @@ G.Gacha = (() => {
     return out;
   }
 
-  return { debugForceShiny(n = 1) { forceShiny = n; },
-           costOf, RATES, PITY_5, SHINY_RATE, REFUND, RARITY_NAME, RARITY_COLOR, BANNERS,
-           pool, featured, pull };
+  function canAffordRoulette(save, count = 1) {
+    const t = (save && save.tickets) || { t1: 0, t10: 0 };
+    return (t.t1 || 0) >= ROULETTE_COST * count;
+  }
+
+  /**
+   * Sorteio Especial da Roleta com 5.000 Tickets.
+   * Pool: TODOS os Pokémon do jogo (G.DEX - 966 espécies).
+   * Probabilidades:
+   *   - 1% Pokémon Shiny aleatório
+   *   - 5% Pokémon Lendário aleatório
+   *   - 94% Pokémon Normal aleatório (~90%)
+   * Regra de Duplicata:
+   *   - Se o Pokémon já estiver na Pokédex do jogador: ganha 1.000 PokéMoedas para Melhorias!
+   *   - Se for novo: registra e desbloqueia na Pokédex.
+   */
+  function pullRoulette(save, count = 1) {
+    if (!save) return null;
+    save.tickets = save.tickets || { t1: 0, t10: 0 };
+    const totalCost = ROULETTE_COST * count;
+    if ((save.tickets.t1 || 0) < totalCost) return null;
+
+    save.tickets.t1 -= totalCost;
+    save.coins = save.coins || 0;
+    save.owned = save.owned || {};
+    save.shiny = save.shiny || {};
+    save.stats = save.stats || {};
+
+    const allLegs = G.DEX.filter(p => p.rarity === 5 || p.legendary);
+    const allNorms = G.DEX.filter(p => p.rarity < 5 && !p.legendary);
+    const allShinies = G.DEX.filter(p => G.Sprites && G.Sprites.hasShiny ? G.Sprites.hasShiny(p.dex) : true);
+
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const roll = Math.random() * 100;
+      let isShiny = false;
+      let mon = null;
+      let rarity = 1;
+
+      if (forceShiny > 0) {
+        forceShiny--;
+        isShiny = true;
+        mon = G.U.pick(allShinies.length ? allShinies : G.DEX);
+        rarity = mon.rarity || (mon.legendary ? 5 : 3);
+      } else if (forceLegendary > 0) {
+        forceLegendary--;
+        mon = G.U.pick(allLegs);
+        rarity = 5;
+      } else if (roll < 1.0) {
+        // 1% Chance: Shiny
+        isShiny = true;
+        mon = G.U.pick(allShinies.length ? allShinies : G.DEX);
+        rarity = mon.rarity || (mon.legendary ? 5 : 3);
+      } else if (roll < 6.0) {
+        // 5% Chance: Lendário (1.0% a 6.0% = 5.0%)
+        mon = G.U.pick(allLegs);
+        rarity = 5;
+      } else {
+        // 94% Chance: Normal
+        mon = G.U.pick(allNorms);
+        rarity = mon.rarity || 1;
+      }
+
+      let isNew = false;
+      let refund = 0;
+
+      // Verifica se já possui o Pokémon na Dex
+      if (save.owned[mon.dex]) {
+        // Já possui na Dex -> Ganha 1.000 PokéMoedas para melhorias!
+        save.coins += ROULETTE_DUPLICATE_COINS;
+        refund = ROULETTE_DUPLICATE_COINS;
+        isNew = false;
+        if (isShiny && !save.shiny[mon.dex]) {
+          save.shiny[mon.dex] = { at: Date.now(), from: 'gacha' };
+        }
+      } else {
+        // Inédito na Dex -> Registra na coleção
+        save.owned[mon.dex] = { at: Date.now(), from: 'gacha' };
+        if (isShiny) {
+          save.shiny[mon.dex] = { at: Date.now(), from: 'gacha' };
+        }
+        isNew = true;
+        refund = 0;
+      }
+
+      save.stats.pulls = (save.stats.pulls || 0) + 1;
+      out.push({
+        dex: mon.dex,
+        rarity,
+        shiny: isShiny,
+        isNew,
+        refund,
+        isLegendary: rarity === 5 || !!mon.legendary,
+        name: mon.name
+      });
+    }
+
+    return out;
+  }
+
+  return {
+    debugForceShiny(n = 1) { forceShiny = n; },
+    debugForceLegendary(n = 1) { forceLegendary = n; },
+    ROULETTE_COST,
+    ROULETTE_DUPLICATE_COINS,
+    canAffordRoulette,
+    pullRoulette,
+    costOf,
+    RATES,
+    PITY_5,
+    SHINY_RATE,
+    REFUND,
+    RARITY_NAME,
+    RARITY_COLOR,
+    BANNERS,
+    pool,
+    featured,
+    pull
+  };
 })();

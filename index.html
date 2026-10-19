@@ -265,7 +265,7 @@
         <button class="menu-item play" data-go="play"><span data-i18n="menu.play">Jogar</span><small data-i18n="menu.playSub">Entrar na masmorra</small></button>
         <button class="menu-item" data-go="dex"><span data-i18n="menu.pokemon">Pokémon</span><small id="menu-dex-count" data-i18n="menu.pokemonSub">Sua coleção</small></button>
         <button class="menu-item" data-go="upgrades"><span data-i18n="menu.upgrades">Melhorias</span><small data-i18n="menu.upgradesSub">Fique mais forte a cada partida</small></button>
-        <button class="menu-item hidden" data-go="gacha" style="display:none!important">Gacha<small>9 regiões · Pokémon e shinies</small></button>
+        <button class="menu-item" data-go="gacha"><span data-i18n="menu.gacha">Roleta Gacha</span><small data-i18n="menu.gachaSub">Gire por 5.000 tickets · Lendários e Shinies</small></button>
         <button class="menu-item" data-go="goals"><span data-i18n="menu.missions">Missões</span><small id="menu-goals-sub" data-i18n="menu.missionsSub">Missões, conquistas e perfil</small></button>
         <button class="menu-item" data-go="friends"><span data-i18n="menu.friends">Amigos</span><small id="menu-friends-sub" data-i18n="menu.friendsSub">Jogue em grupo, até 4 jogadores</small></button>
         <button class="menu-item" data-go="rank"><span data-i18n="menu.ranking">Classificação</span><small data-i18n="menu.rankingSub">Quem sobrevive mais tempo</small></button>
@@ -280,7 +280,7 @@
 
 <div id="topbar" class="topbar hidden">
   <div class="pill"><span class="coin"></span><span id="coins">0</span></div>
-  <div class="pill hidden" id="tickets-pill" title="Tickets do Gacha" style="display:none!important"></div>
+  <div class="pill" id="tickets-pill" title="Tickets da Roleta Gacha"></div>
   <div class="pill" id="rifts-pill" title="Fendas / Rifts Concluídos"><span style="font-size:13px">🌀</span> <span id="rifts-count">0</span> <span data-i18n="menu.rifts">Fendas</span></div>
   <div class="pill" id="user-pill"></div>
   <button id="btn-news" class="btn small ghost news-btn" title="Novidades"></button>
@@ -568,26 +568,38 @@
   </div>
 </section>
 
-<!-- ====== Gacha ====== -->
+<!-- ====== Roleta Gacha Pokémon ====== -->
 <section id="scr-gacha" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Gacha</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
+    <div class="row between"><h2>🎰 Roleta Gacha Pokémon</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="gen-tabs" id="gacha-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
         <div class="banner" id="banner">
-          <h3 id="banner-title"></h3>
-          <p id="banner-desc" style="margin:4px 0 6px"></p>
+          <h3 id="banner-title">Roleta da Sorte Pokémon</h3>
+          <p id="banner-desc" style="margin:4px 0 6px">Gire com 5.000 Tickets para concorrer a todos os 966 Pokémon do jogo!</p>
           <p class="sub" id="gacha-owned" style="margin:0"></p>
           <div class="feat" id="gacha-feat"></div>
         </div>
-        <div class="row" style="margin-top:14px">
+        <div class="gacha-balance-box row between" style="margin-top:10px;padding:8px 12px;background:rgba(0,0,0,0.28);border-radius:8px;border:1px solid rgba(255,210,63,0.25);">
+          <span id="gacha-balance-tickets" style="font-size:14px;color:#fff;font-weight:bold;"></span>
+          <span id="gacha-balance-coins" style="font-size:14px;color:var(--gold);font-weight:bold;"></span>
+        </div>
+        <div class="row" style="margin-top:12px;gap:10px;">
+          <button id="pull-roulette-1" class="btn gold grow" style="font-size:15px;padding:12px 14px;font-weight:bold;letter-spacing:0.5px;" data-sfx="none">
+            🎰 GIRAR ROLETA · 5.000 TICKETS
+          </button>
+          <button id="pull-roulette-5" class="btn grow" style="font-size:14px;padding:12px 12px;" data-sfx="none">
+            🎰 GIRAR ×5 · 25.000
+          </button>
+        </div>
+        <div id="legacy-pulls" class="row hidden" style="display:none!important;">
           <button id="pull-1" class="btn grow" data-sfx="none">Sortear ×1 · <span id="cost-1"></span></button>
           <button id="pull-10" class="btn gold grow" data-sfx="none">Sortear ×10 · <span id="cost-10"></span></button>
           <button id="pull-10b" class="btn gold grow" data-sfx="none">Sortear ×10 · <span id="cost-10b"></span></button>
         </div>
-        <p class="note tickets-line" id="gacha-tickets"></p>
-        <p class="note" id="gacha-pity"></p>
+        <p class="note tickets-line" id="gacha-tickets" style="margin-top:8px;"></p>
+        <p class="note" id="gacha-pity" style="display:none;"></p>
       </div>
       <div class="panel rates" id="gacha-rates"></div>
     </div>
@@ -677,6 +689,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=2aa18536ed"></script>
+<script defer src="js/app.min.js?v=c0354b5646"></script>
 </body>
 </html>

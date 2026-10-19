@@ -38,18 +38,19 @@ G.Slots = (() => {
     cv = canvas; ctx = cv.getContext('2d');
     fast = false;
     cv.onclick = () => { fast = true; };
+    const multi = results.length > 1;
     st = {
       t: 0, lever: 0, reels: REEL_X.map(() => ({ off: Math.random() * 400, spin: false, sym: 'ball', bounce: 0, speed: 0 })),
-      ten: results.length === 10, tray: [], led: results.length === 10 ? 'SORTEIO ×10' : 'BOA SORTE!', ledCol: C.bulbOn, win: null, frenzy: 0, sparks: []
+      ten: multi, total: results.length, tray: [], led: multi ? `SORTEIO ×${results.length}` : 'BOA SORTE!', ledCol: C.bulbOn, win: null, frenzy: 0, sparks: []
     };
     last = performance.now();
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(frame);
 
-    const ten = results.length === 10;
+    const ten = multi;
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
-      if (ten) st.led = 'SORTEIO ' + (i + 1) + '/10';
+      if (ten) st.led = 'SORTEIO ' + (i + 1) + '/' + results.length;
       // Palanca.
       G.Audio.sfx('ball');
       await tween(v => { st.lever = v; }, 0, 1, ten ? 0.12 : 0.22);
@@ -188,10 +189,10 @@ G.Slots = (() => {
     R(28, 124, 106, 22, '#0a0712');
     R(28, 144, 106, 2, C.chromeD);
     st.tray.forEach((b, j) => {
-      const n = st.ten ? 10 : 1;
-      const x = n === 1 ? 81 - 12 : 30 + j * 10;
+      const n = st.ten ? (st.total || 10) : 1;
+      const x = n === 1 ? 81 - 12 : 30 + j * Math.max(6, Math.min(10, 80 / Math.max(1, n - 1)));
       const size = n === 1 ? 24 : 12;
-      G.Icons.draw(ctx, b.sym, x, Math.round(b.y - (n === 1 ? 10 : 0)), size);
+      G.Icons.draw(ctx, b.sym, Math.round(x), Math.round(b.y - (n === 1 ? 10 : 0)), size);
     });
 
     // --- palanca ---

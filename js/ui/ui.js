@@ -29,11 +29,11 @@ G.UI = (() => {
 
   function refreshCoins() {
     const s = G.DB.save;
-    $('coins').textContent = s ? s.coins.toLocaleString('es') : '0';
+    $('coins').textContent = s ? s.coins.toLocaleString('pt-BR') : '0';
     const t = (s && s.tickets) || { t1: 0, t10: 0 };
-    if ($('tickets-pill')) $('tickets-pill').innerHTML = `${G.Icons.html('ticket', 18)} ${t.t1} &nbsp;${G.Icons.html('ticket10', 18)} ${t.t10}`;
+    if ($('tickets-pill')) $('tickets-pill').innerHTML = `${G.Icons.html('ticket', 18)} <span id="tickets-t1-val">${(t.t1 || 0).toLocaleString('pt-BR')}</span>`;
     const rifts = G.DB.getTotalRiftsCleared ? G.DB.getTotalRiftsCleared() : ((s && s.totalRiftsCleared) || 0);
-    if ($('rifts-count')) $('rifts-count').textContent = rifts.toLocaleString('es');
+    if ($('rifts-count')) $('rifts-count').textContent = rifts.toLocaleString('pt-BR');
     // Punto de sincronización: verde = guardado en la nube, amarillo = guardando,
     // rojo = sin conexión (se guarda en local y se sube al volver).
     const st = G.DB.guest ? 'guest' : G.DB.syncState;

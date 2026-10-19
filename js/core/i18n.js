@@ -212,7 +212,9 @@
         partner: "Companheiro",
         stagesTitle: "Escolha a Região",
         stagesSub: "Fase da Partida",
-        stagesDesc: "Os monstros e os Guardiões de Rift pertencerão exclusivamente à região selecionada."
+        stagesDesc: "Os monstros e os Guardiões de Rift pertencerão exclusivamente à região selecionada.",
+        gacha: "Roleta Gacha",
+        gachaSub: "Gire por 5.000 tickets · Lendários e Shinies"
       }
     },
     'en-US': {
@@ -413,7 +415,9 @@
         partner: "Partner",
         stagesTitle: "Choose Region",
         stagesSub: "Run Stage",
-        stagesDesc: "Monsters and Rift Guardians will belong exclusively to the selected region."
+        stagesDesc: "Monsters and Rift Guardians will belong exclusively to the selected region.",
+        gacha: "Gacha Roulette",
+        gachaSub: "Spin for 5,000 tickets · Legendaries and Shinies"
       }
     }
   };

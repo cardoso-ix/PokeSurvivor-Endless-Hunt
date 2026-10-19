@@ -142,6 +142,21 @@ Ao atingir 100% de energia de Mega, o jogador dispara o Poder Supremo correspond
 
 ---
 
+### 6. 🎰 Sistema de Roleta Gacha (5.000 Tickets) & Conversão de Repetidos
+O jogo conta com um sistema de Roleta Gacha temático acessível pelo Menu Principal e integrado aos Tickets obtidos nas partidas (em baús especiais, chefes e Guardiões de Fendas):
+- **Custo por Giro:** 5.000 Tickets por giro simples (`save.tickets.t1`) ou 25.000 Tickets para giros múltiplos (×5).
+- **Pool Global:** Sorteio entre **todos os 966 Pokémon do jogo** (Gerações 1 a 9).
+- **Probabilidades Oficiais:**
+  - 👑 **5.0% Pokémon Lendário:** Sorteio entre todos os 103 Lendários e Míticos da Pokédex (Mewtwo, Rayquaza, Dialga, Arceus, etc.).
+  - ✨ **1.0% Pokémon Shiny:** Versão brilhante ultra-rara com partículas estelares e sprite alternativo.
+  - ⚪ **94.0% Pokémon Normal:** Sorteio entre todas as 863 espécies comuns, incomuns e raras.
+- **Regra de Bônus de Repetidos na Pokédex:**
+  - Se o Pokémon sorteado já constar na Pokédex do jogador: concede instantaneamente **+1.000 PokéMoedas** para usar na aba de Melhorias permanentes!
+  - Se for um Pokémon inédito: desbloqueia e registra imediatamente na Pokédex do jogador.
+- **Animação Retrô Caça-Níqueis (Pixel Art):** Máquina de slots desenhada em Canvas com alavanca física, rolos com desaceleração em suspense (`👑 LENDÁRIO?!`, `✨ SHINY?!`), efeitos sonoros triunfantes (`legend`, `shiny`, `reveal`, `burst`) e cards holográficos.
+
+---
+
 ## 🚀 Como Colocar Online na VPS com Coolify
 
 O projeto está configurado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:

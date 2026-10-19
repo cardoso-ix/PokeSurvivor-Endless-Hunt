@@ -329,7 +329,8 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 }
 .banner .feat canvas { flex: 0 0 auto; }
 .rates { font-size: 14px; }
-.rates div { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(244,248,255,.15); }
+.rates div.rate-row, .rates > div:not(.gacha-rules-note) { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(244,248,255,.15); }
+.rates .gacha-rules-note { display: block !important; border-bottom: none !important; margin-top: 10px; padding: 10px 12px; background: rgba(255,210,63,0.08); border-left: 3px solid #ffd23f; border-radius: 6px; font-size: 12px; line-height: 1.5; color: #cad5e2; }
 
 #pull-fx {
   position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column;
@@ -393,6 +394,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .pcard b { display: block; font-size: 16px; }
 .pcard .tag { font-size: 12px; margin-top: 2px; }
 .pcard .new { color: var(--gold); font-weight: 700; }
+.pcard .refund { display: inline-block; background: rgba(255, 210, 63, 0.2); color: #ffd23f; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255, 210, 63, 0.4); font-size: 11px; margin-top: 2px; }
 .pcard.r5 { animation: pop .3s ease-out both, legend 1.4s ease-in-out infinite alternate; }
 @keyframes legend { to { box-shadow: 0 0 40px var(--rc), 0 0 80px var(--rc); } }
 
