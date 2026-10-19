@@ -216,11 +216,11 @@ G.MenuUI = (() => {
     const eligible = typeof G.isEligibleToStartRun === 'function' ? G.isEligibleToStartRun(dex) : true;
 
     const actionButton = usingThis
-      ? '<button class="btn grow" disabled style="width:100%">Es tu compañero</button>'
+      ? '<button class="btn grow" disabled style="width:100%">É o seu companheiro</button>'
       : !eligible
         ? `<button id="dex-pick" class="btn" disabled style="width:100%;background:#3a3a40;color:#999;cursor:not-allowed;border:1px solid #555" title="Obtido apenas evoluindo na partida!">🔒 Apenas via Evolução na Run</button>
            <p style="font-size:12px;color:#ffa726;margin:6px 0 0;text-align:center">Formas evoluídas não podem iniciar partidas. Evolua a forma base durante a run!</p>`
-        : `<button id="dex-pick" class="btn gold" data-sfx="confirm" style="width:100%">Elegir de compañero${viewShiny ? ' (shiny)' : ''}</button>`;
+        : `<button id="dex-pick" class="btn gold" data-sfx="confirm" style="width:100%">Escolher como companheiro${viewShiny ? ' (shiny)' : ''}</button>`;
 
     const box = $('dex-detail');
     box.innerHTML = `
@@ -237,9 +237,9 @@ G.MenuUI = (() => {
       ${own ? `
         ${bar('Vida', p.hp, max.hp, p.hp)}
         ${bar('Ataque', p.atk, max.atk, '×' + p.atk.toFixed(2))}
-        ${bar('Velocidad', p.spd, max.spd, p.spd)}
-        <p style="font-size:14px;margin:10px 0 4px">Empieza con <b class="gold">${G.Moves.BY_ID[G.startMoveOf(dex)].name}</b></p>
-        <p class="move-icons" title="Movimientos que puede aprender">
+        ${bar('Velocidade', p.spd, max.spd, p.spd)}
+        <p style="font-size:14px;margin:10px 0 4px">Começa com <b class="gold">${G.Moves.BY_ID[G.startMoveOf(dex)].name}</b></p>
+        <p class="move-icons" title="Ataques que pode aprender">
           ${G.Moves.poolFor(p).map(id => `<span title="${G.Moves.BY_ID[id].name}">${G.Icons.html('move:' + id, 16)}</span>`).join('')}</p>
         ${actionButton}
       ` : `<p class="center" style="color:var(--muted)">Ainda não capturado.<br>Derrote o Guardião na <b class="gold">Fenda Dimensional (Rift)</b> para capturá-lo.</p>`}
@@ -259,12 +259,12 @@ G.MenuUI = (() => {
       s.partner = dex;
       s.partnerShiny = hasSh && viewShiny;
       G.DB.commit();
-      G.UI.toast(p.name + (s.partnerShiny ? ' shiny' : '') + ' es ahora tu compañero');
+      G.UI.toast(p.name + (s.partnerShiny ? ' shiny' : '') + ' agora é seu companheiro!');
       renderGrid(); showDetail(dex);
     };
   }
 
-  // ---------------- mejoras ----------------
+  // ---------------- melhorias ----------------
 
   let upgDex = null;
 
@@ -272,12 +272,12 @@ G.MenuUI = (() => {
     G.UI.show('scr-upgrades', true);
     const s = G.DB.save;
     if (!upgDex || !s.owned[upgDex]) upgDex = s.partner;
-    // Selector con tus Pokémon: el compañero primero, luego los que ya tienen mejoras.
+    // Seletor com seus Pokémon: o parceiro primeiro, depois os que já têm melhorias.
     const sel = $('upg-mon');
     const lv = d => Object.values(s.pupg[d] || {}).reduce((a, b) => a + b, 0);
     const mons = Object.keys(s.owned).map(Number).filter(d => G.DEX_BY[d])
       .sort((a, b) => (b === s.partner) - (a === s.partner) || lv(b) - lv(a) || a - b);
-    sel.innerHTML = mons.map(d => `<option value="${d}">${G.DEX_BY[d].name}${d === s.partner ? ' (compañero)' : ''}${lv(d) ? ' · ' + lv(d) + ' niveles' : ''}</option>`).join('');
+    sel.innerHTML = mons.map(d => `<option value="${d}">${G.DEX_BY[d].name}${d === s.partner ? ' (companheiro)' : ''}${lv(d) ? ' · ' + lv(d) + ' níveis' : ''}</option>`).join('');
     sel.value = upgDex;
     sel.onchange = () => { upgDex = +sel.value; G.Audio.sfx('select'); renderUpgrades(); };
     renderUpgrades();

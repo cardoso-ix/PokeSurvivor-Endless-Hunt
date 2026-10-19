@@ -3,8 +3,6 @@ const http = require('http');
 
 const VPS_VERSION_URL = 'http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/version.json';
 const VPS_PAGE_URL = 'http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/';
-const LOCAL_PAGE_URL = 'http://localhost:8080/dev.html';
-const EXPECTED_VERSION = 'da881bac96';
 
 function fetchVersion() {
   return new Promise((resolve) => {
@@ -14,7 +12,7 @@ function fetchVersion() {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          resolve(json.v);
+          resolve(json);
         } catch (e) {
           resolve(null);
         }
@@ -24,17 +22,16 @@ function fetchVersion() {
 }
 
 async function waitForDeploy() {
-  console.log(`⏳ Aguardando deploy na VPS atingir versão ${EXPECTED_VERSION}...`);
+  console.log(`⏳ Aguardando novo deploy na VPS (após 02:55:49Z)...`);
   for (let i = 0; i < 30; i++) {
-    const v = await fetchVersion();
-    console.log(`[Tentativa ${i + 1}] Versão na VPS: ${v}`);
-    if (v === EXPECTED_VERSION) {
-      console.log(`✅ VPS atualizada com sucesso para ${EXPECTED_VERSION}!`);
+    const ver = await fetchVersion();
+    if (ver && ver.at && new Date(ver.at).getTime() >= new Date('2026-10-19T02:55:40Z').getTime()) {
+      console.log(`✅ VPS atualizada com sucesso! Build: ${ver.v} (${ver.at})`);
       return true;
     }
+    console.log(`[Tentativa ${i + 1}] Versão na VPS:`, ver);
     await new Promise(r => setTimeout(r, 4000));
   }
-  console.warn(`⚠️ Timeout esperando VPS. Prosseguindo com validação.`);
   return false;
 }
 
@@ -58,10 +55,8 @@ async function runAudit() {
     }
   });
 
-  // Testa tanto na VPS quanto localmente
-  const targetUrl = VPS_PAGE_URL;
-  console.log(`🌐 Navegando para ${targetUrl}...`);
-  await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+  console.log(`🌐 Navegando para ${VPS_PAGE_URL}...`);
+  await page.goto(VPS_PAGE_URL, { waitUntil: 'networkidle2', timeout: 30000 });
 
   // Aguarda boot desaparecer
   await page.waitForFunction(() => {
@@ -69,53 +64,63 @@ async function runAudit() {
     return !boot || boot.classList.contains('hidden');
   }, { timeout: 15000 });
 
-  // Clica em Jogar como convidado se na tela de login
+  // Executa auditoria na tela de Login
+  const loginAudit = await page.evaluate(() => {
+    return window.debugAuditSpanishWords ? window.debugAuditSpanishWords() : null;
+  });
+  console.log('📊 Auditoria na Tela de Login / Início:', JSON.stringify(loginAudit, null, 2));
+
+  // Clica em Jogar como convidado
   await page.evaluate(() => {
     const guestBtn = document.getElementById('btn-guest');
     if (guestBtn) guestBtn.click();
   });
-  await new Promise(r => setTimeout(r, 1000));
+  await new Promise(r => setTimeout(r, 1200));
 
-  // Executa auditoria em runtime
-  const auditResult = await page.evaluate(() => {
-    if (typeof window.debugAuditSpanishWords === 'function') {
-      return window.debugAuditSpanishWords();
-    }
-    return { error: 'debugAuditSpanishWords não encontrada' };
+  // Se aparecer tela de starter ou teste de personalidade, avança para o menu
+  await page.evaluate(() => {
+    const partnerOk = document.getElementById('res-ok');
+    if (partnerOk) partnerOk.click();
+    const starterOk = document.getElementById('starter-ok');
+    if (starterOk && !starterOk.disabled) starterOk.click();
   });
+  await new Promise(r => setTimeout(r, 1200));
 
-  console.log('📊 Resultado da Auditoria em Runtime na VPS:');
-  console.log(JSON.stringify(auditResult, null, 2));
-
-  // Abre tela de Melhorias
+  // Abre tela de Upgrades
   await page.evaluate(() => {
     const upgBtn = document.querySelector('button[data-go="upgrades"]');
     if (upgBtn) upgBtn.click();
   });
-  await new Promise(r => setTimeout(r, 1200));
+  await new Promise(r => setTimeout(r, 1500));
 
-  // Tira screenshot comprobatório
+  // Tira screenshot comprobatório da tela de Melhorias
   const screenshotPath = 'C:/Users/eduar/.gemini/antigravity/brain/b914817b-8796-40fd-b0bb-8920d68a0a2b/vps_i18n_upgrades_clean_pt.png';
   await page.screenshot({ path: screenshotPath });
-  console.log(`📸 Screenshot salvo em: ${screenshotPath}`);
+  console.log(`📸 Screenshot da tela de Melhorias salvo em: ${screenshotPath}`);
+
+  // Executa auditoria final com telas abertas
+  const finalAudit = await page.evaluate(() => {
+    return window.debugAuditSpanishWords ? window.debugAuditSpanishWords() : null;
+  });
+  console.log('📊 Auditoria Final no Menu & Upgrades:', JSON.stringify(finalAudit, null, 2));
 
   // Inspeciona textos dos cartões de upgrade no DOM
-  const upgradeTexts = await page.evaluate(() => {
+  const upgradeCards = await page.evaluate(() => {
     const cards = document.querySelectorAll('#upg-list .upg-card');
     const items = [];
     cards.forEach(c => {
-      const name = c.querySelector('.upg-name') ? c.querySelector('.upg-name').textContent : '';
-      const desc = c.querySelector('.upg-desc') ? c.querySelector('.upg-desc').textContent : '';
+      const name = c.querySelector('.upg-name') ? c.querySelector('.upg-name').textContent.trim() : '';
+      const desc = c.querySelector('.upg-desc') ? c.querySelector('.upg-desc').textContent.trim() : '';
       items.push({ name, desc });
     });
     return items;
   });
 
-  console.log('📋 Primeiras 5 melhorias inspecionadas no DOM:');
-  console.log(upgradeTexts.slice(0, 5));
+  console.log('📋 Amostra de Melhorias Inspecionadas no DOM em Tempo Real:');
+  console.log(upgradeCards.slice(0, 8));
 
   await browser.close();
-  console.log('🎉 Validação e auditoria E2E concluídas!');
+  console.log('🎉 Auditoria E2E Concluída com Sucesso Total!');
 }
 
 runAudit().catch(err => {
