@@ -136,6 +136,10 @@ G.Rift = (() => {
    * 4. Deduplicação Pokedex: Prioriza espécies ainda NÃO capturadas no estágio alvo.
    */
   function selectRiftGuardian(forceType, forceLevel) {
+    if (typeof forceType === 'number' && forceLevel === undefined) {
+      forceLevel = forceType;
+      forceType = null;
+    }
     const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
     let riftsCleared = 0;
     if (typeof localStorage !== 'undefined') {
@@ -731,8 +735,21 @@ G.Rift = (() => {
     window.debugSimulateRiftSpawn = debugSimulateRiftSpawn;
     window.debugTestRegionFilter = debugTestRegionFilter;
     window.riftSystem = {
-      forceSpawnRift: (species, shiny) => {
-        if (typeof G === 'object' && G.Rift) G.Rift.start(null, species, shiny);
+      forceSpawnRift: (species, shiny, level) => {
+        if (typeof G === 'object' && G.Rift) G.Rift.start(null, species, shiny, level);
+      },
+      start: (type, species, shiny, level) => {
+        if (typeof G === 'object' && G.Rift) G.Rift.start(type, species, shiny, level);
+      },
+      reset: () => {
+        if (typeof G === 'object' && G.Rift) G.Rift.reset();
+      },
+      getArena: () => (typeof G === 'object' && G.Rift) ? G.Rift.arena : null,
+      getBoss: () => {
+        if (typeof G === 'object' && G.Rift && G.Rift.arena && G.EnemyMgr) {
+          return G.EnemyMgr.get(G.Rift.arena.bossId);
+        }
+        return null;
       }
     };
     window.onGuardianDefeated = handleGuardianDefeated;
