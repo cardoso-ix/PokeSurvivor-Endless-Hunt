@@ -342,7 +342,8 @@ G.Player = class Player {
   }
 
   get atk() {
-    let megaMul = (this.megaMode && this.megaMode.active) ? 2.5 : 1;
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive) || (this.megaDmgMul && this.megaDmgMul > 1);
+    const megaMul = isMega ? 2.0 : 1;
     let weatherAtk = (typeof G === 'object' && G.Weather && G.Weather.getAtkMul) ? G.Weather.getAtkMul(this) : 1;
     const bAtk = (this.buffs && this.buffs.atk) ? this.buffs.atk.n * this.buffs.atk.amount : 0;
     return this.baseAtk * this.atkMul * (1 + bAtk) * megaMul * weatherAtk;

@@ -466,7 +466,9 @@ const UltimateVFX = (() => {
     addParticle,
     update,
     draw,
-    get count() { return hazards.length; }
+    get count() { return hazards.length; },
+    get hazards() { return hazards; },
+    get particles() { return particles; }
   };
 })();
 

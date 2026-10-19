@@ -765,6 +765,7 @@ G.Game = (() => {
     G.Interact.update(dt, pl);
     G.Rift.update(dt, pl, time);
     if (G.Capture && G.Capture.update) G.Capture.update(dt);
+    if (G.Mega && typeof G.Mega.update === 'function') G.Mega.update(dt);
     G.Judgment.update(dt, pl, time);
     G.Events.update(dt, all, time);
     G.Weather.update(dt, time, pl);
@@ -835,6 +836,7 @@ G.Game = (() => {
     drawScene(G.Camera, G.Coop.active ? [pl, ...G.Coop.puppets()] : [pl]);
     G.Projectiles.draw(ctx);
     G.Combat.drawAirFields(ctx);
+    if (G.UltimateVFX && typeof G.UltimateVFX.draw === 'function') G.UltimateVFX.draw(ctx, G.Camera);
     G.FX.draw(ctx);
     G.Judgment.drawAir(ctx);
     ctx.restore();
@@ -851,6 +853,9 @@ G.Game = (() => {
       ctx.fillRect(0, 0, w, h);
     }
     if (G.Capture && G.Capture.drawScreen) G.Capture.drawScreen(ctx, w, h);
+    if (G.MegaCutscene && G.MegaCutscene.active && typeof G.MegaCutscene.draw === 'function') {
+      G.MegaCutscene.draw(ctx, w, h);
+    }
     if (!G.Judgment.cinematic) {
       try {
         G.HUD.draw(ctx, w, h, pl, st);
