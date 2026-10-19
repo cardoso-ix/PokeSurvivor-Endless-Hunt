@@ -22,6 +22,9 @@ G.SettingsUI = (() => {
       $('btn-full').innerHTML = G.Icons.html('full', 20);
       $('btn-full').onclick = toggleFull;
     }
+    window.addEventListener('languageChanged', () => {
+      if (isOpen()) render();
+    });
   }
 
   function open(t) {
@@ -66,20 +69,24 @@ G.SettingsUI = (() => {
   }
 
   function zoomControl() {
+    const curLang = (window.i18n && window.i18n.currentLang) || (G.I18n && G.I18n.currentLang) || 'pt-BR';
+    const isPT = curLang === 'pt-BR';
     const curZoom = (typeof G === 'object' && G.Camera && G.Camera.zoom)
       ? G.Camera.zoom
       : (G.Settings.get('cameraZoom') || 1.25);
-    const presets = [[0.85, '0.85x Amplo'], [1.0, '1.0x Padrão'], [1.25, '1.25x Focado'], [1.5, '1.5x Próximo'], [1.75, '1.75x Detalhe']];
+    const presets = isPT
+      ? [[0.85, '0.85x Amplo'], [1.0, '1.0x Padrão'], [1.25, '1.25x Focado'], [1.5, '1.5x Próximo'], [1.75, '1.75x Detalhe']]
+      : [[0.85, '0.85x Wide'], [1.0, '1.0x Standard'], [1.25, '1.25x Focused'], [1.5, '1.5x Close'], [1.75, '1.75x Detail']];
     return `
       <div class="set-row">
         <div class="grow">
-          <b>Zoom da Câmera</b>
-          <small>Aumenta ou diminui o campo de visão da arena (zoom atual: <b class="gold">${curZoom.toFixed(2)}x</b>).</small>
+          <b>${isPT ? 'Zoom da Câmera' : 'Camera Zoom'}</b>
+          <small>${isPT ? 'Aumenta ou diminui o campo de visão da arena (zoom atual:' : 'Increase or decrease arena field of view (current zoom:'} <b class="gold">${curZoom.toFixed(2)}x</b>).</small>
         </div>
         <div class="row" style="gap:6px">
-          <button class="btn small" id="cam-zoom-out" style="min-width:38px;font-weight:900" title="Diminuir Zoom (-)">−</button>
+          <button class="btn small" id="cam-zoom-out" style="min-width:38px;font-weight:900" title="${isPT ? 'Diminuir Zoom (-)' : 'Zoom Out (-)'}">−</button>
           <span style="min-width:54px;text-align:center;font-weight:700;font-size:15px;color:var(--gold)" id="cam-zoom-val">${curZoom.toFixed(2)}x</span>
-          <button class="btn small" id="cam-zoom-in" style="min-width:38px;font-weight:900" title="Aumentar Zoom (+)">+</button>
+          <button class="btn small" id="cam-zoom-in" style="min-width:38px;font-weight:900" title="${isPT ? 'Aumentar Zoom (+)' : 'Zoom In (+)'}">+</button>
         </div>
       </div>
       <div class="chips set-chips" style="margin-top:6px;gap:6px">
@@ -89,33 +96,55 @@ G.SettingsUI = (() => {
   }
 
   function render() {
-    document.querySelectorAll('#set-tabs .gen-tab').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+    const tabLabels = {
+      sound: window.i18n ? window.i18n.t('settings.tabs.sound') : 'Som',
+      gfx: window.i18n ? window.i18n.t('settings.tabs.gfx') : 'Gráficos',
+      ctl: window.i18n ? window.i18n.t('settings.tabs.ctl') : 'Controles',
+      acc: window.i18n ? window.i18n.t('settings.tabs.acc') : 'Conta',
+      about: window.i18n ? window.i18n.t('settings.tabs.about') : 'Sobre'
+    };
+    document.querySelectorAll('#set-tabs .gen-tab').forEach(b => {
+      b.classList.toggle('on', b.dataset.t === tab);
+      if (tabLabels[b.dataset.t]) b.textContent = tabLabels[b.dataset.t];
+    });
+    const modalTitle = document.querySelector('#scr-settings h2');
+    if (modalTitle) modalTitle.textContent = window.i18n ? window.i18n.t('settings.title') : 'Configurações';
+    const closeBtn = $('set-close');
+    if (closeBtn) closeBtn.textContent = window.i18n ? window.i18n.t('common.close') : 'Fechar';
     const box = $('set-body');
     box.scrollTop = 0;
     if (tab === 'sound') {
-      box.innerHTML = section('Sonido') + '<div id="set-sound" class="sound-inline"></div>';
+      box.innerHTML = section(window.i18n ? window.i18n.t('settings.tabs.sound') : 'Som') + '<div id="set-sound" class="sound-inline"></div>';
       G.UI.soundControls($('set-sound'));
     } else if (tab === 'gfx') {
-      const auto = ['baja', 'media', 'alta'][G.Settings.autoLevel];
-      box.innerHTML = section('Idioma', 'El juego se recarga al cambiarlo.')
-        + `<div class="chips set-chips" translate="no">${[['es', 'Español'], ['en', 'English']].map(([v, l]) =>
-             `<button class="chip ${G.I18n.lang === v ? 'on' : ''}" data-lang="${v}">${l}</button>`).join('')}</div>`
-        + section('Calidad', 'Cuántos efectos y partículas se dibujan. <b>Auto</b> la baja sola si el juego va a tirones (ahora: ' + auto + ').')
-        + choice('quality', [['auto', 'Auto'], ['high', 'Alta'], ['mid', 'Media'], ['low', 'Baja']])
-        + section('Câmera & Visão')
+      const curLang = (window.i18n && window.i18n.currentLang) || (G.I18n && G.I18n.currentLang) || 'pt-BR';
+      const isPT = curLang === 'pt-BR';
+      const langOptions = [
+        ['pt-BR', '🇧🇷 Português (BR)'],
+        ['en-US', '🇺🇸 English']
+      ];
+      const langNotice = isPT
+        ? 'A interface atualiza instantaneamente sem necessidade de recarregar.'
+        : 'The interface updates instantly without reloading.';
+      box.innerHTML = section(window.i18n ? window.i18n.t('settings.language') : 'Idioma / Language', langNotice)
+        + `<div class="chips set-chips" translate="no" style="gap:8px">${langOptions.map(([v, l]) =>
+             `<button class="chip ${curLang === v ? 'on' : ''}" data-lang="${v}" style="font-weight:bold;padding:6px 14px;">${l}</button>`).join('')}</div>`
+        + section(isPT ? 'Qualidade Gráfica' : 'Quality', isPT ? 'Quantidade de efeitos e partículas desenhadas.' : 'Amount of effects and particles drawn.')
+        + choice('quality', [['auto', isPT ? 'Automático' : 'Auto'], ['high', isPT ? 'Alta' : 'High'], ['mid', isPT ? 'Média' : 'Medium'], ['low', isPT ? 'Baixa' : 'Low']])
+        + section(isPT ? 'Câmera & Visão' : 'Camera & View')
         + zoomControl()
-        + toggle('cameraShake', 'Trepidação da Câmera', 'Ativa ou desativa sacudidas de tela ao receber dano ou explosões.', 'Ativado', 'Desativado')
-        + toggle('cameraSmooth', 'Seguimento Suave', 'Movimento suave e dinâmico da câmera acompanhando o Pokémon.', 'Ativado', 'Desativado')
-        + section('Pantalla')
-        + toggle('dmgNumbers', 'Números de daño', 'Los números que salen al golpear y al recibir daño.', 'Sí', 'No')
-        + toggle('calm', 'Menos sacudidas y destellos', 'La cámara tiembla menos y los fogonazos son suaves.', 'Sí', 'No')
-        + toggle('fps', 'Mostrar FPS', 'Fotogramas por segundo, en la esquina de abajo.', 'Sí', 'No')
+        + toggle('cameraShake', isPT ? 'Trepidação da Câmera' : 'Camera Shake', isPT ? 'Ativa ou desativa sacudidas de tela ao receber dano ou explosões.' : 'Enable or disable screen shake on damage/explosions.', isPT ? 'Ativado' : 'Enabled', isPT ? 'Desativado' : 'Disabled')
+        + toggle('cameraSmooth', isPT ? 'Seguimento Suave' : 'Smooth Follow', isPT ? 'Movimento suave e dinâmico da câmera acompanhando o Pokémon.' : 'Smooth camera tracking following the Pokémon.', isPT ? 'Ativado' : 'Enabled', isPT ? 'Desativado' : 'Disabled')
+        + section(isPT ? 'Tela' : 'Screen')
+        + toggle('dmgNumbers', isPT ? 'Números de Dano' : 'Damage Numbers', isPT ? 'Exibir números de dano ao acertar ou receber ataques.' : 'Show damage numbers on hits.', isPT ? 'Sim' : 'Yes', isPT ? 'Não' : 'No')
+        + toggle('calm', isPT ? 'Modo Visual Calmo' : 'Calm Visual Mode', isPT ? 'Menos clarões e tremores de tela intensos.' : 'Fewer flashes and screen shakes.', isPT ? 'Sim' : 'Yes', isPT ? 'Não' : 'No')
+        + toggle('fps', isPT ? 'Exibir FPS' : 'Show FPS', isPT ? 'Contador de quadros por segundo no canto inferior.' : 'Frames per second counter in the corner.', isPT ? 'Sim' : 'Yes', isPT ? 'Não' : 'No')
         + section('Interface / HUD')
-        + toggle('showRadar', 'Exibir Radar', 'Mostra o radar/mini-mapa de navegação no canto superior.', 'Ativado', 'Desativado')
-        + toggle('showBuffTable', 'Exibir Tabela de Atributos', 'Mostra a tabela de atributos e buffs no canto inferior.', 'Ativado', 'Desativado')
-        + (canFull() ? `<div class="set-row"><div class="grow"><b>Pantalla completa</b><small>Sin barras del navegador.</small></div>
-             <button class="btn small" id="set-full">${isFull() ? 'Salir' : 'Activar'}</button></div>`
-           : iosTip() ? `<div class="set-row"><div class="grow"><b>Pantalla completa</b><small>${esc(IOS_TIP)}</small></div></div>` : '');
+        + toggle('showRadar', isPT ? 'Exibir Radar' : 'Show Radar', isPT ? 'Mostra o radar/mini-mapa de navegação no canto superior.' : 'Shows navigation mini-map in top corner.', isPT ? 'Ativado' : 'Enabled', isPT ? 'Desativado' : 'Disabled')
+        + toggle('showBuffTable', isPT ? 'Exibir Tabela de Atributos' : 'Show Attributes Table', isPT ? 'Mostra a tabela de atributos e buffs no canto inferior.' : 'Shows stat attributes table in bottom corner.', isPT ? 'Ativado' : 'Enabled', isPT ? 'Desativado' : 'Disabled')
+        + (canFull() ? `<div class="set-row"><div class="grow"><b>${isPT ? 'Tela Cheia' : 'Fullscreen'}</b><small>${isPT ? 'Sem barras do navegador.' : 'Without browser bars.'}</small></div>
+             <button class="btn small" id="set-full">${isFull() ? (isPT ? 'Sair' : 'Exit') : (isPT ? 'Ativar' : 'Enable')}</button></div>`
+           : iosTip() ? `<div class="set-row"><div class="grow"><b>${isPT ? 'Tela Cheia' : 'Fullscreen'}</b><small>${esc(IOS_TIP)}</small></div></div>` : '');
     } else if (tab === 'ctl') {
       box.innerHTML = section('En móvil o tablet')
         + `<p class="sub">Pon el dedo en cualquier parte y arrastra para moverte: el joystick aparece donde tocas. Toca un ataque de abajo para cambiarlo, el botón ⚡ MEGA para activar la furia y el botón de arriba a la derecha para pausar. Se juega en horizontal.</p>`
@@ -212,7 +241,17 @@ G.SettingsUI = (() => {
     });
     const full = $('set-full'); if (full) full.onclick = toggleFull;
     const lay = $('set-layout'); if (lay) lay.onclick = () => G.LayoutUI.open();
-    box.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => { if (b.dataset.lang !== G.I18n.lang) G.I18n.set(b.dataset.lang); }; });
+    box.querySelectorAll('[data-lang]').forEach(b => {
+      b.onclick = () => {
+        const targetLang = b.dataset.lang;
+        if (window.i18n && typeof window.i18n.setLanguage === 'function') {
+          window.i18n.setLanguage(targetLang);
+        } else if (G.I18n && typeof G.I18n.set === 'function') {
+          G.I18n.set(targetLang);
+        }
+        render();
+      };
+    });
     const lo = $('set-login'); if (lo) lo.onclick = () => { close(); leave(); };
     const out = $('set-logout'); if (out) out.onclick = () => { close(); leave(); };
     const del = $('set-delete');

@@ -258,14 +258,14 @@
   <div class="menu-right">
     <div class="box">
       <div class="menu-list">
-        <button class="menu-item play" data-go="play">Jugar<small>Entra en la mazmorra</small></button>
-        <button class="menu-item" data-go="dex">Pokémon<small id="menu-dex-count">Tu colección</small></button>
-        <button class="menu-item" data-go="upgrades">Mejoras<small>Haz más fuerte cada run</small></button>
+        <button class="menu-item play" data-go="play"><span data-i18n="menu.play">Jogar</span><small data-i18n="menu.playSub">Entra en la mazmorra</small></button>
+        <button class="menu-item" data-go="dex"><span data-i18n="menu.pokemon">Pokémon</span><small id="menu-dex-count" data-i18n="menu.pokemonSub">Tu colección</small></button>
+        <button class="menu-item" data-go="upgrades"><span data-i18n="menu.upgrades">Mejoras</span><small data-i18n="menu.upgradesSub">Haz más fuerte cada run</small></button>
         <button class="menu-item hidden" data-go="gacha" style="display:none!important">Gacha<small>9 regiones · Pokémon y shinies</small></button>
-        <button class="menu-item" data-go="goals">Misiones<small id="menu-goals-sub">Misiones, logros y perfil</small></button>
-        <button class="menu-item" data-go="friends">Amigos<small id="menu-friends-sub">Juega en grupo, hasta 4</small></button>
-        <button class="menu-item" data-go="rank">Ranking<small>Quién aguanta más</small></button>
-        <button class="menu-item" data-go="settings">Ajustes<small>Sonido, gráficos, controles y cuenta</small></button>
+        <button class="menu-item" data-go="goals"><span data-i18n="menu.missions">Misiones</span><small id="menu-goals-sub" data-i18n="menu.missionsSub">Misiones, logros y perfil</small></button>
+        <button class="menu-item" data-go="friends"><span data-i18n="menu.friends">Amigos</span><small id="menu-friends-sub" data-i18n="menu.friendsSub">Juega en grupo, hasta 4</small></button>
+        <button class="menu-item" data-go="rank"><span data-i18n="menu.ranking">Ranking</span><small data-i18n="menu.rankingSub">Quién aguanta más</small></button>
+        <button class="menu-item" data-go="settings"><span data-i18n="menu.settings">Ajustes</span><small data-i18n="menu.settingsSub">Sonido, gráficos, controles y cuenta</small></button>
       </div>
     </div>
     <div class="box" style="padding:14px 18px">
@@ -277,14 +277,14 @@
 <div id="topbar" class="topbar hidden">
   <div class="pill"><span class="coin"></span><span id="coins">0</span></div>
   <div class="pill hidden" id="tickets-pill" title="Tickets del gacha" style="display:none!important"></div>
-  <div class="pill" id="rifts-pill" title="Fendas / Rifts Concluídos"><span style="font-size:13px">🌀</span> <span id="rifts-count">0</span> Rifts</div>
+  <div class="pill" id="rifts-pill" title="Fendas / Rifts Concluídos"><span style="font-size:13px">🌀</span> <span id="rifts-count">0</span> <span data-i18n="menu.rifts">Rifts</span></div>
   <div class="pill" id="user-pill"></div>
   <button id="btn-news" class="btn small ghost news-btn" title="Novedades"></button>
   <button id="btn-support" class="btn small gold hidden" title="Apoyar el proyecto"></button>
   <button id="btn-sound" class="btn small ghost" title="Sonido"></button>
   <button id="btn-full" class="btn small ghost hidden" title="Pantalla completa"></button>
   <button id="btn-settings" class="btn small ghost" title="Ajustes"></button>
-  <button id="btn-logout" class="btn small ghost">Salir</button>
+  <button id="btn-logout" class="btn small ghost" data-i18n="menu.logout">Sair</button>
 </div>
 <div id="sound-panel" class="box sound-panel hidden"></div>
 <div id="credits-line" class="credits-line hidden">Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
@@ -322,13 +322,13 @@
 <!-- ====== Ajustes ====== -->
 <section id="scr-settings" class="scr dim hidden">
   <div class="box settings">
-    <div class="row between"><h2>Ajustes</h2><button class="btn small ghost" id="set-close">Cerrar</button></div>
+    <div class="row between"><h2 data-i18n="settings.title">Configurações</h2><button class="btn small ghost" id="set-close" data-i18n="common.close">Fechar</button></div>
     <div class="tabs" id="set-tabs">
-      <button class="gen-tab" data-t="sound">Sonido</button>
-      <button class="gen-tab" data-t="gfx">Gráficos</button>
-      <button class="gen-tab" data-t="ctl">Controles</button>
-      <button class="gen-tab" data-t="acc">Cuenta</button>
-      <button class="gen-tab" data-t="about">Acerca de</button>
+      <button class="gen-tab" data-t="sound" data-i18n="settings.tabs.sound">Som</button>
+      <button class="gen-tab" data-t="gfx" data-i18n="settings.tabs.gfx">Gráficos</button>
+      <button class="gen-tab" data-t="ctl" data-i18n="settings.tabs.ctl">Controles</button>
+      <button class="gen-tab" data-t="acc" data-i18n="settings.tabs.acc">Conta</button>
+      <button class="gen-tab" data-t="about" data-i18n="settings.tabs.about">Sobre</button>
     </div>
     <div id="set-body" class="set-body"></div>
   </div>
@@ -381,28 +381,31 @@
 <div id="boot" class="boot">
   <div class="boot-in">
     <h1>PokéSurvivor</h1>
-    <p>Juego de supervivencia con Pokémon, gratis en el navegador y en el móvil.</p>
-    <p class="boot-ld">Cargando…</p>
+    <p>Jogo de sobrevivência Pokémon, gratuito no navegador e no celular.</p>
+    <p class="boot-ld">Carregando…</p>
   </div>
 </div>
 <script>
   (function () {
-    var s = null; try { s = localStorage.getItem('ps.lang'); } catch (e) {}
-    var n = ((navigator.languages && navigator.languages[0]) || navigator.language || 'es').toLowerCase();
-    var l = s === 'es' || s === 'en' ? s : (/\/en(\/|$)/.test(location.pathname) ? 'en' : (n.indexOf('es') === 0 ? 'es' : 'en'));
+    var s = null; try { s = localStorage.getItem('pokesurvivor_lang') || localStorage.getItem('ps.lang'); } catch (e) {}
+    var n = ((navigator.languages && navigator.languages[0]) || navigator.language || 'pt').toLowerCase();
+    var l = s === 'en-US' || s === 'en' ? 'en-US' : (/\/en(\/|$)/.test(location.pathname) ? 'en-US' : (n.indexOf('en') === 0 ? 'en-US' : 'pt-BR'));
     document.documentElement.lang = l;
-    if (l === 'en') {
+    if (l === 'en-US') {
       var p = document.querySelectorAll('#boot p');
-      p[0].textContent = 'A Pokémon survival game, free in your browser and on mobile.';
-      p[1].textContent = 'Loading…';
+      if (p[0]) p[0].textContent = 'A Pokémon survival game, free in your browser and on mobile.';
+      if (p[1]) p[1].textContent = 'Loading…';
+      var tp = document.querySelectorAll('#tap-start p');
+      if (tp[0]) tp[0].textContent = 'Survive the hordes with your Pokémon partner';
+      if (tp[1]) tp[1].textContent = 'Tap to start';
     }
   })();
 </script>
 <div id="tap-start" class="tapstart hidden">
   <div class="boot-in">
     <h1>PokéSurvivor</h1>
-    <p>Sobrevive a las hordas con tu compañero Pokémon</p>
-    <p class="tap-blink">Pulsa para empezar</p>
+    <p>Sobreviva às hordas com seu parceiro Pokémon</p>
+    <p class="tap-blink">Toque para começar</p>
   </div>
 </div>
 <noscript>
@@ -516,10 +519,10 @@
 <section id="scr-stages" class="scr dim hidden">
   <div class="box wide" style="max-width:920px">
     <div class="row between">
-      <h2>Escolha a Região <span class="sub" style="font-size:15px">· Fase da Run</span></h2>
-      <button class="btn small ghost" id="stage-close" data-back>Voltar</button>
+      <h2><span data-i18n="menu.stagesTitle">Escolha a Região</span> <span class="sub" style="font-size:15px">· <span data-i18n="menu.stagesSub">Fase da Run</span></span></h2>
+      <button class="btn small ghost" id="stage-close" data-back data-i18n="common.back">Voltar</button>
     </div>
-    <p class="sub" style="margin:4px 0 12px">Os monstros e os Guardiões de Rift pertencerão exclusivamente à região selecionada.</p>
+    <p class="sub" style="margin:4px 0 12px" data-i18n="menu.stagesDesc">Os monstros e os Guardiões de Rift pertencerão exclusivamente à região selecionada.</p>
     <div id="stage-cards" class="stage-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:12px;max-height:65vh;overflow-y:auto;padding-right:4px;"></div>
   </div>
 </section>
@@ -536,7 +539,7 @@
 <!-- ====== Colección ====== -->
 <section id="scr-dex" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 data-i18n="menu.pokemon">Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back data-i18n="common.back">Volver</button></div>
     <div class="gen-tabs" id="dex-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
@@ -551,13 +554,13 @@
 <!-- ====== Mejoras ====== -->
 <section id="scr-upgrades" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Mejoras</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 data-i18n="upgrades.title">Melhorias</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="upg-head">
       <canvas id="upg-stage" class="stage" width="120" height="96"></canvas>
       <div class="grow">
-        <p class="sub" style="margin:0">Cada Pokémon tiene sus propias mejoras: sólo cuentan cuando juegas con él.</p>
+        <p class="sub" style="margin:0" data-i18n="upgrades.subtitle">Cada Pokémon tem suas próprias melhorias: só contam quando joga com ele.</p>
         <div class="row" style="margin-top:8px">
-          <label for="upg-mon" style="margin:0">Pokémon</label>
+          <label for="upg-mon" style="margin:0" data-i18n="upgrades.pokemon">Pokémon</label>
           <select id="upg-mon" class="field" style="width:auto;min-width:220px"></select>
         </div>
       </div>
@@ -602,11 +605,11 @@
 <section id="capture-modal" class="scr dim hidden capture-overlay notranslate" translate="no">
   <div class="box center capture-box notranslate" translate="no">
     <div class="capture-header">
-      <div id="cap-title-bar" class="cap-title-bar">🎯 GUARDIÃO DERROTADO!</div>
+      <div id="cap-title-bar" class="cap-title-bar" data-i18n="capture.title">🎯 GUARDIÃO DO RIFT DERROTADO!</div>
       <div class="row" style="align-items:center;justify-content:center;gap:10px;margin-top:4px">
         <h2 id="cap-name" class="cap-name" translate="no" style="margin:0">Pokémon</h2>
-        <span id="cap-shiny-badge" class="cap-shiny hidden" translate="no">✨ SHINY</span>
-        <span id="cap-legend-badge" class="cap-legend hidden" translate="no">👑 LENDÁRIO</span>
+        <span id="cap-shiny-badge" class="cap-shiny hidden" translate="no" data-i18n="capture.shinyBadge">✨ SHINY</span>
+        <span id="cap-legend-badge" class="cap-legend hidden" translate="no" data-i18n="capture.legendBadge">👑 LENDÁRIO</span>
       </div>
       <div id="cap-types" class="types" style="justify-content:center;margin-top:6px"></div>
       <div id="cap-rate" class="cap-rate" style="margin-top:8px"></div>
@@ -614,10 +617,10 @@
     <div class="capture-stage">
       <canvas id="cap-canvas" width="340" height="190"></canvas>
     </div>
-    <div id="cap-status" class="cap-status">Prepare-se para capturar!</div>
+    <div id="cap-status" class="cap-status" data-i18n="capture.prepare">Prepare-se para capturar!</div>
     <div class="row" style="justify-content:center;gap:12px;margin-top:14px">
-      <button id="btn-throw-ball" class="btn gold grow" style="max-width:260px;font-size:16px;padding:10px 18px;">[ LANÇAR POKÉBOLA ]</button>
-      <button id="btn-cap-continue" class="btn gold grow hidden" style="max-width:280px;font-size:16px;padding:10px 18px;">[ CONTINUAR JORNADA ▶ ]</button>
+      <button id="btn-throw-ball" class="btn gold grow" style="max-width:260px;font-size:16px;padding:10px 18px;" data-i18n="capture.btnThrow">[ LANÇAR POKÉBOLA ]</button>
+      <button id="btn-cap-continue" class="btn gold grow hidden" style="max-width:280px;font-size:16px;padding:10px 18px;" data-i18n="capture.btnContinue">[ CONTINUAR JORNADA ▶ ]</button>
     </div>
   </div>
 </section>
@@ -653,24 +656,24 @@
 
 <section id="scr-pause" class="scr dim hidden">
   <div class="box center" style="width:min(460px,100%)">
-    <h2>Pausa</h2>
-    <p class="sub kbd-hint"><kbd>WASD</kbd> moverse · <kbd>1</kbd>–<kbd>4</kbd> movimiento · <kbd>Q</kbd>/<kbd>E</kbd> ciclar · <kbd>Esc</kbd> pausa</p>
-    <p class="sub touch-hint">Arrastra el dedo para moverte · toca un ataque para cambiarlo</p>
-    <p id="pause-coop" class="note hidden">Partida en grupo: el juego sigue mientras estás aquí.</p>
+    <h2 data-i18n="hud.paused">Pausa</h2>
+    <p class="sub kbd-hint"><kbd>WASD</kbd> mover · <kbd>1</kbd>–<kbd>4</kbd> movimento · <kbd>Q</kbd>/<kbd>E</kbd> ciclar · <kbd>Esc</kbd> pausa</p>
+    <p class="sub touch-hint">Arrasta o dedo para mover · toque num ataque para trocar</p>
+    <p id="pause-coop" class="note hidden">Partida em grupo: o jogo continua.</p>
     <div id="pause-sound" class="sound-inline"></div>
     <div class="row" style="justify-content:center">
-      <button id="btn-resume" class="btn gold">Continuar</button>
-      <button id="btn-pause-settings" class="btn">Ajustes</button>
-      <button id="btn-quit" class="btn">Abandonar run</button>
+      <button id="btn-resume" class="btn gold" data-i18n="hud.resume">Continuar</button>
+      <button id="btn-pause-settings" class="btn" data-i18n="menu.settings">Configurações</button>
+      <button id="btn-quit" class="btn" data-i18n="hud.quitRun">Abandonar Partida</button>
     </div>
   </div>
 </section>
 
 <section id="scr-over" class="scr dim notranslate hidden" translate="no">
   <div class="box center" style="width:min(480px,100%)">
-    <h2 id="over-title">Has caído…</h2>
+    <h2 id="over-title" data-i18n="hud.defeat">Você foi derrotado…</h2>
     <div id="over-stats" class="stats"></div>
-    <button id="btn-again" class="btn gold">Volver al menú</button>
+    <button id="btn-again" class="btn gold" data-i18n="hud.backToMenu">Voltar ao Menu Principal</button>
   </div>
 </section>
 

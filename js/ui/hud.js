@@ -1163,7 +1163,8 @@ G.HUD = (() => {
       const hpText = document.getElementById('hud-hp-text');
 
       if (hpText) {
-        const textVal = `HP ${Math.ceil(hp)} / ${Math.round(maxHp)}`;
+        const hpPrefix = (window.i18n ? window.i18n.t('hud.hp') : 'PV');
+        const textVal = `${hpPrefix} ${Math.ceil(hp)} / ${Math.round(maxHp)}`;
         if (hpText.textContent !== textVal) hpText.textContent = textVal;
       }
 
@@ -1201,17 +1202,17 @@ G.HUD = (() => {
           megaBar.style.width = pct.toFixed(1) + '%';
           megaBar.classList.remove('ready');
           megaBar.classList.add('active');
-          if (megaLabel) megaLabel.textContent = `MEGA: ${timeLeft.toFixed(1)}s`;
+          if (megaLabel) megaLabel.textContent = window.i18n ? window.i18n.t('hud.megaActive', { time: timeLeft.toFixed(1) }) : `MEGA: ${timeLeft.toFixed(1)}s`;
         } else if (isMegaReady) {
           megaBar.style.width = '100%';
           megaBar.classList.add('ready');
           megaBar.classList.remove('active');
-          if (megaLabel) megaLabel.textContent = '[ ESPAÇO: MEGA PRONTO ]';
+          if (megaLabel) megaLabel.textContent = window.i18n ? window.i18n.t('hud.megaReady') : '[ ESPAÇO: MEGA PRONTO ]';
         } else {
           const pct = Math.max(0, Math.min(100, (megaEnergy / megaMax) * 100));
           megaBar.style.width = pct.toFixed(1) + '%';
           megaBar.classList.remove('ready', 'active');
-          if (megaLabel) megaLabel.textContent = `MEGA: ${Math.floor(pct)}%`;
+          if (megaLabel) megaLabel.textContent = window.i18n ? window.i18n.t('hud.megaCharging', { pct: Math.floor(pct) }) : `MEGA: ${Math.floor(pct)}%`;
         }
       }
 

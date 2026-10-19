@@ -561,8 +561,8 @@ def game_en():
         ('<meta name="twitter:title" content="PokéSurvivor – Sobrevive a las hordas Pokémon">', '<meta name="twitter:title" content="PokéSurvivor – Survive the Pokémon hordes">'),
         ('<meta name="twitter:description" content="Fan game gratis para navegador y móvil, con cooperativo hasta 4. Sin descargas ni anuncios.">',
          '<meta name="twitter:description" content="A free fan game for browser and mobile, with co-op for up to 4. No downloads, no ads.">'),
-        ('<p>Juego de supervivencia con Pokémon, gratis en el navegador y en el móvil.</p>', '<p>A Pokémon survival game, free in your browser and on mobile.</p>'),
-        ('<p class="boot-ld">Cargando…</p>', '<p class="boot-ld">Loading…</p>'),
+        ('<p>Jogo de sobrevivência Pokémon, gratuito no navegador e no celular.</p>', '<p>A Pokémon survival game, free in your browser and on mobile.</p>'),
+        ('<p class="boot-ld">Carregando…</p>', '<p class="boot-ld">Loading…</p>'),
     ]
     for a, b in rep:
         assert a in s, a[:60]

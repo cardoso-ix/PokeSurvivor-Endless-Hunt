@@ -293,10 +293,12 @@ G.MenuUI = (() => {
 
     const stage = typeof G.getPokemonEvolutionStage === 'function' ? G.getPokemonEvolutionStage(upgDex) : 1;
     let stageBadge = '';
+    const badge2 = window.i18n ? window.i18n.t('upgrades.stageBadge2') : '(x2 Ouro - Estágio 2)';
+    const badge3 = window.i18n ? window.i18n.t('upgrades.stageBadge3') : '(x3 Ouro - Estágio Final)';
     if (stage === 2) {
-      stageBadge = '<span class="upg-stage-badge" style="font-size:11px;color:#ffa726;font-weight:bold;margin-right:6px;background:rgba(255,167,38,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,167,38,0.35)">(x2 Ouro - Estágio 2)</span>';
+      stageBadge = `<span class="upg-stage-badge" style="font-size:11px;color:#ffa726;font-weight:bold;margin-right:6px;background:rgba(255,167,38,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,167,38,0.35)">${badge2}</span>`;
     } else if (stage >= 3) {
-      stageBadge = '<span class="upg-stage-badge" style="font-size:11px;color:#ff5252;font-weight:bold;margin-right:6px;background:rgba(255,82,82,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,82,82,0.35)">(x3 Ouro - Estágio Final)</span>';
+      stageBadge = `<span class="upg-stage-badge" style="font-size:11px;color:#ff5252;font-weight:bold;margin-right:6px;background:rgba(255,82,82,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,82,82,0.35)">${badge3}</span>`;
     }
 
     const box = $('upg-list');
@@ -306,22 +308,26 @@ G.MenuUI = (() => {
       const maxed = lvl >= u.max;
       const cost = maxed ? 0 : G.Upgrades.cost(u.id, lvl, upgDex);
       const canAfford = s.coins >= cost;
+      const upgName = (window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null) || u.name;
+      const upgDesc = (window.i18n ? window.i18n.t(`upgrades.${u.id}Desc`) : null) || u.unit;
+      const maxText = window.i18n ? window.i18n.t('upgrades.maxLevel') : 'Máx.';
+      const chooseText = window.i18n ? window.i18n.t('upgrades.choose') : 'Elegir';
       const el = document.createElement('div');
       el.className = 'panel upg-item';
       el.innerHTML = `
         <div class="ic">${G.Icons.html(u.icon, 32)}</div>
         <div>
-          <b>${u.name}</b> <span style="color:var(--muted);font-size:13px">${u.unit}</span>
+          <b>${upgName}</b> <span style="color:var(--muted);font-size:13px">${upgDesc}</span>
           <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div>
         </div>
         <div class="upg-btns" style="display:flex;align-items:center;gap:6px">
-          ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>Elegir (${banList().length}/${lvl})</button>` : ''}
+          ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>${chooseText} (${banList().length}/${lvl})</button>` : ''}
           ${!maxed && stageBadge ? stageBadge : ''}
           <button class="btn small ${maxed ? '' : (canAfford ? 'gold' : '')}" data-buy data-sfx="none"
             ${maxed || !canAfford ? 'disabled' : ''}
             style="${!maxed && !canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;min-width:70px;' : 'min-width:70px;'}"
-            title="${!maxed && !canAfford ? 'Moedas insuficientes' : ''}">
-            ${maxed ? 'Máx.' : `<span class="coin"></span> ${cost.toLocaleString('pt-BR')}`}
+            title="${!maxed && !canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'Moedas insuficientes') : ''}">
+            ${maxed ? maxText : `<span class="coin"></span> ${cost.toLocaleString('pt-BR')}`}
           </button>
         </div>`;
       if (u.id === 'ban' && lvl > 0) el.querySelector('[data-ban]').onclick = () => { banOpen = !banOpen; renderUpgrades(); };

@@ -377,10 +377,12 @@ const CaptureSystem = (() => {
       boxEl.classList.toggle('gold-mode', data.isGoldBall);
     }
 
+    const tr = (k, vars, fallback) => (window.i18n ? window.i18n.t(k, vars, fallback) : (fallback || k));
+
     // Título Superior
     const titleEl = modalEl.querySelector('#cap-title-bar');
     if (titleEl) {
-      titleEl.textContent = data.isGoldBall ? '⭐ EVENTO RARO: GOLD BALL! ⭐' : '🎯 GUARDIÃO DO RIFT DERROTADO!';
+      titleEl.textContent = data.isGoldBall ? tr('capture.goldTitle', {}, '⭐ EVENTO RARO: GOLD BALL! ⭐') : tr('capture.title', {}, '🎯 GUARDIÃO DO RIFT DERROTADO!');
     }
 
     // Nome
@@ -389,10 +391,16 @@ const CaptureSystem = (() => {
 
     // Badges Shiny e Lendário
     const shinyEl = modalEl.querySelector('#cap-shiny-badge');
-    if (shinyEl) shinyEl.classList.toggle('hidden', !data.isShiny);
+    if (shinyEl) {
+      shinyEl.textContent = tr('capture.shinyBadge', {}, '✨ SHINY');
+      shinyEl.classList.toggle('hidden', !data.isShiny);
+    }
 
     const legendEl = modalEl.querySelector('#cap-legend-badge');
-    if (legendEl) legendEl.classList.toggle('hidden', !data.isLegendary);
+    if (legendEl) {
+      legendEl.textContent = tr('capture.legendBadge', {}, '👑 LENDÁRIO');
+      legendEl.classList.toggle('hidden', !data.isLegendary);
+    }
 
     // Tipos Elementais
     const typesEl = modalEl.querySelector('#cap-types, #cap-mon-types');
@@ -401,15 +409,17 @@ const CaptureSystem = (() => {
     }
 
     // Taxa e Informações da Pokébola
+    const ballName = tr(`capture.balls.${data.ballTier.id}`, {}, data.ballTier.name);
     const rateEl = modalEl.querySelector('#cap-rate, #cap-rate-text');
     if (rateEl) {
       if (data.isGoldBall) {
-        rateEl.innerHTML = `<span style="color:#ffd700;font-weight:900;font-size:14px;">⭐ 100% CAPTURA GARANTIDA! ⭐</span><br><small style="color:#fef08a;font-weight:bold;">BÔNUS ESPECIAL: +1.000 POKÉMOEDAS!</small>`;
+        rateEl.innerHTML = `<span style="color:#ffd700;font-weight:900;font-size:14px;">${tr('capture.goldGuaranteedNotice', {}, '⭐ 100% CAPTURA GARANTIDA! ⭐')}</span><br><small style="color:#fef08a;font-weight:bold;">${tr('capture.goldGuaranteedSub', {}, 'BÔNUS ESPECIAL: +1.000 POKÉMOEDAS!')}</small>`;
       } else {
         const basePct = Math.round(data.baseRate * 100);
         const bonusPct = Math.round(data.ballBonus * 100);
         const totalPct = Math.round(data.finalChance * 100);
-        rateEl.innerHTML = `<span style="color:#ffffff;font-weight:bold;">${data.ballTier.icon} ${data.ballTier.name}</span>: <b>${totalPct}%</b> <small style="color:#94a3b8">(${basePct}% Base + ${bonusPct}% Bola)</small>`;
+        const bonusLabel = tr('capture.rateBallBonus', {}, 'Bola');
+        rateEl.innerHTML = `<span style="color:#ffffff;font-weight:bold;">${data.ballTier.icon} ${ballName}</span>: <b>${totalPct}%</b> <small style="color:#94a3b8">(${basePct}% Base + ${bonusPct}% ${bonusLabel})</small>`;
       }
     }
 
@@ -417,15 +427,19 @@ const CaptureSystem = (() => {
     const statusEl = modalEl.querySelector('#cap-status, #cap-status-msg');
     if (statusEl) {
       statusEl.className = 'cap-status';
-      statusEl.textContent = `Lançando ${data.ballTier.name}...`;
+      statusEl.textContent = tr('capture.throwing', { ball: ballName }, `Lançando ${ballName}...`);
     }
 
     // Botão Lançar / Continuar
     const btnThrow = modalEl.querySelector('#btn-throw-ball');
-    if (btnThrow) btnThrow.classList.add('hidden'); // Inicia a animação automaticamente para experiência fluida
+    if (btnThrow) {
+      btnThrow.textContent = tr('capture.btnThrow', {}, '[ LANÇAR POKÉBOLA ]');
+      btnThrow.classList.add('hidden'); // Inicia a animação automaticamente para experiência fluida
+    }
 
     const btnCont = modalEl.querySelector('#btn-cap-continue, #cap-continue-btn');
     if (btnCont) {
+      btnCont.textContent = tr('capture.btnContinue', {}, '[ CONTINUAR JORNADA ▶ ]');
       btnCont.classList.add('hidden');
       btnCont.onclick = () => {
         closeModal(data);
@@ -630,7 +644,7 @@ const CaptureSystem = (() => {
         ballAngle = -0.38;
         if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('click');
         const st = document.getElementById('cap-status');
-        if (st) st.textContent = '1... (A Pokébola balança!)';
+        if (st) st.textContent = window.i18n ? window.i18n.t('capture.shake1') : '1... (A Pokébola balança!)';
       }
       // Tilt 2 aos 1.6s (+22°)
       else if (stateT >= 1.6 && shakesDone === 1) {
@@ -638,7 +652,7 @@ const CaptureSystem = (() => {
         ballAngle = 0.38;
         if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('click');
         const st = document.getElementById('cap-status');
-        if (st) st.textContent = '2... (Tensão aumenta!)';
+        if (st) st.textContent = window.i18n ? window.i18n.t('capture.shake2') : '2... (Tensão aumenta!)';
       }
       // Tilt 3 aos 2.4s (-18°)
       else if (stateT >= 2.4 && shakesDone === 2) {
@@ -646,7 +660,7 @@ const CaptureSystem = (() => {
         ballAngle = -0.30;
         if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('click');
         const st = document.getElementById('cap-status');
-        if (st) st.textContent = '3... Quase lá!';
+        if (st) st.textContent = window.i18n ? window.i18n.t('capture.shake3') : '3... Quase lá!';
       }
 
       // Amortecimento
@@ -660,6 +674,7 @@ const CaptureSystem = (() => {
 
         const st = document.getElementById('cap-status');
         const btnCont = document.getElementById('btn-cap-continue');
+        const speciesName = (data.mon ? data.mon.name : data.speciesId).toUpperCase();
 
         if (success) {
           state = 'success';
@@ -667,8 +682,10 @@ const CaptureSystem = (() => {
 
           if (st) {
             st.className = 'cap-status success';
-            st.innerHTML = `<span style="color:#4ade80;font-weight:900;font-size:15px;">✨ ${data.speciesId.toUpperCase()} FOI CAPTURADO COM SUCESSO! ✨</span>` +
-              (data.isGoldBall ? `<br><small style="color:#ffd700;font-weight:bold;">⭐ BÔNUS RESGATADO: +1.000 POKÉMOEDAS DE OURO!</small>` : '');
+            const successMsg = window.i18n ? window.i18n.t('capture.success', { species: speciesName }) : `✨ ${speciesName} FOI CAPTURADO COM SUCESSO! ✨`;
+            const bonusMsg = window.i18n ? window.i18n.t('capture.goldBonusNotice') : '⭐ BÔNUS RESGATADO: +1.000 POKÉMOEDAS DE OURO!';
+            st.innerHTML = `<span style="color:#4ade80;font-weight:900;font-size:15px;">${successMsg}</span>` +
+              (data.isGoldBall ? `<br><small style="color:#ffd700;font-weight:bold;">${bonusMsg}</small>` : '');
           }
 
           if (typeof G === 'object' && G.Audio && G.Audio.sfx) {
@@ -695,7 +712,8 @@ const CaptureSystem = (() => {
 
           if (st) {
             st.className = 'cap-status escape';
-            st.innerHTML = `<span style="color:#f87171;font-weight:bold;font-size:15px;">💨 ${data.speciesId.toUpperCase()} escapou da Pokébola!</span>`;
+            const escapeMsg = window.i18n ? window.i18n.t('capture.escape', { species: speciesName }) : `💨 ${speciesName} escapou da Pokébola!`;
+            st.innerHTML = `<span style="color:#f87171;font-weight:bold;font-size:15px;">${escapeMsg}</span>`;
           }
 
           if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('break');
