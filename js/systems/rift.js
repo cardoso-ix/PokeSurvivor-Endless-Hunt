@@ -108,13 +108,18 @@ G.Rift = (() => {
   }
 
   /**
-   * Sorteio do Pokémon Guardião do Rift com Deduplicação e Filtro Regional:
-   * 1. Ambientação Regional: Restrito à região ativa (game.currentRegion).
-   * 2. Deduplicação Pokedex: Pokémon normais já capturados NÃO reaparecem no Rift.
-   * 3. Se for sorteio Shiny: Pokémon só é removido se o jogador já tiver sua versão Shiny.
-   * 4. Regra dos 300 Rifts: Lendários daquela região só desbloqueiam a partir de 300 rifts totais (15% ponderado).
-   * 5. Pity dos 500 Rifts: Gera um Shiny garantido daquela região (100%).
-   * 6. Região 100% Concluída: Caso todas as espécies normais tenham sido capturadas, foca em Shinies restantes ou concede a Caixa de Recompensas de Campeão (+5.000 Ouro e EXP).
+   * Sorteio do Pokémon Guardião do Rift com Deduplicação e Balanceamento Matemático Rigoroso:
+   * 1. Rolagem de Raridade de 1 a 100:
+   *    - roll <= 75 (75%): Pokémon Comum/Regional Normal.
+   *    - roll > 75 && roll <= 90 (15%): Pokémon Comum/Regional Shiny.
+   *    - roll > 90 && roll <= 99 (9%): Pokémon Lendário Normal (Se rifts < 30, rebaixa para Comum Normal).
+   *    - roll > 99 (1%): Pokémon Lendário Shiny (Se rifts < 30, rebaixa para Comum Shiny).
+   * 2. Pity dos 500 Rifts: Múltiplo de 500 (total > 0 && total % 500 === 0) garante variante Shiny.
+   * 3. Deduplicação Pokedex:
+   *    - Comum Normal: prioriza espécies da região ainda NÃO capturadas.
+   *    - Comum Shiny: prioriza espécies da região ainda sem versão Shiny.
+   *    - Lendários: prioriza lendários ainda NÃO capturados / sem versão Shiny.
+   * 4. Região 100% Concluída: Caso todas as espécies normais tenham sido capturadas, concede a Caixa de Recompensas de Campeão (+5.000 Ouro e EXP).
    */
   function selectRiftGuardian(forceType) {
     const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
@@ -123,8 +128,9 @@ G.Rift = (() => {
       const stored = localStorage.getItem('poke_total_rifts');
       if (stored != null && stored !== '') riftsCleared = Number(stored) || 0;
     }
-    if (!riftsCleared && dbObj && typeof dbObj.getTotalRiftsCleared === 'function') {
-      riftsCleared = dbObj.getTotalRiftsCleared();
+    if (!riftsCleared && dbObj) {
+      if (typeof dbObj.getRiftsCleared === 'function') riftsCleared = dbObj.getRiftsCleared();
+      else if (typeof dbObj.getTotalRiftsCleared === 'function') riftsCleared = dbObj.getTotalRiftsCleared();
     }
 
     // Identificar a Região Ativa
@@ -162,89 +168,87 @@ G.Rift = (() => {
     const capturedSet = new Set(rawCaptured.map(x => String(x).toLowerCase().trim()));
     const shinySet = new Set(rawShinies.map(x => String(x).toLowerCase().trim()));
 
-    // Regra de Shiny: Pity garantido no múltiplo de 500 ou 0.1% natural
-    let willBeShiny = false;
-    if (riftsCleared > 0 && riftsCleared % 500 === 0) {
-      willBeShiny = true;
-    } else if (Math.random() < 0.001) {
-      willBeShiny = true;
-    }
-
-    // Regra dos 300 Rifts: Bloqueio ou Liberação de Lendários
-    const allowLegendaries = riftsCleared >= 300;
+    // Separação entre Comuns e Lendários
     const isRegionalLeg = p => isLegendaryOrMythical(p) || (regionCfg.legendaries && regionCfg.legendaries.includes(p.name.toLowerCase()));
-
-    let eligiblePool = regionPool.slice();
-    if (!allowLegendaries) {
-      eligiblePool = eligiblePool.filter(p => !isRegionalLeg(p));
+    const commonPool = regionPool.filter(p => !isRegionalLeg(p));
+    let legendPool = regionPool.filter(p => isRegionalLeg(p));
+    if (!legendPool.length) {
+      legendPool = basePool.filter(isRegionalLeg);
     }
 
-    // DEDUPLICAÇÃO DE POKÉDEX:
+    // Rolagem Exata de Raridade (1 a 100)
+    const roll = Math.random() * 100;
+    let targetTier = 'common_normal';
+
+    if (roll <= 75) {
+      targetTier = 'common_normal';
+    } else if (roll <= 90) {
+      targetTier = 'common_shiny';
+    } else if (roll <= 99) {
+      targetTier = (riftsCleared < 30) ? 'common_normal' : 'legend_normal';
+    } else {
+      targetTier = (riftsCleared < 30) ? 'common_shiny' : 'legend_shiny';
+    }
+
+    // Pity de 500 Rifts garantido (marco de shiny a cada 500 se rifts > 0)
+    if (riftsCleared > 0 && riftsCleared % 500 === 0) {
+      if (targetTier === 'common_normal') targetTier = 'common_shiny';
+      else if (targetTier === 'legend_normal') targetTier = 'legend_shiny';
+    }
+
+    let willBeShiny = (targetTier === 'common_shiny' || targetTier === 'legend_shiny');
+    const isLegend = (targetTier === 'legend_normal' || targetTier === 'legend_shiny');
+
+    const targetPool = isLegend ? (legendPool.length ? legendPool : commonPool) : (commonPool.length ? commonPool : regionPool);
     let candidates = [];
     let isChampionReward = false;
 
     if (willBeShiny) {
-      // Se for sorteio Shiny, o monstro só é excluído se o jogador já possuir sua versão Shiny!
-      candidates = eligiblePool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
+      // Deduplicação Shiny: só exclui se o jogador já possuir sua versão Shiny
+      candidates = targetPool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
       if (!candidates.length) {
-        // Se já tiver todos os shinies da região, permite re-sorteio de shinies
-        candidates = eligiblePool.slice();
+        // Se já tiver todos os Shinies da categoria, permite re-sorteio
+        candidates = targetPool.slice();
       }
     } else {
-      // Se for sorteio Normal, exclui estritamente todas as espécies já capturadas na Pokédex
-      candidates = eligiblePool.filter(p => !capturedSet.has(p.name.toLowerCase()) && !capturedSet.has(String(p.dex)));
-
-      // TRATAMENTO DE REGIÃO 100% COMPLETA (Fallback):
+      // Deduplicação Normal: exclui estritamente todas as espécies já capturadas
+      candidates = targetPool.filter(p => !capturedSet.has(p.name.toLowerCase()) && !capturedSet.has(String(p.dex)));
       if (!candidates.length) {
-        // Verifica se ainda faltam Shinies para completar a região
-        const missingShinies = eligiblePool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
-        if (missingShinies.length > 0 && Math.random() < 0.25) {
-          // Foco em Shinies restantes!
-          willBeShiny = true;
-          candidates = missingShinies;
+        if (!isLegend) {
+          // Se todos os comuns já foram capturados, verifica se faltam Shinies comuns
+          const missingShinies = targetPool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
+          if (missingShinies.length > 0 && Math.random() < 0.25) {
+            willBeShiny = true;
+            candidates = missingShinies;
+          } else {
+            // Região 100% capturada: Caixa de Recompensas de Campeão
+            candidates = targetPool.slice();
+            isChampionReward = true;
+          }
         } else {
-          // Região 100% capturada: Sorteia entre os já capturados e ativa Caixa de Recompensas de Campeão
-          candidates = eligiblePool.length ? eligiblePool.slice() : regionPool.slice();
-          isChampionReward = true;
+          candidates = targetPool.slice();
         }
       }
     }
 
     if (!candidates.length) {
-      candidates = regionPool.length ? regionPool.slice() : [basePool[0]];
+      candidates = targetPool.length ? targetPool.slice() : (basePool.length ? basePool.slice() : [{ dex: 25, name: 'Pikachu', types: ['electric'] }]);
     }
 
-    // Sorteio com taxa ponderada para Lendários (15%) a partir dos 300 Rifts
-    let selectedMon = null;
-    if (allowLegendaries) {
-      const legCandidates = candidates.filter(isRegionalLeg);
-      const nonLegCandidates = candidates.filter(p => !isRegionalLeg(p));
-      if (legCandidates.length && Math.random() < 0.15) {
-        selectedMon = legCandidates[Math.floor(Math.random() * legCandidates.length)];
-      } else if (nonLegCandidates.length) {
-        selectedMon = nonLegCandidates[Math.floor(Math.random() * nonLegCandidates.length)];
-      } else {
-        selectedMon = candidates[Math.floor(Math.random() * candidates.length)];
-      }
-    } else {
-      selectedMon = candidates[Math.floor(Math.random() * candidates.length)];
-    }
-
-    if (!selectedMon) {
-      selectedMon = candidates[0] || basePool[0];
-    }
-
+    const selectedMon = candidates[Math.floor(Math.random() * candidates.length)] || candidates[0];
     const selectedName = selectedMon ? selectedMon.name.toLowerCase() : 'pikachu';
     const selectedDex = selectedMon ? selectedMon.dex : 25;
-    const isLegend = isRegionalLeg(selectedMon);
+    const finalIsLegend = isRegionalLeg(selectedMon);
 
     return {
       mon: selectedMon,
       dex: selectedDex,
       speciesId: selectedName,
       isShiny: willBeShiny,
-      isLegendary: isLegend,
-      isChampionReward: isChampionReward
+      isLegendary: finalIsLegend,
+      isChampionReward: isChampionReward,
+      tier: targetTier,
+      roll: roll
     };
   }
 
@@ -379,7 +383,8 @@ G.Rift = (() => {
       return;
     }
     if (arena.phase === 'capture') {
-      // Modal cinematográfico de captura em execução
+      // Captura diegética no chão do mapa em execução.
+      // O jogador continua se movendo, atirando e recolhendo itens livremente.
       return;
     }
     arena.endT -= dt;
@@ -390,13 +395,25 @@ G.Rift = (() => {
     if (!arena || arena.phase !== 'fight') return;
     arena.phase = 'capture';
 
-    // 1. Pausa o combate imediatamente
-    if (typeof G === 'object' && G.Game) G.Game.isPaused = true;
-    if (typeof game !== 'undefined') game.isPaused = true;
+    // 1. O combate continua ativo no mundo (NÃO pausar o jogo!)
+    if (typeof G === 'object' && G.Game) G.Game.isPaused = false;
+    if (typeof game !== 'undefined') game.isPaused = false;
 
     const guardianMon = G.DEX_BY[arena.dex];
     const isShiny = !!arena.shiny;
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
+
+    // Coordenadas do monstro derrotado
+    const bossX = (boss && typeof boss.x === 'number') ? boss.x : arena.x;
+    const bossY = (boss && typeof boss.y === 'number') ? boss.y : arena.y;
+
+    // Colapso visual em partículas vermelhas de energia no solo
+    if (typeof G === 'object' && G.FX) {
+      if (G.FX.burst) G.FX.burst(bossX, bossY, '#ef4444', 28, 150);
+      if (G.FX.burst) G.FX.burst(bossX, bossY, '#dc2626', 18, 100);
+      if (G.FX.ring) G.FX.ring(bossX, bossY, 12, 90, '#f87171', 0.5, 4);
+      if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 14);
+    }
 
     if (arena.championReward) {
       // Região 100% concluída: Caixa de Recompensas de Campeão (+5.000 Ouro e EXP)
@@ -415,13 +432,15 @@ G.Rift = (() => {
 
     console.log("🌟 Guardião de Rift derrotado:", guardianMon ? guardianMon.name : 'Guardião');
 
-    // Inicia a sequência de captura imediatamente
+    // Inicia a captura diegética no chão do mapa
     const capSys = (typeof CaptureSystem !== 'undefined' ? CaptureSystem : (typeof window !== 'undefined' ? (window.captureSystem || window.CaptureSystem) : null)) || (typeof G === 'object' ? G.Capture : null);
     if (capSys && typeof capSys.startCaptureSequence === 'function') {
       capSys.startCaptureSequence({
         speciesId: guardianMon ? guardianMon.name : 'mewtwo',
         mon: guardianMon,
         boss: boss,
+        x: bossX,
+        y: bossY,
         isShiny: isShiny,
         isLegendary: isLegendaryOrMythical(guardianMon),
         level: pl ? pl.level : 1,
@@ -438,7 +457,7 @@ G.Rift = (() => {
   function won(caught) {
     if (!arena || (arena.phase !== 'fight' && arena.phase !== 'capture')) return;
     arena.phase = 'won';
-    arena.endT = 0.8; // Retorna para a fase normal rapidamente após o término da captura
+    arena.endT = 1.4; // Transição suave de volta ao mapa normal
     G.Progress.event('rift', { type: arena.type });
     G.Pickups.pullAll();
     const mon = G.DEX_BY[arena.dex];
