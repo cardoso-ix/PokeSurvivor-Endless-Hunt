@@ -23,6 +23,7 @@ const CaptureSystem = (() => {
     accent: '#ffaa00',
     label: '⭐ 100% GARANTIDO',
     goldReward: 1000,
+    coinBonus: 1000,
     icon: '⭐'
   };
 
@@ -116,8 +117,14 @@ const CaptureSystem = (() => {
     let mon = null;
     if (typeof speciesId === 'object' && speciesId.dex) {
       mon = speciesId;
-    } else if (typeof speciesId === 'number' && typeof G === 'object' && G.DEX_BY) {
-      mon = G.DEX_BY[speciesId];
+    } else if (typeof speciesId === 'number') {
+      if (typeof G === 'object' && G.DEX_BY && G.DEX_BY[speciesId]) {
+        mon = G.DEX_BY[speciesId];
+      } else if (typeof POKEDEX !== 'undefined' && POKEDEX[speciesId]) {
+        mon = POKEDEX[speciesId];
+      } else if (typeof global !== 'undefined' && global.POKEDEX && global.POKEDEX[speciesId]) {
+        mon = global.POKEDEX[speciesId];
+      }
     } else if (typeof speciesId === 'string') {
       const s = speciesId.toLowerCase().trim();
       if (typeof G === 'object' && Array.isArray(G.DEX)) {
@@ -127,7 +134,10 @@ const CaptureSystem = (() => {
         mon = G.DEX_BY[parseInt(speciesId, 10)];
       }
       if (!mon && typeof POKEDEX !== 'undefined') {
-        mon = Object.values(POKEDEX).find(p => p.name && p.name.toLowerCase() === s);
+        mon = POKEDEX[s] || POKEDEX[speciesId] || Object.values(POKEDEX).find(p => p.name && p.name.toLowerCase() === s);
+      }
+      if (!mon && typeof global !== 'undefined' && global.POKEDEX) {
+        mon = global.POKEDEX[s] || global.POKEDEX[speciesId];
       }
     }
     if (!mon) return false;
@@ -943,6 +953,11 @@ const CaptureSystem = (() => {
 if (typeof window !== 'undefined') {
   window.CaptureSystem = CaptureSystem;
   window.captureSystem = CaptureSystem;
+  window.POKEBALL_TIERS = CaptureSystem.POKEBALL_TIERS;
+  window.GOLD_BALL_CONFIG = CaptureSystem.GOLD_BALL_CONFIG;
+  window.resolveCaptureBall = CaptureSystem.resolveCaptureBall;
+  window.getBaseCatchRate = CaptureSystem.getBaseCatchRate;
+  window.getBallForPlayerLevel = CaptureSystem.getBallForPlayerLevel;
   if (typeof G === 'object') {
     G.Capture = CaptureSystem;
   }
@@ -953,6 +968,11 @@ if (typeof G === 'object') {
 if (typeof global !== 'undefined') {
   global.CaptureSystem = CaptureSystem;
   global.captureSystem = CaptureSystem;
+  global.POKEBALL_TIERS = CaptureSystem.POKEBALL_TIERS;
+  global.GOLD_BALL_CONFIG = CaptureSystem.GOLD_BALL_CONFIG;
+  global.resolveCaptureBall = CaptureSystem.resolveCaptureBall;
+  global.getBaseCatchRate = CaptureSystem.getBaseCatchRate;
+  global.getBallForPlayerLevel = CaptureSystem.getBallForPlayerLevel;
 }
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = CaptureSystem;

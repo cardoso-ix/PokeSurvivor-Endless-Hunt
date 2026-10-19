@@ -50,49 +50,6 @@ G.LevelUp = (() => {
       }
     }
 
-    // --- evolução de espécie do Pokémon ---
-    const evoRaw = typeof getEvolutionData === 'function' ? getEvolutionData(pl.species) : null;
-    if (evoRaw) {
-      const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
-      const adminEvoMode = (typeof G === 'object' && G.adminTools && G.adminTools.evoMode) || 'official';
-
-      for (const evo of evoList) {
-        // Nível necessário baseado na configuração do Modo Administrador
-        const reqLevel = adminEvoMode === 'instant' ? 1 :
-                         adminEvoMode === 'fast' ? (evo.level > 20 ? 10 : 5) :
-                         evo.level;
-
-        if (pl.level >= reqLevel) {
-          let nextMon = null;
-          if (typeof G === 'object' && Array.isArray(G.DEX)) {
-            nextMon = G.DEX.find(p => p.name.toLowerCase() === evo.next.toLowerCase());
-          }
-          if (!nextMon && typeof G === 'object' && G.DEX_BY && typeof evo.next === 'number') {
-            nextMon = G.DEX_BY[evo.next];
-          }
-          const name = nextMon ? nextMon.name : (evo.next.charAt(0).toUpperCase() + evo.next.slice(1));
-          const primaryType = nextMon && nextMon.types ? nextMon.types[0] : 'normal';
-          const color = G.U && G.U.TYPE_COLOR ? (G.U.TYPE_COLOR[primaryType] || '#ffd23f') : '#ffd23f';
-
-          out.push({
-            w: 100,
-            type: 'EVOLUTION',
-            key: 'evo_mon:' + evo.next,
-            targetSpeciesId: evo.next,
-            dex: nextMon ? nextMon.dex : null,
-            icon: 'type:' + primaryType,
-            color: color,
-            tag: 'EVOLUÇÃO',
-            title: 'Evolução: ' + name,
-            desc: 'Evolua para ' + name + '! Aumenta atributos base e adapta seus tipos elementais.',
-            apply: p => {
-              p.evolveTo(evo.next);
-            }
-          });
-        }
-      }
-    }
-
     // --- evoluciones: movimiento al máximo + su condición cumplida ---
     const waiting = {};                   // stat -> movimiento que la espera para evolucionar
     for (const m of pl.moves) {
@@ -185,5 +142,5 @@ G.LevelUp = (() => {
     return picked;
   }
 
-  return { offer, STATS };
+  return { offer, candidates, STATS };
 })();

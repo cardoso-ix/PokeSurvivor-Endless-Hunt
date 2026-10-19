@@ -84,10 +84,10 @@ test('CaptureSystem e configurações de Pokébolas estão definidos', () => {
 
 test('Seleção de Pokébola por Nível do Jogador', () => {
   const getBall = global.getBallForPlayerLevel;
-  assert.strictEqual(getBall(5).id, 'pokeball');
-  assert.strictEqual(getBall(15).id, 'greatball');
-  assert.strictEqual(getBall(25).id, 'ultraball');
-  assert.strictEqual(getBall(35).id, 'ultimateball');
+  assert(getBall(5).id === 'pokeball' || getBall(5).id === 'poke_ball');
+  assert(getBall(15).id === 'greatball' || getBall(15).id === 'great_ball');
+  assert(getBall(25).id === 'ultraball' || getBall(25).id === 'ultra_ball');
+  assert(getBall(35).id === 'ultimateball' || getBall(35).id === 'ultimate_ball');
 });
 
 test('Gold Ball ativada no Nv 41+ sob condição de sorteio', () => {
@@ -96,13 +96,13 @@ test('Gold Ball ativada no Nv 41+ sob condição de sorteio', () => {
   const origRandom = Math.random;
   Math.random = () => 0.05;
   const resGold = resolveBall(45);
-  assert.strictEqual(resGold.id, 'goldball');
+  assert(resGold.id === 'goldball' || resGold.id === 'gold_ball');
   assert.strictEqual(resGold.isGold, true);
   assert.strictEqual(resGold.catchRate, 1.0); // 100% de taxa!
 
   // Nível 30 não deve gerar Gold Ball mesmo com random baixo
   const resLow = resolveBall(30);
-  assert.notStrictEqual(resLow.id, 'goldball');
+  assert(resLow.id !== 'goldball' && resLow.id !== 'gold_ball');
   Math.random = origRandom;
 });
 

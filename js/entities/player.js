@@ -1486,39 +1486,50 @@ G.Player = class Player {
     return this.shiny;
   }
 
-  // ---------------- Marcos Evolutivos nos Níveis 5, 12 e 21 ----------------
+  // ---------------- Evolução Automática ao Alcançar o Nível e Marcos ----------------
   checkEvolutionMilestones() {
     this._milestonesReached = this._milestonesReached || new Set();
 
-    // 1. Marco Nível 5: Primeira evolução (Estágio 2)
-    if (this.level >= 5 && !this._milestonesReached.has(5)) {
-      this._milestonesReached.add(5);
-      const evoRaw = (typeof getEvolutionData === 'function') ? getEvolutionData(this.species) : null;
-      if (evoRaw) {
-        const nextTarget = Array.isArray(evoRaw) ? (evoRaw[0] && evoRaw[0].next) : evoRaw.next;
-        if (nextTarget && nextTarget.toLowerCase() !== this.species.toLowerCase()) {
-          this.triggerMilestoneEvolution(nextTarget, 5);
+    if (typeof getEvolutionData === 'function') {
+      let loopGuard = 0;
+      while (loopGuard++ < 4) {
+        const evoRaw = getEvolutionData(this.species);
+        if (!evoRaw) break;
+
+        const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
+        const adminEvoMode = (typeof G === 'object' && G.adminTools && G.adminTools.evoMode) || 'fast';
+
+        let targetEvo = null;
+        let reqLevel = 5;
+
+        for (const evo of evoList) {
+          const lvl = adminEvoMode === 'instant' ? 1 :
+                      adminEvoMode === 'fast' ? (evo.level && evo.level > 20 ? 12 : 5) :
+                      (evo.level || 16);
+
+          if (this.level >= lvl && !this._milestonesReached.has('evo_' + evo.next.toLowerCase())) {
+            targetEvo = evo;
+            reqLevel = lvl;
+            break;
+          }
         }
+
+        if (!targetEvo) break;
+
+        this._milestonesReached.add('evo_' + targetEvo.next.toLowerCase());
+        this.triggerMilestoneEvolution(targetEvo.next, reqLevel);
       }
     }
 
-    // 2. Marco Nível 12: Segunda evolução / Estágio Final
-    if (this.level >= 12 && !this._milestonesReached.has(12)) {
-      this._milestonesReached.add(12);
-      const evoRaw = (typeof getEvolutionData === 'function') ? getEvolutionData(this.species) : null;
-      if (evoRaw) {
-        const nextTarget = Array.isArray(evoRaw) ? (evoRaw[0] && evoRaw[0].next) : evoRaw.next;
-        if (nextTarget && nextTarget.toLowerCase() !== this.species.toLowerCase()) {
-          this.triggerMilestoneEvolution(nextTarget, 12);
-        }
-      }
-    }
-
-    // 3. Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
+    // Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
     if (this.level >= 21 && !this._milestonesReached.has(21)) {
       this._milestonesReached.add(21);
       this.triggerMegaAscension();
     }
+  }
+
+  checkEvolution() {
+    return this.checkEvolutionMilestones();
   }
 
   triggerMilestoneEvolution(nextSpecies, milestoneLevel) {
@@ -1533,15 +1544,16 @@ G.Player = class Player {
       if (G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('evolve');
       if (G.FX) {
         const cy = this.y - this.bodyH * 0.5;
-        G.FX.burst(this.x, cy, '#ffffff', 36, 220);
-        G.FX.burst(this.x, cy, '#4fd1ff', 24, 160);
+        G.FX.burst(this.x, cy, '#ffffff', 40, 240);
+        G.FX.burst(this.x, cy, '#ffd700', 30, 200);
         G.FX.ring(this.x, this.y, 8, 140, '#ffffff', 0.6, 6);
+        G.FX.dmgText(this.x, this.y - this.bodyH - 16, '✨ EVOLUÇÃO! ' + newName.toUpperCase(), '#ffd700', true);
       }
       if (G.Spawner && typeof G.Spawner.say === 'function') {
-        G.Spawner.say(`✨ MARCO NÍVEL ${milestoneLevel}: ${prevName.toUpperCase()} EVOLUIU PARA ${newName.toUpperCase()}!`, 2.8, true);
+        G.Spawner.say(`✨ NÍVEL ${this.level}: ${prevName.toUpperCase()} EVOLUIU AUTOMATICAMENTE PARA ${newName.toUpperCase()}! ✨`, 3.0, true);
       }
     }
-    console.log(`[EVOLUÇÃO] Marco Nv. ${milestoneLevel} atingido: ${prevName} -> ${newName}`);
+    console.log(`[EVOLUÇÃO AUTOMÁTICA] Nv. ${this.level}: ${prevName} -> ${newName}`);
   }
 
   triggerMegaAscension() {
