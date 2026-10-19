@@ -216,14 +216,15 @@ G.Tiles = (() => {
   }
 
   function paintChunk(cx, cy, n, at, dirtField, bi, seed = 0, transparentFloor = true) {
-    const B = BIOMES[bi];
+    const validBi = (typeof bi === 'number' && !isNaN(bi) && bi >= 0 && bi < BIOMES.length) ? bi : 0;
+    const B = BIOMES[validBi] || BIOMES[0];
     const P = Pix(n * T, n * T);
     const C = {};
     for (const k of ['floor', 'dirt', 'wallTop', 'wallFace', 'flowers', 'grass'])
-      C[k] = B[k].map(h => pack(h));
+      C[k] = (B[k] || []).map(h => pack(h));
     for (const k of ['speck', 'light', 'wallLight', 'wallEdge', 'wallFaceDark', 'liq', 'liqDeep', 'foam', 'shore'])
-      C[k] = pack(B[k]);
-    C.liqLight = mixPack(B.liq, B.foam, 0.28);
+      C[k] = pack(B[k] || '#000000');
+    C.liqLight = mixPack(B.liq || '#000000', B.foam || '#ffffff', 0.28);
 
     const tx0 = cx * n, ty0 = cy * n;
     const dirtAt = dirtMask(tx0 * T, ty0 * T, n * T, dirtField, seed);

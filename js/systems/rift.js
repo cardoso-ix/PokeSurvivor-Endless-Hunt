@@ -367,7 +367,7 @@ G.Rift = (() => {
     const ts = TS();
     arena = Object.assign({}, cfg, {
       x: cfg.tx * ts + ts / 2, y: cfg.ty * ts + ts / 2,
-      back: { x: pl.x, y: pl.y }, biome: (G.World && G.World.biome) || 'grass', t: 0, phase: 'fight', endT: 0, bossId: 0
+      back: { x: pl.x, y: pl.y }, biome: (G.World && typeof G.World.biome === 'number') ? G.World.biome : 0, t: 0, phase: 'fight', endT: 0, bossId: 0
     });
     rift = null; asked = false; downT = 0;
     if (G.EnemyMgr) {
@@ -623,23 +623,36 @@ G.Rift = (() => {
 
   /** En cada ordenador: vuelta al mapa. */
   function finish() {
-    const pl = G.Game.player;
+    const pl = G.Game && G.Game.player;
     const a = arena;
     arena = null;
-    G.World.setBiome(a.biome, true);
-    G.Weather.clear();
+    if (G.World) {
+      if (typeof G.World.setArena === 'function') G.World.setArena(null);
+      const safeBiome = (a && typeof a.biome === 'number') ? a.biome : 0;
+      G.World.setBiome(safeBiome, true);
+    }
+    if (G.Weather && typeof G.Weather.clear === 'function') G.Weather.clear();
     // Retorna todos os inimigos do mapa principal guardados
-    if (authority()) G.EnemyMgr.restore();
-    G.Projectiles.clear();
-    G.Combat.clearFields();
-    G.Hazards.clear();
-    for (const p of G.Game.everyone()) { p.x = a.back.x; p.y = a.back.y; }
-    pl.x = a.back.x; pl.y = a.back.y;
-    if (pl.dead) pl.revive(0.3);
-    G.Camera.x = pl.x; G.Camera.y = pl.y;
-    G.Game.flash('#c9a6ff', 0.8);
-    G.Spawner.say('De volta ao campo de batalha!', 2.2, true);
-    if (pl.bonds > 0) G.Game.offerBond();
+    if (authority() && G.EnemyMgr && typeof G.EnemyMgr.restore === 'function') G.EnemyMgr.restore();
+    if (G.Projectiles && typeof G.Projectiles.clear === 'function') G.Projectiles.clear();
+    if (G.Combat && typeof G.Combat.clearFields === 'function') G.Combat.clearFields();
+    if (G.Hazards && typeof G.Hazards.clear === 'function') G.Hazards.clear();
+    const backX = (a && a.back && typeof a.back.x === 'number') ? a.back.x : (pl ? pl.x : 0);
+    const backY = (a && a.back && typeof a.back.y === 'number') ? a.back.y : (pl ? pl.y : 0);
+    if (G.Game && typeof G.Game.everyone === 'function') {
+      for (const p of G.Game.everyone()) {
+        if (p) { p.x = backX; p.y = backY; }
+      }
+    }
+    if (pl) {
+      pl.x = backX;
+      pl.y = backY;
+      if (pl.dead && typeof pl.revive === 'function') pl.revive(0.3);
+    }
+    if (G.Camera && pl) { G.Camera.x = pl.x; G.Camera.y = pl.y; }
+    if (G.Game && typeof G.Game.flash === 'function') G.Game.flash('#c9a6ff', 0.8);
+    if (G.Spawner && typeof G.Spawner.say === 'function') G.Spawner.say('De volta ao campo de batalha!', 2.2, true);
+    if (pl && pl.bonds > 0 && G.Game && typeof G.Game.offerBond === 'function') G.Game.offerBond();
   }
 
   // ---------------- dibujo ----------------

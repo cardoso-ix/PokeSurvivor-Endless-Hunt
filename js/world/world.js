@@ -591,8 +591,9 @@ G.World = (() => {
    * un bioma que no existe: pantalla negra, el juego roto y niveles sin fin.)
    */
   function setBiome(i, instant = false) {
-    const n = G.Tiles.BIOMES.length;
-    const b = ((i % n) + n) % n;
+    const n = (G.Tiles && G.Tiles.BIOMES) ? G.Tiles.BIOMES.length : 3;
+    const num = (typeof i === 'number' && !isNaN(i)) ? Math.floor(i) : 0;
+    const b = ((num % n) + n) % n;
     if (b === biome) return;
     // El terreno es el mismo: sólo cambia la paleta, fundiéndose poco a poco.
     fade = instant ? null : { from: biome, images, t: 0 };

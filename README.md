@@ -196,9 +196,9 @@ As Fendas Dimensionais (Rifts) oferecem desafios épicos em arenas dimensionais 
   - Se o jogador capturar um Pokémon que **já possui registrado na Pokédex**, recebe a bonificação escalonada de **Moedas** (para Melhorias permanentes) e **Tickets** (para a Roleta Gacha) conforme o estágio do monstro capturado.
   - Se for um Pokémon **inédito**, registra a nova espécie na Pokédex permanente e desbloqueia seu ancestral de Estágio 1 na lista de iniciais jogáveis.
   - Se for uma versão **Shiny**, registra na coleção Shiny permanente com brilho estelar.
-- **Feedback Visual & Sonoro Diegético no Canvas:**
-  - Card superior com aviso em tempo real com valores dinâmicos (`✨ REPETIDO! +X MOEDAS · +X TICKETS! ✨`).
-  - Textos flutuantes ao redor da Pokébola e anúncio global do Spawner no topo.
+- **Transição Contínua & Retorno Seguro ao Mapa Principal:**
+  - Ao concluir a batalha e a sequência diegética da Pokébola, a arena dimensional é encerrada de forma fluida (`World.setArena(null)`), restaurando com precisão o bioma original, reposicionando o Treinador em suas coordenadas anteriores e devolvendo a horda de monstros sem interrupção do loop de combate.
+
 
 ---
 
