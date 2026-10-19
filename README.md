@@ -131,8 +131,14 @@ Ao atingir 100% de energia de Mega e pressionar [ESPAÇO] ou o botão no HUD, o 
 
 ---
 
-### 5. 🎴 HUD Inferior Retro Pixel Art & Painel de Status em Tempo Real
-- **Design Estilo GBA / Nintendo DS:** Moldura chanfrada de alta definição com relevo e paleta retro.
+### 5. 🎴 HUD Inferior Retro Pixel Art & Deck de Ataques do Super Combo Nível 20
+- **Design Estilo GBA / Nintendo DS:** Moldura chanfrada de alta definição com relevo e paleta retro fixada na parte inferior da tela.
+- **Deck de Ataques do Super Combo (`.hud-combo-container`):**
+  - **Exibição Contínua dos Ataques:** Mostra todos os ataques que o jogador pegou para combar, com **Ícone Pixel Art**, **Nome Completo** (ex: *Chicote de Vinha*, *Folha Navalha*, *Bomba de Lodo*) e **Nível Atual** em badge destacado (ex: `NV. 3`, `NV. 5 MAX`).
+  - **Status de Combagem em Tempo Real:**
+    - Antes do Nível 20: exibe o cabeçalho `⚔️ ATAQUES PARA COMBAR` com badge dinâmico do nível atual (`NV. X/20`).
+    - A partir do Nível 20: desbloqueia o **Super Combo**, ativando o cabeçalho `⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡` e o badge `🔥 COMBANDO JUNTOS`, envolvendo todos os 4 cards com borda dourada cintilante e disparando todos os ataques simultaneamente!
+  - **Slots Vazios Informativos:** Slots ainda não preenchidos exibem `[SLOT X: Vazio]` para orientar o jogador sobre quantas vagas restam para fechar o combo.
 - **Botão Mega Físico (`#hud-mega-btn`):** 3 estados reativos (Carregando com porcentagem, Pronto com pulso dourado pulsante e Ativo com cronômetro regressivo).
 - **Painel de Atributos (`#stats-rpg-panel`):** Exibe no canto da tela os 8 status matemáticos da partida em tempo real:
   - ⚔️ **ATK:** Dano ofensivo

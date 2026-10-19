@@ -504,12 +504,14 @@ G.HUD = (() => {
       ctx.textAlign = 'left';
       ctx.fillText(String(i + 1), x + 3, y + 10);
 
-      // nombre encima del activo (con un vínculo: "Ascuas +2")
+      // nome e nível acima do ativo ou de todos no modo combo
       if (on) {
-        ctx.font = F(700, 10);
+        ctx.font = F(800, 10);
         ctx.textAlign = 'center';
-        ctx.fillStyle = fused ? BOND : col;
-        ctx.fillText(fused ? m.name + ' +' + (g.length - 1) : m.name, x + S / 2, y - 7);
+        ctx.fillStyle = isCombo ? '#ffd700' : (fused ? BOND : col);
+        const prefix = isCombo ? '⚡ ' : '';
+        const lvlStr = ' Nv.' + m.lvl;
+        ctx.fillText(prefix + (fused ? m.name + ' +' + (g.length - 1) : m.name) + lvlStr, x + S / 2, y - 7);
       }
     }
 
@@ -1304,61 +1306,129 @@ G.HUD = (() => {
         megaTrack.addEventListener('click', onMegaAction);
       }
 
-      // 6. Slots de Ataques Ativos
+      // 6. Slots e Cards de Ataques Ativos (Super Combo Nível 20)
       const tray = document.getElementById('hud-skills-tray');
       if (tray && pl.slots) {
-        const isCombo = (pl.level >= 20 || pl.quadComboActive);
-        let sig = `${n}-${pl.active}-${isCombo ? 'combo' : 'solo'}`;
-        for (let i = 0; i < n; i++) {
+        const isCombo = !!(pl.level >= 20 || pl.quadComboActive);
+        const maxSlots = pl.maxMoves || 4;
+
+        // Atualiza cabeçalho do combo
+        const comboContainer = document.querySelector('.hud-combo-container');
+        const comboTitle = document.getElementById('hud-combo-title');
+        const comboBadge = document.getElementById('hud-combo-badge');
+
+        if (comboContainer) {
+          comboContainer.classList.toggle('combo-unlocked', isCombo);
+        }
+        if (comboTitle) {
+          comboTitle.textContent = isCombo
+            ? '⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡'
+            : '⚔️ ATAQUES PARA COMBAR (NOVO ATK NO LEVEL UP)';
+        }
+        if (comboBadge) {
+          comboBadge.textContent = isCombo
+            ? '🔥 COMBANDO JUNTOS'
+            : `NV. ${pl.level}/20`;
+        }
+
+        // Assinatura única do estado dos slots
+        let sig = `${maxSlots}-${pl.active}-${isCombo ? 'combo' : 'solo'}`;
+        for (let i = 0; i < maxSlots; i++) {
           const g = pl.slots[i] || [];
           const m = g[0];
-          if (m) sig += `_${m.id}_${m.lvl}_${g.length > 1 ? 'f' : ''}`;
+          if (m) sig += `_${m.id}_${m.lvl}_${m.name}`;
+          else sig += `_empty`;
         }
 
         if (sig !== lastSlotsSignature) {
           lastSlotsSignature = sig;
           tray.innerHTML = '';
-          for (let i = 0; i < n; i++) {
+
+          for (let i = 0; i < maxSlots; i++) {
             const g = pl.slots[i] || [];
             const m = g[0];
-            if (!m) continue;
 
-            const slotEl = document.createElement('div');
-            slotEl.className = `hud-skill-slot ${i === pl.active || isCombo ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
-            slotEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${m.name} (Nv. ${m.lvl})` : `${m.name} (Nv. ${m.lvl})`;
-            slotEl.dataset.slotIdx = String(i);
+            const cardEl = document.createElement('div');
+            cardEl.dataset.slotIdx = String(i);
 
-            const iconWrap = document.createElement('div');
-            iconWrap.className = 'hud-skill-icon';
-            if (typeof G === 'object' && G.Icons && typeof G.Icons.html === 'function') {
-              iconWrap.innerHTML = G.Icons.html('move:' + m.id, 28);
-            }
-            slotEl.appendChild(iconWrap);
+            if (m) {
+              const isMax = m.def && m.lvl >= m.def.maxLvl;
+              cardEl.className = `hud-skill-card ${i === pl.active || isCombo ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
+              cardEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${m.name} (Nv. ${m.lvl})` : `${m.name} (Nv. ${m.lvl})`;
 
-            const lvlEl = document.createElement('div');
-            lvlEl.className = 'hud-skill-lvl';
-            lvlEl.textContent = `Nv.${m.lvl}`;
-            slotEl.appendChild(lvlEl);
-
-            const sweepEl = document.createElement('div');
-            sweepEl.className = 'hud-cd-sweep';
-            sweepEl.id = `hud-cd-sweep-${i}`;
-            sweepEl.style.height = '0%';
-            slotEl.appendChild(sweepEl);
-
-            slotEl.addEventListener('click', () => {
-              if (typeof G === 'object' && G.Game && G.Game.state === 'playing' && pl.active !== i) {
-                pl.setActive(i);
-                if (G.Audio) G.Audio.sfx('click');
+              // 1. Ícone
+              const iconWrap = document.createElement('div');
+              iconWrap.className = 'hud-skill-icon-wrap';
+              if (typeof G === 'object' && G.Icons && typeof G.Icons.html === 'function') {
+                iconWrap.innerHTML = G.Icons.html('move:' + m.id, 24);
               }
-            });
+              cardEl.appendChild(iconWrap);
 
-            tray.appendChild(slotEl);
+              // 2. Informações de Nome e Nível do Ataque
+              const infoWrap = document.createElement('div');
+              infoWrap.className = 'hud-skill-info';
+
+              const nameEl = document.createElement('div');
+              nameEl.className = 'hud-skill-name';
+              nameEl.textContent = m.name || m.id;
+              if (typeof G === 'object' && G.U && G.U.TYPE_COLOR && G.U.TYPE_COLOR[m.type]) {
+                nameEl.style.color = G.U.TYPE_COLOR[m.type];
+              }
+              infoWrap.appendChild(nameEl);
+
+              const lvlEl = document.createElement('div');
+              lvlEl.className = `hud-skill-lvl-tag ${isMax ? 'max' : ''}`;
+              lvlEl.textContent = isMax ? `NV. ${m.lvl} MAX` : `NV. ${m.lvl}`;
+              infoWrap.appendChild(lvlEl);
+
+              cardEl.appendChild(infoWrap);
+
+              // 3. Cooldown Sweep
+              const sweepEl = document.createElement('div');
+              sweepEl.className = 'hud-cd-sweep';
+              sweepEl.id = `hud-cd-sweep-${i}`;
+              sweepEl.style.height = '0%';
+              cardEl.appendChild(sweepEl);
+
+              cardEl.addEventListener('click', () => {
+                if (typeof G === 'object' && G.Game && G.Game.state === 'playing' && pl.active !== i) {
+                  pl.setActive(i);
+                  if (G.Audio) G.Audio.sfx('click');
+                }
+              });
+            } else {
+              // Slot vazio
+              cardEl.className = 'hud-skill-card empty';
+              cardEl.title = 'Slot de Ataque Vazio (Obtenha novos ataques ao subir de nível)';
+
+              const iconWrap = document.createElement('div');
+              iconWrap.className = 'hud-skill-icon-wrap';
+              iconWrap.innerHTML = '<span style="color:#64748b;font-size:16px;font-weight:bold;">+</span>';
+              cardEl.appendChild(iconWrap);
+
+              const infoWrap = document.createElement('div');
+              infoWrap.className = 'hud-skill-info';
+
+              const nameEl = document.createElement('div');
+              nameEl.className = 'hud-skill-name';
+              nameEl.style.color = '#64748b';
+              nameEl.textContent = `SLOT ${i + 1}`;
+              infoWrap.appendChild(nameEl);
+
+              const emptyTxt = document.createElement('div');
+              emptyTxt.className = 'hud-skill-empty-txt';
+              emptyTxt.textContent = 'Vazio';
+              infoWrap.appendChild(emptyTxt);
+
+              cardEl.appendChild(infoWrap);
+            }
+
+            tray.appendChild(cardEl);
           }
         }
 
         // Atualiza altura do cooldown sweep
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < maxSlots; i++) {
           const g = pl.slots[i] || [];
           const m = g[0];
           if (!m) continue;

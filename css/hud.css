@@ -271,74 +271,168 @@
   100% { transform: scale(1.04); filter: brightness(1.25); }
 }
 
-/* Bandeja de Slots de Habilidades */
+/* Container de Combo de Ataques */
+.hud-combo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-combo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 0 4px;
+}
+
+.hud-combo-title {
+  color: #94a3b8;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.hud-combo-badge {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #38bdf8;
+  border-radius: 4px;
+  color: #38bdf8;
+  padding: 1px 6px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.hud-combo-container.combo-unlocked .hud-combo-title {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 1px 1px 0 #000;
+}
+
+.hud-combo-container.combo-unlocked .hud-combo-badge {
+  background: #b45309;
+  border-color: #ffd700;
+  color: #fef08a;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  animation: pulseComboBadge 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes pulseComboBadge {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.05); filter: brightness(1.3); }
+}
+
+/* Bandeja de Cards de Habilidades */
 .hud-skills-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.hud-skill-slot {
-  width: 50px;
-  height: 50px;
+.hud-skill-card {
+  min-width: 96px;
+  height: 44px;
   background: #090a10;
-  border: 3px solid #3a3f58;
+  border: 2px solid #3a3f58;
   border-radius: 6px;
   box-shadow: inset -2px -2px 0px #050608, inset 2px 2px 0px #4d5475;
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 3px 6px;
+  gap: 6px;
   cursor: pointer;
   transition: transform 0.08s, border-color 0.15s;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-.hud-skill-slot:hover {
+.hud-skill-card:hover {
   transform: translateY(-2px);
   border-color: #facc15;
 }
 
-.hud-skill-slot.active {
+.hud-skill-card.active {
   border-color: #38bdf8;
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.6), inset 0 0 6px rgba(56, 189, 248, 0.4);
 }
 
-.hud-skill-slot.combo-active {
+.hud-skill-card.combo-active {
   border-color: #ffd700 !important;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.75), inset 0 0 6px rgba(255, 215, 0, 0.45) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.8), inset 0 0 6px rgba(255, 215, 0, 0.45) !important;
   animation: hudComboGlow 1.4s infinite alternate ease-in-out;
 }
 
 @keyframes hudComboGlow {
   0% { box-shadow: 0 0 6px rgba(255, 215, 0, 0.4), inset 0 0 4px rgba(255, 215, 0, 0.3); }
-  100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.95), inset 0 0 8px rgba(255, 215, 0, 0.6); }
+  100% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.95), inset 0 0 8px rgba(255, 215, 0, 0.6); }
 }
 
-.hud-skill-slot.fused {
-  border-color: #ff8ad8;
-  box-shadow: 0 0 10px rgba(255, 138, 216, 0.6);
+.hud-skill-card.empty {
+  border: 2px dashed #334155;
+  background: rgba(9, 10, 16, 0.5);
+  opacity: 0.6;
+  cursor: default;
 }
 
-.hud-skill-icon {
-  width: 32px;
-  height: 32px;
-  image-rendering: pixelated;
+.hud-skill-icon-wrap {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   z-index: 1;
 }
 
-.hud-skill-lvl {
-  position: absolute;
-  top: 2px;
-  right: 2px;
+.hud-skill-icon {
+  width: 26px;
+  height: 26px;
+  image-rendering: pixelated;
+}
+
+.hud-skill-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.hud-skill-name {
+  font-size: 9px;
+  font-weight: 800;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65px;
+  text-shadow: 1px 1px 0px #000;
+}
+
+.hud-skill-lvl-tag {
   font-size: 8px;
   font-weight: 800;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid #ffffff;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #64748b;
   border-radius: 3px;
   padding: 0 3px;
   color: #fde047;
-  z-index: 3;
+  display: inline-block;
+  align-self: flex-start;
+  letter-spacing: 0.5px;
+}
+
+.hud-skill-lvl-tag.max {
+  background: #b45309;
+  border-color: #ffd700;
+  color: #fef08a;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+}
+
+.hud-skill-empty-txt {
+  font-size: 8px;
+  color: #64748b;
+  font-style: italic;
 }
 
 /* Máscara de Recarga (Cooldown Sweep) */
