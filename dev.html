@@ -62,7 +62,7 @@
       "@id": "https://pokesurvivor.com/#juego",
       "name": "PokéSurvivor",
       "url": "https://pokesurvivor.com/",
-      "description": "Fan game gratuito de supervivencia (bullet heaven, estilo Survivor.io) con Pokémon: elige compañero, sobrevive a hordas, sube de nivel, evoluciona tus ataques, enfréntate a legendarios en grietas y juega en cooperativo con hasta 4 amigos.",
+      "description": "Fan game gratuito de sobrevivência (bullet heaven, estilo Survivor.io) com Pokémon: escolha seu parceiro, sobreviva a hordas, suba de nível, evolua seus ataques, enfrente lendários em fendas e jogue em modo cooperativo com até 4 amigos.",
       "image": "https://pokesurvivor.com/assets/og-image.jpg",
       "inLanguage": "es",
       "genre": ["Roguelike", "Bullet heaven", "Acción", "Supervivencia"],
@@ -162,37 +162,37 @@
   </div>
 </div>
 
-<!-- En móvil se juega en horizontal -->
-<div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gira el móvil</h2><p class="sub">PokéRift: Endless Hunt se juega en horizontal.</p></div></div>
+<!-- Em celulares o jogo é jogado na horizontal -->
+<div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gire o aparelho</h2><p class="sub">PokéRift: Endless Hunt deve ser jogado na horizontal.</p></div></div>
 
-<!-- ====== Inicio: login / registro / invitado ====== -->
+<!-- ====== Início: login / registro / convidado ====== -->
 <section id="scr-login" class="scr hidden">
   <div class="box login-box">
     <div class="logo" translate="no">
       <div class="t1">PokéRift</div>
       <div class="t2">Endless Hunt</div>
     </div>
-    <p class="login-tag">Sobrevive a las hordas con tu compañero Pokémon · gratis, en PC y móvil</p>
-    <p class="login-official">Web oficial: pokesurvivor.com · si alguien te pide pagar, no somos nosotros</p>
+    <p class="login-tag">Sobreviva às hordas com seu companheiro Pokémon · gratuito no PC e celular</p>
+    <p class="login-official">Site oficial: pokesurvivor.com · se alguém pedir pagamento, não somos nós</p>
     <div class="tabs">
       <div class="tab on" data-tab="login">Entrar</div>
-      <div class="tab" data-tab="register">Crear cuenta</div>
+      <div class="tab" data-tab="register">Criar conta</div>
     </div>
     <form id="login-form" autocomplete="off">
-      <label for="f-user">Nombre</label>
+      <label for="f-user">Nome de Usuário</label>
       <input id="f-user" class="field" maxlength="16" spellcheck="false">
-      <label for="f-pass">Contraseña</label>
+      <label for="f-pass">Senha</label>
       <input id="f-pass" class="field" type="password" maxlength="64">
       <p id="login-err" class="err"></p>
-      <p class="note"><a href="#" id="f-forgot">¿Olvidaste tu contraseña?</a></p>
-      <p id="forgot-note" class="note hidden">Si vinculaste tu Gmail, pulsa <b>Entrar con Google</b> con ese Gmail: es tu misma cuenta.
-        Si no lo vinculaste, no se puede recuperar: crea una cuenta nueva (y esta vez vincula tu Gmail desde el aviso que sale al entrar).</p>
+      <p class="note"><a href="#" id="f-forgot">Esqueceu sua senha?</a></p>
+      <p id="forgot-note" class="note hidden">Se você vinculou seu Gmail, clique em <b>Entrar com Google</b> com esse Gmail: é a sua mesma conta.
+        Se não vinculou, não é possível recuperar: crie uma nova conta (e desta vez vincule seu Gmail pelo aviso que aparece ao entrar).</p>
       <div class="row">
         <button id="btn-auth" class="btn gold grow" type="submit">Entrar</button>
       </div>
     </form>
     <div class="row" style="margin-top:10px">
-      <button id="btn-google" class="btn google grow hidden" type="button">Entrar con Google</button>
+      <button id="btn-google" class="btn google grow hidden" type="button">Entrar com Google</button>
     </div>
     <div class="row" style="margin-top:10px">
       <button id="btn-guest" class="btn ghost grow" type="button" data-i18n="intro.guest">Jogar como Convidado</button>
@@ -311,10 +311,10 @@
   </div>
 </section>
 
-<!-- ====== Apoyar el proyecto (donaciones) ====== -->
+<!-- ====== Apoiar o projeto (doações) ====== -->
 <section id="scr-support" class="scr dim hidden">
   <div class="box support">
-    <div class="row between"><h2>Apoyar el proyecto</h2><button class="btn small ghost" id="sup-close">Cerrar</button></div>
+    <div class="row between"><h2>Apoiar o projeto</h2><button class="btn small ghost" id="sup-close" data-i18n="common.close">Fechar</button></div>
     <div id="sup-body"></div>
   </div>
 </section>
@@ -337,43 +337,38 @@
 <!-- ====== Aviso legal y privacidad ====== -->
 <section id="scr-legal" class="scr dim hidden">
   <div class="box legal" style="width:min(640px,100%)">
-    <div class="row between"><h2>Aviso legal</h2><button class="btn small ghost" id="legal-close">Cerrar</button></div>
-    <h3>Proyecto de fan</h3>
-    <p><b>PokéSurvivor</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
-      No tiene anuncios ni compras. Se puede apoyar con donaciones voluntarias, que se usan sólo para pagar los servidores y el dominio, y que no dan ninguna ventaja en el juego.</p>
-    <p>No está afiliado, patrocinado ni aprobado por Nintendo, Creatures Inc., GAME FREAK ni
-      The Pokémon Company. Pokémon y todos los nombres y personajes relacionados son marcas y
-      propiedad de sus respectivos dueños.</p>
-    <h3>Web oficial</h3>
-    <p>La única web oficial de PokéSurvivor es pokesurvivor.com. El juego es y será gratis: si alguien te pide pagar, no somos nosotros.</p>
-    <h3>Criptomonedas</h3>
-    <p>PokéSurvivor no tiene ninguna criptomoneda, token ni NFT oficial, y su autor no ha creado ninguno. Cualquier token que use el nombre del juego lo han creado terceros: no nos hacemos cargo de ninguna compra, venta o inversión que hagas con ellos, y nada de lo que hay aquí es una recomendación de inversión.</p>
-    <h3>Contenido de terceros</h3>
+    <div class="row between"><h2>Aviso Legal</h2><button class="btn small ghost" id="legal-close" data-i18n="common.close">Fechar</button></div>
+    <h3>Projeto de fã</h3>
+    <p><b>PokéSurvivor</b> é um jogo feito por fãs, <b>gratuito e sem fins lucrativos</b>.
+      Não possui anúncios nem compras internas. Pode ser apoiado com doações voluntárias, usadas apenas para cobrir servidores e domínio, sem conceder vantagens no jogo.</p>
+    <p>Não é afiliado, patrocinado ou aprovado pela Nintendo, Creatures Inc., GAME FREAK ou
+      The Pokémon Company. Pokémon e todas as marcas e personagens relacionados são propriedades
+      de seus respectivos detentores.</p>
+    <h3>Site oficial</h3>
+    <p>O único site oficial do PokéSurvivor é pokesurvivor.com. O jogo é e continuará sendo gratuito: se alguém solicitar pagamento, não somos nós.</p>
+    <h3>Criptomoedas</h3>
+    <p>O PokéSurvivor não possui nenhuma criptomoeda, token ou NFT oficial. Qualquer token utilizando o nome do jogo é criação de terceiros e não nos responsabilizamos por negociações financeiras.</p>
+    <h3>Conteúdo de terceiros</h3>
     <p>Sprites de <a href="https://github.com/PMDCollab/SpriteCollab" target="_blank" rel="noopener">SpriteCollab</a>
-      (CC BY-NC 4.0, créditos completos en CREDITS.md del repositorio). Datos de la Pokédex de
-      <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokeAPI</a>. Fuente Pixelify Sans (OFL).
-      La música y los efectos de sonido son originales del proyecto.</p>
-    <h3>Contacto y retirada de contenido</h3>
-    <p>Si eres titular de derechos y quieres que retiremos algo, escríbenos y lo quitaremos lo
-      antes posible: <a id="legal-mail" href="#"></a></p>
-    <p>Código fuente: <a id="legal-repo" href="#" target="_blank" rel="noopener"></a></p>
-    <p>Licencia del código: PolyForm Noncommercial 1.0.0 (se puede usar, estudiar y modificar, pero no para ganar dinero). Las versiones hasta el 14-10-2026 siguen bajo MIT.</p>
-    <h3>Privacidad</h3>
-    <p>Si creas una cuenta, guardamos tu nombre de jugador y tu partida (colección, monedas,
-      mejoras y estadísticas) en Google Firebase para que puedas seguir en cualquier ordenador.
-      Si entras con Google, Firebase guarda también tu correo de Google para identificarte
-      (nunca se enseña a otros jugadores).
-      No usamos tus datos para nada más, ni los compartimos, ni hay publicidad ni seguimiento.
-      Como invitado no se guarda nada fuera de tu navegador.</p>
-    <p>Amigos y ranking: tu <b>apodo</b> es público para otros jugadores. Guardamos tu lista de
-      amigos, si estás en línea y tus mejores tiempos (con tu apodo y tu Pokémon).</p>
-    <p>Partidas en grupo: tu navegador se conecta <b>directamente</b> con el de tus compañeros
-      (como en una videollamada), así que cada uno puede llegar a ver la dirección IP del otro.
-      Juega en grupo sólo con gente que conozcas. Si la conexión directa no es posible, la partida
-      pasa por los servidores de Firebase.</p>
-    <p>Puedes borrar tu cuenta cuando quieras (se borran también tu apodo, tus amigos y tus marcas):</p>
+      (CC BY-NC 4.0, créditos completos em CREDITS.md). Dados da Pokédex de
+      <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokeAPI</a>. Fonte Pixelify Sans (OFL).
+      Músicas e efeitos sonoros são originais do projeto.</p>
+    <h3>Contato e remoção de conteúdo</h3>
+    <p>Se você é detentor de direitos e deseja a remoção de conteúdo, escreva para nós e removeremos
+      o quanto antes: <a id="legal-mail" href="#"></a></p>
+    <p>Código-fonte: <a id="legal-repo" href="#" target="_blank" rel="noopener"></a></p>
+    <p>Licença do código: PolyForm Noncommercial 1.0.0 (pode ser usado, estudado e modificado, exceto para fins comerciais).</p>
+    <h3>Privacidade</h3>
+    <p>Se você criar uma conta, salvamos seu apelido de jogador e seu progresso (coleção, PokéMoedas,
+      melhorias e estatísticas) no Google Firebase para sincronização entre dispositivos.
+      Se entrar com Google, o Firebase guarda seu e-mail para autenticação (nunca exibido a outros jogadores).
+      Não utilizamos seus dados para outros fins nem os compartilhamos com terceiros.
+      Como convidado, nenhum dado sai do seu navegador.</p>
+    <p>Amigos e classificação: seu <b>apelido</b> é visível aos demais jogadores, bem como seus melhores tempos com seu Pokémon parceiro.</p>
+    <p>Partidas cooperativas: a conexão entre jogadores é estabelecida diretamente via P2P/WebRTC. Jogue em grupo apenas com pessoas de sua confiança.</p>
+    <p>Você pode excluir sua conta quando desejar (excluindo apelido, amigos e recordes):</p>
     <div class="row">
-      <button class="btn small" id="legal-delete">Borrar mi cuenta y mi partida</button>
+      <button class="btn small" id="legal-delete">Excluir minha conta e progresso</button>
       <span id="legal-del-msg" class="note" style="margin:0"></span>
     </div>
   </div>
@@ -412,25 +407,25 @@
   <div class="boot noscript">
     <div class="boot-in">
       <h1>PokéSurvivor</h1>
-      <p>PokéSurvivor necesita JavaScript para funcionar. Actívalo para jugar.</p>
-      <p>Fan game gratuito de supervivencia con 966 Pokémon de las 9 regiones: elige tu compañero, sobrevive a las hordas, evoluciona tus ataques, enfréntate a legendarios y juega en cooperativo con hasta 4 amigos.</p>
-      <!-- seo:begin --><p><a href="guia/">Guía del juego</a> · <a href="pokedex/">Pokédex: todos los Pokémon jugables</a></p><!-- seo:end -->
+      <p>PokéSurvivor precisa de JavaScript para funcionar. Ative-o para jogar.</p>
+      <p>Fan game gratuito de sobrevivência com 966 Pokémon das 9 regiões: escolha seu companheiro, sobreviva às hordas, evolua seus ataques, enfrente lendários e jogue em coop com até 4 amigos.</p>
+      <!-- seo:begin --><p><a href="guia/">Guia do jogo</a> · <a href="pokedex/">Pokédex: todos os Pokémon jogáveis</a></p><!-- seo:end -->
     </div>
   </div>
 </noscript>
 
-<!-- ====== Apodo (para amigos y ranking) ====== -->
+<!-- ====== Apelido (para amigos e ranking) ====== -->
 <section id="scr-nick" class="scr dim hidden">
   <div class="box" style="width:min(440px,100%)">
-    <h2>Elige tu apodo</h2>
-    <p class="sub">Es el nombre que verán tus amigos y el que sale en el ranking.
-      Tu nombre y tu correo de Google no se enseñan a nadie.</p>
+    <h2>Escolha seu apelido</h2>
+    <p class="sub">É o nome que seus amigos verão e o que sai na classificação.
+      Seu nome e seu e-mail do Google não são mostrados a ninguém.</p>
     <form id="nick-form" autocomplete="off">
-      <input id="nick-in" class="field" maxlength="16" spellcheck="false" placeholder="3-16 letras, números o _">
+      <input id="nick-in" class="field" maxlength="16" spellcheck="false" placeholder="3-16 letras, números ou _">
       <p id="nick-err" class="err"></p>
-      <div class="row"><button id="nick-ok" class="btn gold grow" type="submit">Guardar apodo</button></div>
+      <div class="row"><button id="nick-ok" class="btn gold grow" type="submit">Salvar apelido</button></div>
     </form>
-    <div class="row" style="margin-top:8px"><button id="nick-later" class="btn ghost grow" type="button">Ahora no</button></div>
+    <div class="row" style="margin-top:8px"><button id="nick-later" class="btn ghost grow" type="button">Agora não</button></div>
   </div>
 </section>
 
@@ -507,10 +502,10 @@
   </div>
 </section>
 
-<!-- ====== Perfil público de un jugador ====== -->
+<!-- ====== Perfil público de um jogador ====== -->
 <section id="scr-profile" class="scr dim hidden">
   <div class="box profile-box">
-    <div class="row end"><button class="btn small ghost" id="prof-close">Cerrar</button></div>
+    <div class="row end"><button class="btn small ghost" id="prof-close" data-i18n="common.close">Fechar</button></div>
     <div id="prof-body"></div>
   </div>
 </section>
@@ -527,12 +522,12 @@
   </div>
 </section>
 
-<!-- ====== Invitación recibida ====== -->
+<!-- ====== Convite recebido ====== -->
 <div id="invite-pop" class="box invite-pop hidden">
   <div id="inv-text"></div>
   <div class="row" style="margin-top:10px">
-    <button id="inv-yes" class="btn gold small grow" data-sfx="confirm">Unirme</button>
-    <button id="inv-no" class="btn ghost small">No, gracias</button>
+    <button id="inv-yes" class="btn gold small grow" data-sfx="confirm">Entrar</button>
+    <button id="inv-no" class="btn ghost small">Não, obrigado</button>
   </div>
 </div>
 
