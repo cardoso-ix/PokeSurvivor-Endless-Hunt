@@ -228,13 +228,35 @@ O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
 
 ---
 
+## 🛠️ Menu Admin & Painel de Testes (F2 / ~)
+
+O jogo possui um **Menu Admin e Painel de Testes completo**, acessível em qualquer tela (menus ou partida) através da tecla `F2`, aspas (`'`) ou pelo botão flutuante **`🛠️ Admin [F2]`** no canto inferior direito:
+
+- **🎟️ Gestão de Tickets de Roleta:**
+  - Campo numérico para **Definir** ou **Somar (+)** qualquer quantidade customizada de tickets (ex: 5.000, 25.000, 100.000).
+  - Botões de atalho rápido: `+5k (1x)`, `+25k (5x)`, `+50k (10x)` e `Zerar`.
+- **🎰 Roleta Gacha & Auditoria:**
+  - `Abrir Roleta`: Abre diretamente a tela oficial da Roleta Gacha.
+  - `Girar Roleta 1x / 5x`: Executa sorteios imediatos com consumo de tickets e feedback na tela.
+  - `Forçar Shiny (1%)` / `Forçar Lendário (5%)`: Garante que o próximo giro entregue a categoria desejada para testes.
+  - `Simulação Estatística em Lote`: Executa 50, 100 ou até 1.000 giros instantâneos gerando relatório de taxas reais vs teóricas e moedas de duplicatas acumuladas.
+- **📖 Desbloqueio da Pokédex:** Busca inteligente por espécie (nome ou número da Dex) para desbloqueio Normal ou Shiny, além de liberação em massa e reset de progresso.
+- **🧬 Evoluções & Combate:** Forçar próxima evolução, de-evoluir, modo deus, cura total e injeção de PokéMoedas.
+
+---
+
 ## 🧪 Comandos e Depuração no Console (F12)
 
+- `admin.setTickets(amount)` — Define o saldo exato de tickets de roleta no save.
+- `admin.addTickets(amount)` — Adiciona quantidade de tickets ao saldo atual.
+- `admin.forceShiny(1)` — Garante que o próximo giro da roleta seja Shiny (1%).
+- `admin.forceLegendary(1)` — Garante que o próximo giro seja Lendário (5%).
+- `admin.spin(count)` — Executa giros da roleta diretamente pelo console.
+- `admin.simulate(count)` — Executa simulação estocástica de giros em lote com relatório.
 - `debugCheckStages()` — Varre e valida os estágios de qualquer Pokémon no console.
 - `debugCheckStarter('id')` — Testa se a espécie pode iniciar partida (apenas Estágio 1).
 - `debugSetLevel(lvl)` — Altera o nível do jogador e dispara os marcos evolutivos automaticamente.
 - `debugFillMega()` — Enche a barra de Mega para 100% imediatamente.
-- `debugTriggerGoldBall()` — Força a captura com Gold Ball (100% taxa + 1.000 moedas).
 - `debugSpawnRift()` — Abre um Rift com Guardião na arena.
 
 ---

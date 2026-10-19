@@ -125,6 +125,7 @@
           </div>
         `;
       }
+      this.updateGachaStats();
     },
 
     unlockSpecies(speciesQuery, isShiny = false) {
@@ -184,6 +185,213 @@
       this.setFeedback('🗑️ Progresso da Pokédex resetado com sucesso!');
       this.updateStats();
       return true;
+    },
+
+    getTickets() {
+      const db = getDB();
+      if (!db || !db.save) return { t1: 0, t10: 0 };
+      const t = db.save.tickets || { t1: 0, t10: 0 };
+      return { t1: Number(t.t1) || 0, t10: Number(t.t10) || 0 };
+    },
+
+    setTickets(amount, type = 't1') {
+      const db = getDB();
+      const val = Math.max(0, Math.floor(Number(amount) || 0));
+      if (db && typeof db.adminSetTickets === 'function') {
+        db.adminSetTickets(val, type);
+      } else if (db && db.save) {
+        db.save.tickets = db.save.tickets || { t1: 0, t10: 0 };
+        db.save.tickets[type] = val;
+        if (typeof db.commit === 'function') db.commit('tickets');
+        if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.refresh === 'function') G.GachaUI.refresh();
+      }
+      this.setFeedback(`🎟️ Tickets (${type}) definidos para: ${val.toLocaleString('pt-BR')}`);
+      this.updateStats();
+      return val;
+    },
+
+    addTickets(amount, type = 't1') {
+      const db = getDB();
+      const add = Math.floor(Number(amount) || 0);
+      let val = 0;
+      if (db && typeof db.adminAddTickets === 'function') {
+        val = db.adminAddTickets(add, type);
+      } else if (db && db.save) {
+        db.save.tickets = db.save.tickets || { t1: 0, t10: 0 };
+        const cur = Number(db.save.tickets[type]) || 0;
+        val = Math.max(0, cur + add);
+        db.save.tickets[type] = val;
+        if (typeof db.commit === 'function') db.commit('tickets');
+        if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.refresh === 'function') G.GachaUI.refresh();
+      }
+      const signal = add >= 0 ? '+' : '';
+      this.setFeedback(`🎟️ ${signal}${add.toLocaleString('pt-BR')} Tickets! Novo saldo: ${val.toLocaleString('pt-BR')}`);
+      this.updateStats();
+      return val;
+    },
+
+    openGacha() {
+      if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.open === 'function') {
+        G.GachaUI.open(0);
+        this.setFeedback('🎰 Tela da Roleta Gacha aberta!');
+        return true;
+      }
+      this.setFeedback('❌ Interface GachaUI não carregada no momento!', true);
+      return false;
+    },
+
+    spinRoulette(count = 1) {
+      const db = getDB();
+      if (!db || !db.save) {
+        this.setFeedback('❌ Save do jogador não encontrado!', true);
+        return null;
+      }
+      if (typeof G !== 'object' || !G.Gacha || typeof G.Gacha.pullRoulette !== 'function') {
+        this.setFeedback('❌ Sistema G.Gacha não carregado!', true);
+        return null;
+      }
+
+      const cost = (G.Gacha.ROULETTE_COST || 5000) * count;
+      const curTickets = (db.save.tickets && db.save.tickets.t1) || 0;
+      if (curTickets < cost) {
+        this.setFeedback(`⚠️ Tickets insuficientes (${curTickets.toLocaleString('pt-BR')} de ${cost.toLocaleString('pt-BR')})! Digite uma quantidade e adicione no painel.`, true);
+        return null;
+      }
+
+      const results = G.Gacha.pullRoulette(db.save, count);
+      if (!results || !results.length) {
+        this.setFeedback('❌ Erro ao sortear na Roleta!', true);
+        return null;
+      }
+
+      if (typeof db.commit === 'function') db.commit('gacha');
+      if (typeof G.GachaUI === 'object' && typeof G.GachaUI.refresh === 'function') G.GachaUI.refresh();
+      if (typeof G.UI === 'object' && typeof G.UI.refreshCoins === 'function') G.UI.refreshCoins();
+
+      const summary = results.map(r => {
+        const star = r.isLegendary ? '👑 LENDÁRIO' : (r.shiny ? '✨ SHINY' : 'Normal');
+        const dup = !r.isNew ? ' (Repetido: +1.000 moedas)' : ' (NOVO!)';
+        return `${r.name} [${star}]${dup}`;
+      }).join(', ');
+
+      this.setFeedback(`🎰 Giro (${count}x): ${summary}`);
+      this.updateStats();
+      return results;
+    },
+
+    forceShiny(n = 1) {
+      if (typeof G === 'object' && G.Gacha && typeof G.Gacha.debugForceShiny === 'function') {
+        G.Gacha.debugForceShiny(n);
+        this.setFeedback(`✨ Próximo(s) ${n} giro(s) da Roleta serão SHINY garantido!`);
+        return true;
+      }
+      this.setFeedback('❌ G.Gacha.debugForceShiny não disponível!', true);
+      return false;
+    },
+
+    forceLegendary(n = 1) {
+      if (typeof G === 'object' && G.Gacha && typeof G.Gacha.debugForceLegendary === 'function') {
+        G.Gacha.debugForceLegendary(n);
+        this.setFeedback(`👑 Próximo(s) ${n} giro(s) da Roleta serão LENDÁRIO garantido!`);
+        return true;
+      }
+      this.setFeedback('❌ G.Gacha.debugForceLegendary não disponível!', true);
+      return false;
+    },
+
+    resetForces() {
+      if (typeof G === 'object' && G.Gacha) {
+        if (typeof G.Gacha.debugForceShiny === 'function') G.Gacha.debugForceShiny(0);
+        if (typeof G.Gacha.debugForceLegendary === 'function') G.Gacha.debugForceLegendary(0);
+        this.setFeedback('🔄 Forçamento resetado! Roleta 100% aleatória (1% Shiny, 5% Lendário, 94% Normal).');
+        return true;
+      }
+      return false;
+    },
+
+    simulateRoulette(count = 50) {
+      if (typeof G !== 'object' || !G.DEX || !Array.isArray(G.DEX)) {
+        this.setFeedback('❌ Pokédex G.DEX não carregada!', true);
+        return null;
+      }
+
+      const db = getDB();
+      const owned = (db && db.save && db.save.owned) ? Object.assign({}, db.save.owned) : {};
+      const allLegs = G.DEX.filter(p => p.rarity === 5 || p.legendary);
+      const allNorms = G.DEX.filter(p => p.rarity < 5 && !p.legendary);
+      const allShinies = G.DEX.filter(p => G.Sprites && G.Sprites.hasShiny ? G.Sprites.hasShiny(p.dex) : true);
+
+      let shinyCount = 0;
+      let legendCount = 0;
+      let normalCount = 0;
+      let newCount = 0;
+      let dupCount = 0;
+      let coinsEarned = 0;
+
+      for (let i = 0; i < count; i++) {
+        const roll = Math.random() * 100;
+        let mon = null;
+        let isShiny = false;
+
+        if (roll < 1.0) {
+          isShiny = true;
+          mon = G.U.pick(allShinies.length ? allShinies : G.DEX);
+          shinyCount++;
+          if (mon.rarity === 5 || mon.legendary) legendCount++;
+        } else if (roll < 6.0) {
+          mon = G.U.pick(allLegs);
+          legendCount++;
+        } else {
+          mon = G.U.pick(allNorms);
+          normalCount++;
+        }
+
+        if (owned[mon.dex]) {
+          dupCount++;
+          coinsEarned += 1000;
+        } else {
+          newCount++;
+          owned[mon.dex] = true;
+        }
+      }
+
+      const pctShiny = ((shinyCount / count) * 100).toFixed(1);
+      const pctLegend = ((legendCount / count) * 100).toFixed(1);
+      const pctNormal = ((normalCount / count) * 100).toFixed(1);
+
+      const resBox = document.getElementById('admin-sim-results');
+      if (resBox) {
+        resBox.style.display = 'block';
+        resBox.innerHTML = `
+          <div style="font-weight:bold; color:#a5b4fc; margin-bottom:3px;">📊 Resultado de ${count} Giros Simulados:</div>
+          <div>👑 Lendários: <b style="color:#fbbf24">${legendCount}</b> (${pctLegend}% - Esperado: 5%)</div>
+          <div>✨ Shinies: <b style="color:#facc15">${shinyCount}</b> (${pctShiny}% - Esperado: 1%)</div>
+          <div>📦 Normais: <b style="color:#38bdf8">${normalCount}</b> (${pctNormal}% - Esperado: 94%)</div>
+          <div>🆕 Inéditos: <b style="color:#4ade80">${newCount}</b> | 🔁 Repetidos: <b style="color:#f87171">${dupCount}</b></div>
+          <div>🪙 Moedas Geradas: <b style="color:#facc15">+${coinsEarned.toLocaleString('pt-BR')}</b></div>
+        `;
+      }
+
+      this.setFeedback(`🧪 Simulação de ${count} giros concluída! ${legendCount} Lendários, ${shinyCount} Shinies.`);
+      return { count, legendCount, shinyCount, normalCount, newCount, dupCount, coinsEarned };
+    },
+
+    updateGachaStats() {
+      const db = getDB();
+      const s = (db && db.save) || {};
+      const t1 = (s.tickets && s.tickets.t1) || 0;
+      const coins = s.coins || 0;
+
+      const tEl = document.getElementById('admin-tickets-display');
+      if (tEl) tEl.textContent = t1.toLocaleString('pt-BR');
+
+      const cEl = document.getElementById('admin-coins-display');
+      if (cEl) cEl.textContent = coins.toLocaleString('pt-BR');
+
+      const coinStatus = document.getElementById('admin-coins-status');
+      if (coinStatus) {
+        coinStatus.textContent = `🪙 Banco: ${coins.toLocaleString('pt-BR')}`;
+      }
     },
 
     initDOM() {
@@ -282,6 +490,104 @@
         </div>
       `;
 
+      // 3.1 Montar seção de Tickets e Roleta Gacha
+      const gachaSectionHTML = `
+        <div id="admin-gacha-section" style="border: 1px solid rgba(245, 158, 11, 0.45); background: rgba(30, 41, 59, 0.75); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-weight:bold; color:#f59e0b; font-size:12px; display:flex; align-items:center; gap:5px;">
+              <span>🎰</span> TICKETS & ROLETA GACHA
+            </span>
+            <button id="admin-btn-open-gacha-ui" class="admin-action-btn" style="background:#7c3aed; color:#fff; font-size:10px; padding:3px 7px;">
+              Abrir Roleta ↗
+            </button>
+          </div>
+
+          <!-- Saldo Atual -->
+          <div id="admin-gacha-balance-box" style="background:rgba(0,0,0,0.45); border-radius:6px; padding:6px 8px; font-size:11px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+              <span>🎟️ Seus Tickets:</span>
+              <span id="admin-tickets-display" style="font-weight:bold; color:#38bdf8;">0</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>🪙 Suas PokéMoedas:</span>
+              <span id="admin-coins-display" style="font-weight:bold; color:#facc15;">0</span>
+            </div>
+          </div>
+
+          <!-- Injeção Customizada de Tickets -->
+          <div style="margin-bottom:8px;">
+            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:4px;">🎟️ Quantidade de Tickets:</div>
+            <div style="display:flex; gap:5px; margin-bottom:6px;">
+              <input id="admin-tickets-input" type="number" min="0" step="1000" placeholder="Digite qtd (ex: 5000, 25000)"
+                style="flex:1; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 6px 8px; border-radius: 5px; font-size: 11px;">
+              <button id="admin-btn-set-tickets" class="admin-action-btn" style="background:#0284c7; color:#fff; font-weight:bold; white-space:nowrap;" title="Define o saldo exato de tickets">
+                Definir
+              </button>
+              <button id="admin-btn-add-tickets" class="admin-action-btn" style="background:#16a34a; color:#fff; font-weight:bold; white-space:nowrap;" title="Soma a quantidade ao saldo atual">
+                + Somar
+              </button>
+            </div>
+            <!-- Botões Rápidos de Tickets -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; margin-bottom:6px;">
+              <button id="admin-btn-t-5k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+5.000 tickets (1 giro de Roleta)">
+                +5k (1x)
+              </button>
+              <button id="admin-btn-t-25k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+25.000 tickets (5 giros de Roleta)">
+                +25k (5x)
+              </button>
+              <button id="admin-btn-t-50k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+50.000 tickets (10 giros de Roleta)">
+                +50k (10x)
+              </button>
+              <button id="admin-btn-t-zero" class="admin-action-btn" style="background:#450a0a; color:#fca5a5; border:1px solid #dc2626; font-size:10px; padding:4px 2px;" title="Zerar todos os tickets">
+                Zerar
+              </button>
+            </div>
+          </div>
+
+          <!-- Ações de Giro da Roleta -->
+          <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px; margin-bottom:8px;">
+            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:5px;">🎯 Teste Direto de Roleta (5k / giro)</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:6px;">
+              <button id="admin-btn-spin-1" class="admin-action-btn" style="background:#d97706; color:#fff; font-weight:bold;">
+                🎲 Girar Roleta 1x
+              </button>
+              <button id="admin-btn-spin-5" class="admin-action-btn" style="background:#b45309; color:#fef08a; font-weight:bold;">
+                🌟 Girar Roleta 5x
+              </button>
+            </div>
+          </div>
+
+          <!-- Forçar Resultados para Testes de Animação e Regras -->
+          <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px; margin-bottom:8px;">
+            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:5px;">🔮 Forçar Próximo Resultado (Debug)</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-bottom:4px;">
+              <button id="admin-btn-force-shiny" class="admin-action-btn" style="background:#1e293b; color:#facc15; border:1px solid #eab308; font-size:10px;">
+                ✨ Forçar Shiny (1%)
+              </button>
+              <button id="admin-btn-force-legend" class="admin-action-btn" style="background:#1e293b; color:#fb923c; border:1px solid #f97316; font-size:10px;">
+                👑 Forçar Lendário (5%)
+              </button>
+            </div>
+            <button id="admin-btn-reset-forces" class="admin-action-btn" style="width:100%; background:#1e293b; color:#94a3b8; border:1px solid #475569; font-size:10px;">
+              🔄 Resetar Forçamento (Aleatório)
+            </button>
+          </div>
+
+          <!-- Auditoria / Simulação em Lote -->
+          <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px;">
+            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:4px;">🧪 Simulação Estatística em Lote</div>
+            <div style="display:flex; gap:5px; margin-bottom:6px;">
+              <input id="admin-sim-count-input" type="number" min="1" max="1000" value="50" placeholder="Qtd (ex: 50)"
+                style="width:80px; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 5px 6px; border-radius: 5px; font-size: 11px;">
+              <button id="admin-btn-run-simulation" class="admin-action-btn" style="flex:1; background:#4f46e5; color:#fff; font-weight:bold;">
+                Simular Giros
+              </button>
+            </div>
+            <div id="admin-sim-results" style="display:none; background:rgba(0,0,0,0.55); border-radius:5px; padding:6px 8px; font-size:10px; line-height:1.4; border:1px solid rgba(255,255,255,0.08);"></div>
+          </div>
+        </div>
+      `;
+
       if (isNewPanel) {
         panel.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #475569; padding-bottom:6px; margin-bottom:10px;">
@@ -291,17 +597,28 @@
             </div>
             <button id="admin-panel-close-btn" style="background:#dc2626; border:none; color:white; border-radius:4px; cursor:pointer; font-weight:bold; padding:4px 8px; font-size:11px;">✕</button>
           </div>
+          ${gachaSectionHTML}
           ${dexSectionHTML}
           <div style="font-size:10px; color:#64748b; text-align:center; padding-top:4px;">
-            Console: <code>adminUnlock("charizard", true)</code> | <code>adminUnlockAll()</code>
+            Console: <code>admin.setTickets(50000)</code> | <code>admin.spin(5)</code>
           </div>
         `;
       } else {
-        // Se o painel já existe (ex: debug_panel.js), injeta a seção de Pokédex no topo
-        if (!document.getElementById('admin-dex-section')) {
+        // Se o painel já existe (ex: debug_panel.js), injeta a seção de Roleta e Pokédex no topo
+        if (!document.getElementById('admin-gacha-section')) {
           const header = panel.firstElementChild;
           if (header && typeof header.insertAdjacentHTML === 'function') {
-            header.insertAdjacentHTML('afterend', dexSectionHTML);
+            header.insertAdjacentHTML('afterend', gachaSectionHTML);
+          } else if (typeof panel.insertAdjacentHTML === 'function') {
+            panel.insertAdjacentHTML('afterbegin', gachaSectionHTML);
+          } else {
+            panel.innerHTML = gachaSectionHTML + panel.innerHTML;
+          }
+        }
+        if (!document.getElementById('admin-dex-section')) {
+          const gachaSec = document.getElementById('admin-gacha-section');
+          if (gachaSec && typeof gachaSec.insertAdjacentHTML === 'function') {
+            gachaSec.insertAdjacentHTML('afterend', dexSectionHTML);
           } else if (typeof panel.insertAdjacentHTML === 'function') {
             panel.insertAdjacentHTML('afterbegin', dexSectionHTML);
           } else {
@@ -403,6 +720,43 @@
         };
       }
 
+      // Binds da Seção de Gacha e Tickets
+      bind('admin-btn-open-gacha-ui', () => AdminPanel.openGacha());
+      bind('admin-btn-set-tickets', () => {
+        const inp = document.getElementById('admin-tickets-input');
+        if (inp && inp.value !== '') AdminPanel.setTickets(inp.value);
+      });
+      bind('admin-btn-add-tickets', () => {
+        const inp = document.getElementById('admin-tickets-input');
+        if (inp && inp.value !== '') AdminPanel.addTickets(inp.value);
+      });
+      bind('admin-btn-t-5k', () => AdminPanel.addTickets(5000));
+      bind('admin-btn-t-25k', () => AdminPanel.addTickets(25000));
+      bind('admin-btn-t-50k', () => AdminPanel.addTickets(50000));
+      bind('admin-btn-t-zero', () => AdminPanel.setTickets(0));
+
+      bind('admin-btn-spin-1', () => AdminPanel.spinRoulette(1));
+      bind('admin-btn-spin-5', () => AdminPanel.spinRoulette(5));
+      bind('admin-btn-force-shiny', () => AdminPanel.forceShiny(1));
+      bind('admin-btn-force-legend', () => AdminPanel.forceLegendary(1));
+      bind('admin-btn-reset-forces', () => AdminPanel.resetForces());
+      bind('admin-btn-run-simulation', () => {
+        const inp = document.getElementById('admin-sim-count-input');
+        const count = inp ? (parseInt(inp.value, 10) || 50) : 50;
+        AdminPanel.simulateRoulette(count);
+      });
+
+      const ticketsInput = document.getElementById('admin-tickets-input');
+      if (ticketsInput) {
+        ticketsInput.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            AdminPanel.setTickets(ticketsInput.value);
+          }
+          e.stopPropagation();
+        };
+      }
+
       this.updateStats();
     },
 
@@ -468,6 +822,15 @@
       const db = getDB();
       return db && typeof db.adminResetDex === 'function' ? db.adminResetDex() : false;
     },
+    setTickets: (amount, type = 't1') => AdminPanel.setTickets(amount, type),
+    addTickets: (amount, type = 't1') => AdminPanel.addTickets(amount, type),
+    getTickets: () => AdminPanel.getTickets(),
+    spin: (count = 1) => AdminPanel.spinRoulette(count),
+    simulate: (count = 50) => AdminPanel.simulateRoulette(count),
+    forceShiny: (n = 1) => AdminPanel.forceShiny(n),
+    forceLegendary: (n = 1) => AdminPanel.forceLegendary(n),
+    resetForces: () => AdminPanel.resetForces(),
+    openGacha: () => AdminPanel.openGacha(),
     open: () => AdminPanel.open(),
     close: () => AdminPanel.close(),
     toggle: () => AdminPanel.toggle()
@@ -480,6 +843,14 @@
     window.adminUnlock = (id, shiny) => globalObj.unlock(id, shiny);
     window.adminUnlockAll = (shiny) => globalObj.unlockAll(shiny);
     window.adminResetDex = () => globalObj.resetDex();
+    window.adminSetTickets = (n, t) => AdminPanel.setTickets(n, t);
+    window.adminAddTickets = (n, t) => AdminPanel.addTickets(n, t);
+    window.adminGetTickets = () => AdminPanel.getTickets();
+    window.adminSpin = (n) => AdminPanel.spinRoulette(n);
+    window.adminSimulate = (n) => AdminPanel.simulateRoulette(n);
+    window.adminForceShiny = (n) => AdminPanel.forceShiny(n);
+    window.adminForceLegendary = (n) => AdminPanel.forceLegendary(n);
+    window.adminOpenGacha = () => AdminPanel.openGacha();
   }
 
   if (typeof G === 'object') {

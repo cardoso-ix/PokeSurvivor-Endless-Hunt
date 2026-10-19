@@ -179,6 +179,50 @@
       return totalCoins;
     },
 
+    addTickets(amount = 5000) {
+      amount = Math.floor(Number(amount) || 0);
+      let total = 0;
+      if (typeof G === 'object' && G.DB && typeof G.DB.adminAddTickets === 'function') {
+        total = G.DB.adminAddTickets(amount);
+      } else if (typeof AdminPanel !== 'undefined' && typeof AdminPanel.addTickets === 'function') {
+        total = AdminPanel.addTickets(amount);
+      }
+      this.toast(`🎟️ +${amount.toLocaleString('pt-BR')} Tickets de Roleta! (Total: ${total.toLocaleString('pt-BR')})`);
+      this.updateStatus();
+      return total;
+    },
+
+    setTickets(amount = 5000) {
+      amount = Math.max(0, Math.floor(Number(amount) || 0));
+      let total = 0;
+      if (typeof G === 'object' && G.DB && typeof G.DB.adminSetTickets === 'function') {
+        total = G.DB.adminSetTickets(amount);
+      } else if (typeof AdminPanel !== 'undefined' && typeof AdminPanel.setTickets === 'function') {
+        total = AdminPanel.setTickets(amount);
+      }
+      this.toast(`🎟️ Saldo de Tickets definido para: ${total.toLocaleString('pt-BR')}`);
+      this.updateStatus();
+      return total;
+    },
+
+    spinRoulette(count = 1) {
+      if (typeof AdminPanel !== 'undefined' && typeof AdminPanel.spinRoulette === 'function') {
+        return AdminPanel.spinRoulette(count);
+      } else if (typeof G === 'object' && G.Gacha && G.DB && G.DB.save) {
+        const res = G.Gacha.pullRoulette(G.DB.save, count);
+        this.updateStatus();
+        return res;
+      }
+      return null;
+    },
+
+    openGacha() {
+      if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.open === 'function') {
+        G.GachaUI.open(0);
+        this.toast('🎰 Roleta Gacha aberta!');
+      }
+    },
+
     toggleGodMode() {
       const p = getPlayer();
       if (!p) { this.toast('Nenhuma partida em andamento!'); return; }
@@ -378,6 +422,16 @@
         coinsEl.innerHTML = `🪙 Banco: <b style="color:#ffd700">${saveCoins.toLocaleString('pt-BR')}</b>` + (p ? ` | Run: <b style="color:#f59e0b">${runCoins.toLocaleString('pt-BR')}</b>` : '');
       }
 
+      const ticketsEl = document.getElementById('admin-tickets-status');
+      if (ticketsEl) {
+        const s = (typeof G === 'object' && G.DB && G.DB.save) || {};
+        const t1 = (s.tickets && s.tickets.t1) || 0;
+        ticketsEl.innerHTML = `🎟️ Tickets Roleta: <b style="color:#38bdf8">${t1.toLocaleString('pt-BR')}</b>`;
+      }
+      if (typeof AdminPanel !== 'undefined' && typeof AdminPanel.updateGachaStats === 'function') {
+        AdminPanel.updateGachaStats();
+      }
+
       if (statusEl) {
         if (p) {
           statusEl.innerHTML = `Pokémon: <b style="color:#ffcb05">${p.mon.name}</b> (Nv. ${p.level})<br>HP: ${Math.ceil(p.hp)}/${Math.round(p.maxHp)} | Histórico: [${(p.evolutionHistory || [p.pokemonId]).join(' ➔ ')}]<br>🌀 Rifts: <b style="color:#38bdf8">${rifts}</b> (Pity Shiny em: <b>${nextPity === 0 ? 'PRÓXIMO!' : nextPity}</b>)`;
@@ -495,6 +549,30 @@
           <input id="admin-coins-input" type="number" placeholder="Qtd (ex: 50000)" style="flex:1; background:#111; border:1px solid #7c6812; color:#ffd700; padding:4px; border-radius:4px; font-size:11px;">
           <button id="admin-btn-coins-custom" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#ffd700;">+ Injetar</button>
         </div>
+      </div>
+
+      <!-- SEÇÃO GACHA: TICKETS & ROLETA -->
+      <div style="font-weight:bold; color:#f59e0b; margin-bottom:4px; font-size:11px;">🎰 SEÇÃO GACHA: TICKETS & ROLETA</div>
+      <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
+        <div id="admin-tickets-status" style="background:#1e1e24; color:#38bdf8; padding:4px 8px; border-radius:4px; text-align:center; font-weight:bold; font-size:11px; border:1px solid #0369a1;">
+          🎟️ Tickets Roleta: 0
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
+          <button id="admin-btn-tickets-5k" class="admin-btn" style="color:#38bdf8;" title="+5.000 Tickets">[ +5.000 🎟️ (1x) ]</button>
+          <button id="admin-btn-tickets-25k" class="admin-btn" style="color:#60a5fa;" title="+25.000 Tickets">[ +25.000 🎟️ (5x) ]</button>
+          <button id="admin-btn-tickets-50k" class="admin-btn" style="color:#93c5fd;" title="+50.000 Tickets">[ +50.000 🎟️ (10x) ]</button>
+          <button id="admin-btn-tickets-zero" class="admin-btn" style="color:#fca5a5;" title="Zerar Tickets">[ Zerar 🎟️ ]</button>
+        </div>
+        <div style="display:flex; gap:4px; margin-top:2px;">
+          <input id="admin-tickets-debug-input" type="number" placeholder="Qtd Tickets (ex: 5000)" style="flex:1; background:#111; border:1px solid #0369a1; color:#38bdf8; padding:4px; border-radius:4px; font-size:11px;">
+          <button id="admin-btn-tickets-set" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#38bdf8;">Definir</button>
+          <button id="admin-btn-tickets-add" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#4ade80;">+ Somar</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:2px;">
+          <button id="admin-btn-debug-spin1" class="admin-btn" style="color:#f59e0b; font-weight:bold;">[ 🎲 Girar Roleta 1x ]</button>
+          <button id="admin-btn-debug-spin5" class="admin-btn" style="color:#fbbf24; font-weight:bold;">[ 🌟 Girar Roleta 5x ]</button>
+        </div>
+        <button id="admin-btn-debug-opengacha" class="admin-btn" style="color:#c084fc; font-weight:bold; text-align:center;">[ 🎰 Abrir Tela da Roleta Gacha ]</button>
       </div>
 
       <!-- SEÇÃO 4: SOBREVIVÊNCIA E COMBATE -->
@@ -646,6 +724,36 @@
         e.stopPropagation();
       };
     }
+
+    bind('admin-btn-tickets-5k', () => adminTools.addTickets(5000));
+    bind('admin-btn-tickets-25k', () => adminTools.addTickets(25000));
+    bind('admin-btn-tickets-50k', () => adminTools.addTickets(50000));
+    bind('admin-btn-tickets-zero', () => adminTools.setTickets(0));
+
+    const injectCustomTickets = (isAdd = false) => {
+      const input = document.getElementById('admin-tickets-debug-input') || panel.querySelector('#admin-tickets-debug-input');
+      if (input && input.value !== '') {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val)) {
+          if (isAdd) adminTools.addTickets(val);
+          else adminTools.setTickets(val);
+          input.value = '';
+        }
+      }
+    };
+    bind('admin-btn-tickets-set', () => injectCustomTickets(false));
+    bind('admin-btn-tickets-add', () => injectCustomTickets(true));
+    const ticketsInputEl = document.getElementById('admin-tickets-debug-input') || panel.querySelector('#admin-tickets-debug-input');
+    if (ticketsInputEl) {
+      ticketsInputEl.onkeydown = e => {
+        if (e.key === 'Enter') injectCustomTickets(false);
+        e.stopPropagation();
+      };
+    }
+    bind('admin-btn-debug-spin1', () => adminTools.spinRoulette(1));
+    bind('admin-btn-debug-spin5', () => adminTools.spinRoulette(5));
+    bind('admin-btn-debug-opengacha', () => adminTools.openGacha());
+
     bind('admin-btn-god', () => adminTools.toggleGodMode());
     bind('admin-btn-heal', () => adminTools.healFull());
     bind('admin-btn-special', () => adminTools.fillSpecial());

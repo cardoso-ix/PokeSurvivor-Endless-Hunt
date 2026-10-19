@@ -1587,6 +1587,59 @@ G.DB = (() => {
     return true;
   }
 
+  function adminSetTickets(amount, type = 't1') {
+    if (!save) return 0;
+    save.tickets = save.tickets || { t1: 0, t10: 0 };
+    const val = Math.max(0, Math.floor(Number(amount) || 0));
+    save.tickets[type] = val;
+    commit('tickets');
+    if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.refresh === 'function') {
+      G.GachaUI.refresh();
+    }
+    console.log(`🎟️ [ADMIN] Saldo de Tickets (${type}) definido para: ${val}`);
+    return val;
+  }
+
+  function adminAddTickets(amount, type = 't1') {
+    if (!save) return 0;
+    save.tickets = save.tickets || { t1: 0, t10: 0 };
+    const current = Number(save.tickets[type]) || 0;
+    const add = Math.floor(Number(amount) || 0);
+    const val = Math.max(0, current + add);
+    save.tickets[type] = val;
+    commit('tickets');
+    if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.refresh === 'function') {
+      G.GachaUI.refresh();
+    }
+    console.log(`🎟️ [ADMIN] Injetados ${add} Tickets (${type}). Saldo atual: ${val}`);
+    return val;
+  }
+
+  function adminGetTickets() {
+    if (!save) return { t1: 0, t10: 0 };
+    save.tickets = save.tickets || { t1: 0, t10: 0 };
+    return { t1: Number(save.tickets.t1) || 0, t10: Number(save.tickets.t10) || 0 };
+  }
+
+  function adminSetCoins(amount) {
+    if (!save) return 0;
+    const val = Math.max(0, Math.floor(Number(amount) || 0));
+    save.coins = val;
+    commit('gold');
+    if (typeof G === 'object' && G.UI && typeof G.UI.refreshCoins === 'function') {
+      G.UI.refreshCoins();
+    }
+    if (typeof G === 'object' && G.GachaUI && typeof G.GachaUI.refresh === 'function') {
+      G.GachaUI.refresh();
+    }
+    console.log(`🪙 [ADMIN] Saldo de PokéMoedas definido para: ${val}`);
+    return val;
+  }
+
+  function adminAddCoins(amount) {
+    return addGold(Math.floor(Number(amount) || 0));
+  }
+
   const exportObj = {
     ready, register, login, loginWithGoogle, playAsGuest, logout, commit, deleteAccount, flush: pushNow,
     owns, grant, ownsShiny, grantShiny, merge, setName, upgradesOf, getSpeciesUpgrades, getSpeciesUpgradeBonus,
@@ -1595,6 +1648,7 @@ G.DB = (() => {
     getCapturedPokemon, getCapturedShinies, isPokemonCaptured, isPokemonShinyCaptured,
     getCapturedCountByRegion, getTotalCountByRegion,
     adminUnlock, adminUnlockAll, adminResetDex,
+    adminSetTickets, adminAddTickets, adminGetTickets, adminSetCoins, adminAddCoins,
     // Aliases oficiais para o Sistema de Captura de Rifts
     isCaptured: isPokemonCaptured,
     getRiftsCleared: getTotalRiftsCleared,
@@ -1651,6 +1705,11 @@ G.DB = (() => {
     window.adminUnlock = (id, s) => adminUnlock(id, s);
     window.adminUnlockAll = (s) => adminUnlockAll(s);
     window.adminResetDex = () => adminResetDex();
+    window.adminSetTickets = (n, t) => adminSetTickets(n, t);
+    window.adminAddTickets = (n, t) => adminAddTickets(n, t);
+    window.adminGetTickets = () => adminGetTickets();
+    window.adminSetCoins = (n) => adminSetCoins(n);
+    window.adminAddCoins = (n) => adminAddCoins(n);
     window.debugTestReverseUnlock = function(evolvedSpecies) {
       const testTarget = evolvedSpecies || 'charizard';
       const getBase = (typeof G === 'object' && typeof G.getBaseAncestor === 'function')
@@ -1680,6 +1739,11 @@ G.DB = (() => {
     global.adminUnlock = (id, s) => adminUnlock(id, s);
     global.adminUnlockAll = (s) => adminUnlockAll(s);
     global.adminResetDex = () => adminResetDex();
+    global.adminSetTickets = (n, t) => adminSetTickets(n, t);
+    global.adminAddTickets = (n, t) => adminAddTickets(n, t);
+    global.adminGetTickets = () => adminGetTickets();
+    global.adminSetCoins = (n) => adminSetCoins(n);
+    global.adminAddCoins = (n) => adminAddCoins(n);
   }
 
   return exportObj;

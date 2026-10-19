@@ -16,6 +16,7 @@ Este documento é a referência técnica oficial e absoluta para **auditoria, ba
 8. [Árvore de Melhorias Permanentes & Multiplicador de Estágio](#8-árvore-de-melhorias-permanentes--multiplicador-de-estágio)
 9. [Geração de Inimigos, Hordas e Cronograma dos Grandes Chefes](#9-geração-de-inimigos-hordas-e-cronograma-dos-grandes-chefes)
 10. [Comandos de Auditoria e Depuração no Console (F12)](#10-comandos-de-auditoria-e-depuração-no-console-f12)
+11. [Menu Admin: Gestão de Tickets, Roleta Gacha & Pokédex](#11-menu-admin-gestão-de-tickets-roleta-gacha--pokédex)
 
 ---
 
@@ -320,10 +321,43 @@ G.MegaSystem.trigger();       // Dispara cutscene e 10s de Overdrive com Dano 2x
 // 5. Testar Ativação do Super Combo de Nível 20
 G.Game.player.level = 20;     // Ativa instantaneamente o Super Combo dos 4 ataques juntos
 
-// 6. Testar Roleta Gacha
-G.Gacha.pullRoulette(G.DB.save, 1); // Realiza 1 giro na Roleta (5.000 tickets)
-G.Gacha.pullRoulette(G.DB.save, 5); // Realiza 5 giros na Roleta (25.000 tickets)
+// 6. Testar Roleta Gacha & Injeção de Tickets
+admin.setTickets(50000);            // Define saldo de tickets para 50.000
+admin.addTickets(10000);            // Adiciona +10.000 tickets
+admin.getTickets();                 // Consulta saldo atual { t1, t10 }
+admin.forceLegendary(1);            // Força próximo giro a ser Lendário garantido (5%)
+admin.forceShiny(1);                // Força próximo giro a ser Shiny garantido (1%)
+admin.resetForces();                // Retorna às probabilidades normais aleatórias
+admin.spin(1);                      // Gira a roleta 1x no console
+admin.simulate(100);                // Executa simulação estatística de 100 giros e exibe relatório
+admin.openGacha();                  // Abre a tela oficial da Roleta Gacha
 ```
+
+---
+
+## 11. Menu Admin: Gestão de Tickets, Roleta Gacha & Pokédex
+
+O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em tempo real, desenvolvido para auditorias imediatas sem necessidade de comandos complexos de terminal.
+
+### 11.1. Como Acessar o Menu Admin
+- **Teclado:** Pressione `F2` ou a tecla de Aspas / Tilde (`'` ou `~`) a qualquer momento da partida ou nos menus.
+- **Botão Flutuante:** Clique na pílula retrô **`🛠️ Admin [F2]`** fixada no canto inferior direito da tela (visível em desktop e mobile).
+- **Console do Desenvolvedor (F12):** Digite `admin.open()` ou utilize os comandos `admin.*`.
+
+### 11.2. Recursos da Seção: Tickets & Roleta Gacha
+1. **Visualizador de Saldo em Tempo Real:** Exibe os saldos ativos de `🎟️ Tickets de Roleta` e `🪙 PokéMoedas` sincronizados com o banco de dados.
+2. **Definição e Injeção Customizada:** Campo numérico de entrada para definir ou somar **qualquer quantidade desejada de tickets** (ex: `5.000`, `25.000`, `100.000`).
+3. **Botões Rápidos de Tickets:**
+   - `+5k (1x)`: Injeta instantaneamente 5.000 tickets (1 giro de Roleta).
+   - `+25k (5x)`: Injeta 25.000 tickets (5 giros de Roleta).
+   - `+50k (10x)`: Injeta 50.000 tickets (10 giros de Roleta).
+   - `Zerar`: Zera todos os tickets do save para testes de saldo insuficiente.
+4. **Testes Diretos de Sorteio:** Botões `🎲 Girar Roleta 1x` e `🌟 Girar Roleta 5x` realizam o sorteio completo, registram na Pokédex e calculam o reembolso de 1.000 moedas por duplicata.
+5. **Forçador de Probabilidades (Debug Hooks):**
+   - `✨ Forçar Shiny`: Força a Roleta a entregar uma variante Shiny no próximo giro.
+   - `👑 Forçar Lendário`: Força a Roleta a entregar uma espécie Lendária no próximo giro.
+   - `🔄 Resetar Forçamento`: Restaura os pesos matemáticos estocásticos oficiais (1% Shiny, 5% Lendário, 94% Normal).
+6. **Auditoria Estatística em Lote:** Permite simular qualquer volume de giros (ex: 50, 100, 500) em milissegundos, gerando uma tabela comparativa com a taxa teórica versus taxa obtida de Lendários, Shinies, Normais e Moedas acumuladas.
 
 ---
 *Manual homologado em conformidade com o código-fonte de produção do PokéSurvivor: Endless Hunt.*
