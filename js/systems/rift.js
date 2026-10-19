@@ -444,7 +444,7 @@ G.Rift = (() => {
         isShiny: isShiny,
         isLegendary: isLegendaryOrMythical(guardianMon),
         level: pl ? pl.level : 1,
-        onComplete: (caught) => {
+        onComplete: (caught, isDuplicate) => {
           if (arena && arena.championReward) {
             // Se for recompensa de campeão, entrega o bônus adicional
             if (G.DB && G.DB.save) {
@@ -457,7 +457,7 @@ G.Rift = (() => {
               G.Spawner.say('🏆 Caixa de Recompensas de Campeão! +5.000 Ouro e EXP!', 3.5, true);
             }
           }
-          won(caught);
+          won(caught, isDuplicate);
         }
       });
     } else {
@@ -466,7 +466,7 @@ G.Rift = (() => {
     }
   }
 
-  function won(caught) {
+  function won(caught, isDuplicate) {
     if (!arena || (arena.phase !== 'fight' && arena.phase !== 'capture')) return;
     arena.phase = 'won';
     arena.endT = 1.4; // Transição suave de volta ao mapa normal
@@ -475,9 +475,14 @@ G.Rift = (() => {
     const mon = G.DEX_BY[arena.dex];
     const msg = arena.championReward
       ? ('🏆 ' + mon.name + ' derrotado! Recompensas de Campeão resgatadas!')
-      : (caught ? ('✨ ' + mon.name + ' foi capturado com sucesso!') : (mon.name + ' escapou, mas você concluiu o Rift!'));
+      : (caught
+          ? (isDuplicate ? ('✨ ' + mon.name + ' repetido! +500 Moedas e +500 Tickets resgatados!') : ('✨ ' + mon.name + ' foi capturado com sucesso!'))
+          : (mon.name + ' escapou, mas você concluiu o Rift!'));
     G.Spawner.say(msg, 3.4, true);
     G.Audio.sfx('legend');
+    if (typeof G === 'object' && G.UI && typeof G.UI.refreshCoins === 'function') {
+      G.UI.refreshCoins();
+    }
     const pl = G.Game.player;
     if (pl) {
       pl.bonds++;

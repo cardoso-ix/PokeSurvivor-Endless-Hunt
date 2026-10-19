@@ -239,17 +239,81 @@ const CaptureSystem = (() => {
   }
 
   /**
-   * Resolução de Persistência no Save Permanente (Pokédex & Ouro)
+   * Constantes de Recompensa de Duplicata no Rift
+   */
+  const RIFT_DUPLICATE_COINS = 500;
+  const RIFT_DUPLICATE_TICKETS = 500;
+
+  /**
+   * Resolução de Persistência no Save Permanente (Pokédex, Moedas & Tickets)
    */
   function resolveAttempt(data) {
-    const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
+    const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && (window.db || window.DB)) ? (window.db || window.DB) : null);
 
     if (data.isSuccess && dbObj) {
-      // Registra na Pokédex permanente e desbloqueia a linhagem base como personagem jogável
-      if (typeof dbObj.registerCaptured === 'function') {
-        dbObj.registerCaptured(data.speciesId, data.isShiny);
-      } else if (typeof dbObj.unlockPokemon === 'function') {
-        dbObj.unlockPokemon(data.speciesId, data.isShiny);
+      // 1. Identificar dex do Pokémon alvo
+      let targetDex = null;
+      if (data.mon && data.mon.dex != null) {
+        targetDex = Number(data.mon.dex);
+      } else if (data.speciesId) {
+        if (typeof data.speciesId === 'number' || /^\d+$/.test(String(data.speciesId).trim())) {
+          targetDex = Number(data.speciesId);
+        } else if (typeof data.speciesId === 'string') {
+          const rawId = data.speciesId.toLowerCase().trim();
+          if (typeof G === 'object' && Array.isArray(G.DEX)) {
+            const p = G.DEX.find(m => m.name.toLowerCase() === rawId);
+            if (p) targetDex = Number(p.dex);
+          }
+          if (targetDex == null && typeof POKEDEX !== 'undefined' && POKEDEX[rawId]) {
+            targetDex = Number(POKEDEX[rawId].dex);
+          }
+        }
+      }
+
+      // 2. Checar se o Pokémon já está registrado na Pokédex
+      const isAlreadyCaptured = (targetDex != null && dbObj.save && dbObj.save.owned && !!dbObj.save.owned[targetDex]) ||
+                                (typeof dbObj.isPokemonCaptured === 'function' && dbObj.isPokemonCaptured(targetDex != null ? targetDex : data.speciesId)) ||
+                                (typeof dbObj.owns === 'function' && targetDex != null && dbObj.owns(targetDex));
+
+      data.isDuplicate = !!isAlreadyCaptured;
+
+      if (isAlreadyCaptured) {
+        // RECOMPENSA DE REPETIDO: +500 PokéMoedas e +500 Tickets para a Roleta Gacha
+        if (dbObj.save) {
+          dbObj.save.coins = (dbObj.save.coins || 0) + RIFT_DUPLICATE_COINS;
+          if (dbObj.save.stats) {
+            dbObj.save.stats.coinsEarned = (dbObj.save.stats.coinsEarned || 0) + RIFT_DUPLICATE_COINS;
+          }
+          dbObj.save.tickets = dbObj.save.tickets || { t1: 0, t10: 0 };
+          dbObj.save.tickets.t1 = (dbObj.save.tickets.t1 || 0) + RIFT_DUPLICATE_TICKETS;
+        }
+
+        // Atualiza a entidade do player em tempo real se a partida estiver em execução
+        const pl = (typeof G === 'object' && G.Game && G.Game.player) || (typeof game !== 'undefined' && game && game.player) || null;
+        if (pl) {
+          pl.coins = (pl.coins || 0) + RIFT_DUPLICATE_COINS;
+          pl.t1 = (pl.t1 || 0) + RIFT_DUPLICATE_TICKETS;
+        }
+
+        // Se a duplicata for Shiny e o jogador ainda não possuía a forma Shiny, registra na coleção Shiny
+        if (data.isShiny) {
+          if (typeof dbObj.grantShiny === 'function' && targetDex != null) {
+            dbObj.grantShiny(targetDex, 'rift');
+          } else if (typeof dbObj.registerCaptured === 'function') {
+            dbObj.registerCaptured(data.speciesId, true);
+          }
+        }
+
+        if (typeof dbObj.commit === 'function') {
+          dbObj.commit('rift_duplicate');
+        }
+      } else {
+        // Pokémon Inédito: registra normalmente na Pokédex e desbloqueia o ancestral de Estágio 1
+        if (typeof dbObj.registerCaptured === 'function') {
+          dbObj.registerCaptured(data.speciesId, data.isShiny);
+        } else if (typeof dbObj.unlockPokemon === 'function') {
+          dbObj.unlockPokemon(data.speciesId, data.isShiny);
+        }
       }
 
       // Se for Gold Ball, adiciona o bônus imediato de +1.000 moedas
@@ -260,9 +324,10 @@ const CaptureSystem = (() => {
           dbObj.save.coins = (dbObj.save.coins || 0) + 1000;
           if (dbObj.commit) dbObj.commit('gold');
         }
-        if (typeof G === 'object' && G.UI && typeof G.UI.refreshCoins === 'function') {
-          G.UI.refreshCoins();
-        }
+      }
+
+      if (typeof G === 'object' && G.UI && typeof G.UI.refreshCoins === 'function') {
+        G.UI.refreshCoins();
       }
     }
 
@@ -290,6 +355,7 @@ const CaptureSystem = (() => {
       this.level = params.level !== undefined ? params.level : (params.playerLevel !== undefined ? params.playerLevel : 1);
       this.forceGold = !!params.forceGold;
       this.onComplete = params.onComplete || null;
+      this.isDuplicate = false;
 
       // Resolução do Pokémon
       if (!this.mon && typeof G === 'object' && G.DEX_BY) {
@@ -511,6 +577,7 @@ const CaptureSystem = (() => {
         case 'RESOLVE': {
           if (!this.resolved) {
             this.resolved = true;
+            resolveAttempt(this);
             const monName = (this.mon ? this.mon.name : this.speciesId).toUpperCase();
 
             if (this.isSuccess) {
@@ -531,13 +598,21 @@ const CaptureSystem = (() => {
                   }
                 }
                 if (G.FX.dmgText) {
-                  G.FX.dmgText(this.x, this.y - 36, `✨ + ${monName} CAPTURADO COM SUCESSO! ✨`, '#4ade80', true);
+                  if (this.isDuplicate) {
+                    G.FX.dmgText(this.x, this.y - 44, `✨ ${monName} REPETIDO! ✨`, '#ffd23f', true);
+                    G.FX.dmgText(this.x, this.y - 20, `+500 MOEDAS · +500 TICKETS!`, '#4ade80', true);
+                  } else {
+                    G.FX.dmgText(this.x, this.y - 36, `✨ + ${monName} CAPTURADO COM SUCESSO! ✨`, '#4ade80', true);
+                  }
                 }
               }
               if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
-                G.Spawner.say(`🎉 ${monName} capturado e registrado na Pokédex!`, 3.5, true);
+                if (this.isDuplicate) {
+                  G.Spawner.say(`🎉 ${monName} repetido! Você ganhou +500 PokéMoedas e +500 Tickets para a Roleta!`, 4.0, true);
+                } else {
+                  G.Spawner.say(`🎉 ${monName} capturado e registrado na Pokédex!`, 3.5, true);
+                }
               }
-              resolveAttempt(this);
             } else {
               // FALHA: Abre a Pokébola, fumaça cinza expansiva e SFX de break
               this.variant = 'open';
@@ -566,7 +641,7 @@ const CaptureSystem = (() => {
             this.state = 'DONE';
             this.finished = true;
             if (typeof this.onComplete === 'function') {
-              this.onComplete(this.isSuccess);
+              this.onComplete(this.isSuccess, this.isDuplicate);
             }
           }
           break;
@@ -741,8 +816,13 @@ const CaptureSystem = (() => {
       statusText = '⚡⚡⚡ Balanço 3/3...';
       statusColor = '#ea580c';
     } else if (b.state === 'RESOLVE' || b.state === 'DONE') {
-      statusText = b.isSuccess ? '✨ POKÉMON CAPTURADO COM SUCESSO! ✨' : '💨 O POKÉMON ESCAPOU!';
-      statusColor = b.isSuccess ? '#4ade80' : '#f87171';
+      if (b.isSuccess) {
+        statusText = b.isDuplicate ? '✨ REPETIDO! +500 MOEDAS · +500 TICKETS! ✨' : '✨ POKÉMON CAPTURADO COM SUCESSO! ✨';
+        statusColor = b.isDuplicate ? '#ffd23f' : '#4ade80';
+      } else {
+        statusText = '💨 O POKÉMON ESCAPOU!';
+        statusColor = '#f87171';
+      }
     }
 
     ctx.fillStyle = statusColor;
@@ -773,6 +853,8 @@ const CaptureSystem = (() => {
     POKEBALL_TIERS,
     GOLD_BALL_CONFIG,
     WorldCaptureBall,
+    RIFT_DUPLICATE_COINS,
+    RIFT_DUPLICATE_TICKETS,
     get isCapturing() { return !!activeBall && !activeBall.finished; },
     getCameraTarget: () => null,
     get state() { return activeBall ? activeBall.state : 'idle'; },
@@ -788,6 +870,8 @@ if (typeof window !== 'undefined') {
   window.captureSystem = CaptureSystem;
   window.POKEBALL_TIERS = CaptureSystem.POKEBALL_TIERS;
   window.GOLD_BALL_CONFIG = CaptureSystem.GOLD_BALL_CONFIG;
+  window.RIFT_DUPLICATE_COINS = CaptureSystem.RIFT_DUPLICATE_COINS;
+  window.RIFT_DUPLICATE_TICKETS = CaptureSystem.RIFT_DUPLICATE_TICKETS;
   window.resolveCaptureBall = CaptureSystem.resolveCaptureBall;
   window.getBaseCatchRate = CaptureSystem.getBaseCatchRate;
   window.getBallForPlayerLevel = CaptureSystem.getBallForPlayerLevel;
@@ -803,6 +887,8 @@ if (typeof global !== 'undefined') {
   global.captureSystem = CaptureSystem;
   global.POKEBALL_TIERS = CaptureSystem.POKEBALL_TIERS;
   global.GOLD_BALL_CONFIG = CaptureSystem.GOLD_BALL_CONFIG;
+  global.RIFT_DUPLICATE_COINS = CaptureSystem.RIFT_DUPLICATE_COINS;
+  global.RIFT_DUPLICATE_TICKETS = CaptureSystem.RIFT_DUPLICATE_TICKETS;
   global.resolveCaptureBall = CaptureSystem.resolveCaptureBall;
   global.getBaseCatchRate = CaptureSystem.getBaseCatchRate;
   global.getBallForPlayerLevel = CaptureSystem.getBallForPlayerLevel;

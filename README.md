@@ -157,6 +157,23 @@ O jogo conta com um sistema de Roleta Gacha temático acessível pelo Menu Princ
 
 ---
 
+### 7. 🌌 Sistema de Batalha de Rift & Compensação de Repetidos (+500 Moedas e +500 Tickets)
+As Fendas Dimensionais (Rifts) oferecem desafios de alto risco contra chefes e Guardiões Lendários:
+- **Captura Diegética no Mapa:** Ao derrotar o Guardião da Fenda, a Pokébola apropriada ao nível do jogador é arremessada no chão do mapa com física e animação de balanço em 3 estágios.
+- **Regra de Pokémon Repetido na Pokédex:**
+  - Se o jogador capturar um Pokémon que **já possui registrado na Pokédex**:
+    - 💰 **+500 PokéMoedas** creditadas imediatamente no save permanente (`save.coins`) e no personagem ativo em jogo (`player.coins`).
+    - 🎟️ **+500 Tickets da Roleta Gacha** creditados imediatamente (`save.tickets.t1` e `player.t1`), permitindo acumular giros para concorrer a Lendários e Shinies na Roleta.
+  - Se for um Pokémon **inédito**: registra a nova espécie na Pokédex permanente e desbloqueia seu ancestral de Estágio 1 na lista de iniciais jogáveis.
+  - Se for uma versão **Shiny repetida na Dex normal**: entrega as 500 moedas e 500 tickets de repetido e também registra a versão brilhante na coleção Shiny (`save.shiny`).
+- **Feedback Visual & Sonoro Diegético no Canvas:**
+  - Card superior com aviso: `✨ REPETIDO! +500 MOEDAS · +500 TICKETS! ✨`.
+  - Textos flutuantes ao redor da Pokébola: `✨ [NOME] REPETIDO! ✨` e `+500 MOEDAS · +500 TICKETS!`.
+  - Anúncio do Spawner no topo: `🎉 [NOME] repetido! Você ganhou +500 PokéMoedas e +500 Tickets para a Roleta!`.
+  - Atualização instantânea dos contadores de saldo do HUD superior e inferior.
+
+---
+
 ## 🚀 Como Colocar Online na VPS com Coolify
 
 O projeto está configurado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:
