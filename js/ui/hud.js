@@ -40,6 +40,7 @@ G.HUD = (() => {
 
     const bottomRpgHud = (typeof document !== 'undefined') ? document.getElementById('bottom-rpg-hud') : null;
     const hasRpgHud = bottomRpgHud && !bottomRpgHud.classList.contains('hidden');
+    const px = 16, py = 20;
 
     // ---------- barra de experiencia (borde superior) ----------
     const xpF = pl.xp / pl.xpNext;
@@ -52,7 +53,6 @@ G.HUD = (() => {
 
     // ---------- vida + nivel + mega superior (apenas fallback se não houver o HUD RPG inferior) ----------
     if (!hasRpgHud) {
-      const px = 16, py = 20;
       ctx.font = F(800, 13);
       ctx.fillStyle = '#eaf2ff';
       ctx.textAlign = 'left';
@@ -304,20 +304,27 @@ G.HUD = (() => {
       ctx.restore();
     }
 
-    // Poder de altar activo.
-    if (pl.power) {
-      const pw = pl.power, txt = pw.def.name.toUpperCase() + ' ' + Math.ceil(pw.t) + 's';
-      ctx.font = F(800, 9);
-      ctx.textAlign = 'left';
-      const tw = ctx.measureText(txt).width + 12;
-      roundRect(ctx, bx, py + 48, tw, 15, 7);
-      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
-      ctx.fillStyle = pw.def.color;
-      ctx.fillText(txt, bx + 6, py + 59);
-      bx += tw + 5;
+    // Poder de altar activo (torres de poder)
+    if (pl.power && pl.power.def) {
+      try {
+        const pw = pl.power, txt = (pw.def.name || 'PODER').toUpperCase() + ' ' + Math.ceil(pw.t) + 's';
+        ctx.font = F(800, 9);
+        ctx.textAlign = 'left';
+        const tw = ctx.measureText(txt).width + 12;
+        const powerY = hasRpgHud ? 16 : (py + 48);
+        roundRect(ctx, bx, powerY, tw, 15, 7);
+        ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
+        ctx.fillStyle = pw.def.color || '#ffd23f';
+        ctx.fillText(txt, bx + 6, powerY + 11);
+        bx += tw + 5;
+      } catch (ePow) {}
     }
 
-    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 70 : 54));
+    if (G.Coop && G.Coop.active) {
+      try {
+        drawCoop(ctx, w, h, pl, px, py + (bx > px ? 70 : 54));
+      } catch (eCoop) {}
+    }
 
     // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
     // flecha que bota encima; en la arena, cuenta atrás.
@@ -651,17 +658,41 @@ G.HUD = (() => {
         const specials = G.World.specialsNear(pl.x, pl.y, RADAR_RANGE);
         for (let i = 0; i < specials.length; i++) {
           const p = specials[i];
+          const dx = p.x - pl.x, dy = p.y - pl.y;
+          if (dx * dx + dy * dy > RADAR_RANGE * RADAR_RANGE) continue;
+          const spX = cx + dx * scale;
+          const spY = cy + dy * scale;
+
           if (p.type === 'bigchest' && !p.used) {
-            const dx = p.x - pl.x, dy = p.y - pl.y;
-            if (dx * dx + dy * dy <= RADAR_RANGE * RADAR_RANGE) {
-              const px = cx + dx * scale;
-              const py = cy + dy * scale;
-              ctx.fillStyle = '#f59e0b';
-              ctx.fillRect(px - 3, py - 3, 6, 6);
-              ctx.strokeStyle = '#ffffff';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(px - 3, py - 3, 6, 6);
-            }
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(spX - 3, spY - 3, 6, 6);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(spX - 3, spY - 3, 6, 6);
+          } else if (p.type === 'altar' && !p.used) {
+            // Torre / Altar de Poder Místico: Marcador losango brilhante
+            const pCols = ['#ff5f6d', '#5fd4ff', '#ff8ad8', '#ffd23f'];
+            const pCol = pCols[p.kind % 4] || '#38bdf8';
+            ctx.fillStyle = pCol;
+            ctx.beginPath();
+            ctx.moveTo(spX, spY - 3.5);
+            ctx.lineTo(spX + 3.5, spY);
+            ctx.lineTo(spX, spY + 3.5);
+            ctx.lineTo(spX - 3.5, spY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          } else if (p.type === 'spring' && p.charge > 0.05) {
+            // Manancial de Cura: Círculo verde-água brilhante
+            ctx.fillStyle = '#2dd4bf';
+            ctx.beginPath();
+            ctx.arc(spX, spY, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
           }
         }
       }
