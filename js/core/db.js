@@ -838,9 +838,11 @@ G.DB = (() => {
 
   // ---------------- helpers de partida ----------------
 
-  function owns(dex) { return !!(save && save.owned[dex]); }
+  function owns(dex) { return !!(save && save.owned && save.owned[dex]); }
 
   function grant(dex, from) {
+    if (!save) return;
+    save.owned = save.owned || {};
     if (!save.owned[dex]) save.owned[dex] = { at: Date.now(), from };
   }
 
@@ -1023,7 +1025,9 @@ G.DB = (() => {
 
   /** Da la versión shiny (y la normal, si no la tenía). Devuelve true si es nueva. */
   function grantShiny(dex, from) {
+    if (!save) return false;
     grant(dex, from);
+    save.shiny = save.shiny || {};
     if (save.shiny[dex]) return false;
     save.shiny[dex] = { at: Date.now(), from };
     return true;

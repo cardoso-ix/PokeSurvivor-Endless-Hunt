@@ -1521,9 +1521,9 @@ G.Player = class Player {
 
         for (const evo of evoList) {
           // No jogo padrão oficial do PokéSurvivor:
-          // 1º Salto (Estágio 1 -> 2): Nível 5 (ex: Bulbasaur -> Ivysaur)
-          // 2º Salto (Estágio 2 -> 3): Nível 12 (ex: Ivysaur -> Venusaur)
-          const isSecondEvolution = (evo.level && evo.level > 20) || (this.currentEvolutionStage >= 2);
+          // 1º Salto (Estágio 1 -> 2): Nível 5 (ex: Bulbasaur -> Ivysaur, Pikachu -> Raichu, Gible -> Gabite)
+          // 2º Salto (Estágio 2 -> 3): Nível 12 (ex: Ivysaur -> Venusaur, Gabite -> Garchomp)
+          const isSecondEvolution = (this.currentEvolutionStage >= 2) || (this.evolutionHistory && this.evolutionHistory.length >= 2);
           const lvl = adminEvoMode === 'instant' ? 1 :
                       (adminEvoMode === 'official' && evo.level) ? evo.level :
                       (isSecondEvolution ? 12 : 5);

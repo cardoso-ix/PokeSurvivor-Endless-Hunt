@@ -117,8 +117,8 @@ G.Game = (() => {
       window.game.currentRegion = currentRegion;
     }
     holdBy = []; awayBy = null;
-    const save = G.DB.save;
-    let partnerDex = (save && save.partner) || (save && save.starter) || 1;
+    const save = G.DB.save || {};
+    let partnerDex = save.partner || save.starter || 1;
     if (!G.DEX_BY || !G.DEX_BY[partnerDex]) {
       partnerDex = 1;
     }
@@ -127,7 +127,7 @@ G.Game = (() => {
       const root = (typeof G.getBaseAncestor === 'function') ? G.getBaseAncestor(partnerDex) : 1;
       partnerDex = root || 1;
     }
-    if (save && save.partner !== partnerDex) save.partner = partnerDex;
+    if (save.partner !== partnerDex) save.partner = partnerDex;
     const mon = (G.DEX_BY && G.DEX_BY[partnerDex]) || (G.DEX && G.DEX[0]);
     const perks = G.Upgrades.perks(G.DB.upgradesOf(mon.dex));
 

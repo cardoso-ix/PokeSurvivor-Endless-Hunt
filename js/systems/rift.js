@@ -372,6 +372,10 @@ G.Rift = (() => {
       if (!authority()) return;
       keepInside();
       const boss = G.EnemyMgr.get(arena.bossId);
+      if (boss && !boss.dead) {
+        arena.lastBossX = boss.x;
+        arena.lastBossY = boss.y;
+      }
       if (!boss || boss.dead) {
         G.Coop.isHost && G.Coop.broadcast(['aw']);
         handleGuardianDefeated(boss);
@@ -403,9 +407,12 @@ G.Rift = (() => {
     const isShiny = !!arena.shiny;
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
 
-    // Coordenadas do monstro derrotado
-    const bossX = (boss && typeof boss.x === 'number') ? boss.x : arena.x;
-    const bossY = (boss && typeof boss.y === 'number') ? boss.y : arena.y;
+    // Coordenadas precisas do monstro derrotado
+    const ts = TS();
+    const bossX = (boss && typeof boss.x === 'number') ? boss.x :
+                  (typeof arena.lastBossX === 'number' ? arena.lastBossX : arena.x);
+    const bossY = (boss && typeof boss.y === 'number') ? boss.y :
+                  (typeof arena.lastBossY === 'number' ? arena.lastBossY : (arena.y - ts * 2));
     const fromX = pl ? pl.x : bossX;
     const fromY = pl ? pl.y : bossY;
 
@@ -415,21 +422,6 @@ G.Rift = (() => {
       if (G.FX.burst) G.FX.burst(bossX, bossY, '#dc2626', 24, 120);
       if (G.FX.ring) G.FX.ring(bossX, bossY, 14, 110, '#f87171', 0.6, 5);
       if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 16);
-    }
-
-    if (arena.championReward) {
-      // Região 100% concluída: Caixa de Recompensas de Campeão (+5.000 Ouro e EXP)
-      if (G.DB && G.DB.save) {
-        G.DB.save.coins = (G.DB.save.coins || 0) + 5000;
-        if (G.DB.save.stats) G.DB.save.stats.coinsEarned = (G.DB.save.stats.coinsEarned || 0) + 5000;
-        if (G.DB.commit) G.DB.commit('champion');
-      }
-      if (pl && typeof pl.gainXp === 'function') pl.gainXp(5000);
-      if (G.DB && G.DB.incrementRiftsCleared) G.DB.incrementRiftsCleared();
-      G.Spawner.say('🏆 Caixa de Recompensas de Campeão! +5.000 Ouro e EXP!', 4.2, true);
-      G.Audio.sfx('shiny');
-      setTimeout(() => won(true), 800);
-      return;
     }
 
     const monName = guardianMon ? guardianMon.name : 'Guardião';
@@ -453,6 +445,18 @@ G.Rift = (() => {
         isLegendary: isLegendaryOrMythical(guardianMon),
         level: pl ? pl.level : 1,
         onComplete: (caught) => {
+          if (arena && arena.championReward) {
+            // Se for recompensa de campeão, entrega o bônus adicional
+            if (G.DB && G.DB.save) {
+              G.DB.save.coins = (G.DB.save.coins || 0) + 5000;
+              if (G.DB.save.stats) G.DB.save.stats.coinsEarned = (G.DB.save.stats.coinsEarned || 0) + 5000;
+              if (G.DB.commit) G.DB.commit('champion');
+            }
+            if (pl && typeof pl.gainXp === 'function') pl.gainXp(5000);
+            if (G.Spawner && typeof G.Spawner.say === 'function') {
+              G.Spawner.say('🏆 Caixa de Recompensas de Campeão! +5.000 Ouro e EXP!', 3.5, true);
+            }
+          }
           won(caught);
         }
       });
