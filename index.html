@@ -80,6 +80,7 @@
 
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/hud.css">
+<link rel="stylesheet" href="css/capture.css">
 </head>
 <body>
 
@@ -597,13 +598,14 @@
 </div>
 
 <!-- ====== Tela de Captura Cinemática via Rifts ====== -->
-<section id="capture-modal" class="scr dim hidden capture-overlay">
-  <div class="box center capture-box">
+<section id="capture-modal" class="scr dim hidden capture-overlay notranslate" translate="no">
+  <div class="box center capture-box notranslate" translate="no">
     <div class="capture-header">
       <div id="cap-title-bar" class="cap-title-bar">🎯 GUARDIÃO DERROTADO!</div>
       <div class="row" style="align-items:center;justify-content:center;gap:10px;margin-top:4px">
         <h2 id="cap-name" class="cap-name" translate="no" style="margin:0">Pokémon</h2>
         <span id="cap-shiny-badge" class="cap-shiny hidden" translate="no">✨ SHINY</span>
+        <span id="cap-legend-badge" class="cap-legend hidden" translate="no">👑 LENDÁRIO</span>
       </div>
       <div id="cap-types" class="types" style="justify-content:center;margin-top:6px"></div>
       <div id="cap-rate" class="cap-rate" style="margin-top:8px"></div>
@@ -614,7 +616,7 @@
     <div id="cap-status" class="cap-status">Prepare-se para capturar!</div>
     <div class="row" style="justify-content:center;gap:12px;margin-top:14px">
       <button id="btn-throw-ball" class="btn gold grow" style="max-width:260px;font-size:16px;padding:10px 18px;">[ LANÇAR POKÉBOLA ]</button>
-      <button id="btn-cap-continue" class="btn gold grow hidden" style="max-width:240px;font-size:16px;padding:10px 18px;">[ CONTINUAR ]</button>
+      <button id="btn-cap-continue" class="btn gold grow hidden" style="max-width:280px;font-size:16px;padding:10px 18px;">[ CONTINUAR JORNADA ▶ ]</button>
     </div>
   </div>
 </section>
@@ -672,6 +674,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=33a602cd6a"></script>
+<script defer src="js/app.min.js?v=3e95a153fe"></script>
 </body>
 </html>

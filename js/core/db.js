@@ -1591,6 +1591,11 @@ G.DB = (() => {
     getCapturedPokemon, getCapturedShinies, isPokemonCaptured, isPokemonShinyCaptured,
     getCapturedCountByRegion, getTotalCountByRegion,
     adminUnlock, adminUnlockAll, adminResetDex,
+    // Aliases oficiais para o Sistema de Captura de Rifts
+    isCaptured: isPokemonCaptured,
+    getRiftsCleared: getTotalRiftsCleared,
+    registerCaptured: unlockPokemon,
+    incrementRiftsCleared: () => addRiftCleared(1),
     get totalRiftsCleared() { return getTotalRiftsCleared(); },
     get unlockedPokemon() { return getUnlockedPokemon(); },
     get unlockedPlayable() { return getUnlockedPlayable(); },
@@ -1628,6 +1633,10 @@ G.DB = (() => {
     window.shinyCollection = () => getShinyCollection();
     window.totalRiftsCleared = () => getTotalRiftsCleared();
     window.getTotalRiftsCleared = () => getTotalRiftsCleared();
+    window.getRiftsCleared = () => getTotalRiftsCleared();
+    window.incrementRiftsCleared = () => addRiftCleared(1);
+    window.isCaptured = (id) => isPokemonCaptured(id);
+    window.registerCaptured = (id, s) => unlockPokemon(id, s);
     window.setTotalRiftsCleared = (n) => setTotalRiftsCleared(n);
     window.getCapturedPokemon = () => getCapturedPokemon();
     window.getCapturedShinies = () => getCapturedShinies();

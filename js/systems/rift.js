@@ -390,8 +390,9 @@ G.Rift = (() => {
     if (!arena || arena.phase !== 'fight') return;
     arena.phase = 'capture';
 
-    // Incremento global do contador de Rifts (por captura ou fuga)
-    if (G.DB && G.DB.addRiftCleared) G.DB.addRiftCleared(1);
+    // 1. Pausa o combate imediatamente
+    if (typeof G === 'object' && G.Game) G.Game.isPaused = true;
+    if (typeof game !== 'undefined') game.isPaused = true;
 
     const guardianMon = G.DEX_BY[arena.dex];
     const isShiny = !!arena.shiny;
@@ -405,6 +406,7 @@ G.Rift = (() => {
         if (G.DB.commit) G.DB.commit('champion');
       }
       if (pl && typeof pl.gainXp === 'function') pl.gainXp(5000);
+      if (G.DB && G.DB.incrementRiftsCleared) G.DB.incrementRiftsCleared();
       G.Spawner.say('🏆 Caixa de Recompensas de Campeão! +5.000 Ouro e EXP!', 4.2, true);
       G.Audio.sfx('shiny');
       setTimeout(() => won(true), 800);
@@ -413,8 +415,8 @@ G.Rift = (() => {
 
     console.log("🌟 Guardião de Rift derrotado:", guardianMon ? guardianMon.name : 'Guardião');
 
-    // Inicia a sequência de captura (Modal ou Canvas)
-    const capSys = (typeof window !== 'undefined' && window.captureSystem) || (typeof G === 'object' && G.Capture);
+    // Inicia a sequência de captura imediatamente
+    const capSys = (typeof CaptureSystem !== 'undefined' ? CaptureSystem : (typeof window !== 'undefined' ? (window.captureSystem || window.CaptureSystem) : null)) || (typeof G === 'object' ? G.Capture : null);
     if (capSys && typeof capSys.startCaptureSequence === 'function') {
       capSys.startCaptureSequence({
         speciesId: guardianMon ? guardianMon.name : 'mewtwo',
