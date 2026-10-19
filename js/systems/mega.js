@@ -17,6 +17,21 @@ const MegaSystem = {
   currentElement: 'normal',
   activeType: 'normal',
 
+  /** Reseta o estado do Mega e limpa efeitos ao reiniciar partida */
+  reset() {
+    this.isActive = false;
+    this.gauge = 0;
+    this.timeLeft = 0;
+    this.hazardTimer = 0;
+    this.tickTimer = 0;
+    this.currentElement = 'normal';
+    this.activeType = 'normal';
+    const vfx = (typeof G === 'object' && G.UltimateVFX) || (typeof UltimateVFX !== 'undefined' ? UltimateVFX : null);
+    if (vfx && typeof vfx.clear === 'function') {
+      vfx.clear();
+    }
+  },
+
   /** Adiciona carga acumulada de energia ao Mega (ao derrotar monstros ou coletar orbes) */
   addEnergy(amount) {
     if (this.isActive) return;
@@ -32,24 +47,34 @@ const MegaSystem = {
     }
   },
 
-  /** Dispara o Poder Supremo Dinâmico por 8.5 segundos */
+  /** Dispara o Poder Supremo Dinâmico por 8.5 a 10 segundos */
   trigger() {
-    if (this.gauge < this.maxGauge || this.isActive) return false;
+    const pl = (typeof G === 'object' && G.Game) ? G.Game.player : (typeof game !== 'undefined' ? game.player : null);
+    const currentGauge = Math.max(this.gauge, (pl && pl.megaEnergy) || 0);
+
+    // Permite tolerância de arredondamento em ponto flutuante
+    if (currentGauge < (this.maxGauge - 0.8) || this.isActive) return false;
 
     this.isActive = true;
+    this.gauge = this.maxGauge;
+    if (pl) pl.megaEnergy = this.maxGauge;
     this.timeLeft = this.duration;
     this.hazardTimer = 0;
     this.tickTimer = 0;
 
-    const pl = (typeof G === 'object' && G.Game) ? G.Game.player : (typeof game !== 'undefined' ? game.player : null);
-
     // 1. Identificação Dinâmica do Elemento do Pokémon Líder da Equipe
     let leaderType = 'normal';
     if (pl) {
-      const leader = (pl.team && pl.team[0]) ? pl.team[0] : (pl.mon || null);
-      if (leader) {
-        if (leader.type) leaderType = String(leader.type).toLowerCase();
-        else if (leader.types && leader.types[0]) leaderType = String(leader.types[0]).toLowerCase();
+      if (Array.isArray(pl.types) && pl.types.length > 0) {
+        leaderType = String(pl.types[0]).toLowerCase();
+      } else if (pl.mon) {
+        if (Array.isArray(pl.mon.types) && pl.mon.types.length > 0) {
+          leaderType = String(pl.mon.types[0]).toLowerCase();
+        } else if (pl.mon.type) {
+          leaderType = String(pl.mon.type).toLowerCase();
+        }
+      } else if (pl.species) {
+        leaderType = String(pl.species).toLowerCase();
       }
     }
 
@@ -76,6 +101,14 @@ const MegaSystem = {
     const ultimates = (typeof G === 'object' && (G.MEGA_ULTIMATES || G.MEGA_ULTIMATES_DATA))
       || (typeof MEGA_ULTIMATES !== 'undefined' ? MEGA_ULTIMATES : (typeof MEGA_ULTIMATES_DATA !== 'undefined' ? MEGA_ULTIMATES_DATA : {}));
     const config = ultimates[this.currentElement] || ultimates['normal'] || { name: 'Poder Supremo' };
+
+    // Dispara o primeiro impacto no instante zero
+    const camera = (typeof G === 'object') ? G.Camera : null;
+    if (typeof config.executeHazard === 'function') {
+      config.executeHazard(pl, camera);
+    } else if (typeof config.spawnHazard === 'function') {
+      config.spawnHazard(pl, camera);
+    }
 
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
       G.Spawner.say(`🌟 MEGA SUPREMO: ${config.name.toUpperCase()} (${this.duration}s)!`, 3.5, true);
@@ -170,6 +203,25 @@ if (typeof window !== 'undefined') {
     console.log("⚡ [DEBUG] Barra de Mega carregada para 100%! Pressione [ESPAÇO] para ativar.");
     if (typeof G === 'object' && G.HUD && typeof G.HUD.update === 'function') G.HUD.update();
   };
+
+  // Escuta redundante global para tecla [Espaço]
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        // Ignora se o usuário estiver digitando em campo de input
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        const g = (typeof G === 'object' && G.Game) ? G.Game : (typeof game !== 'undefined' ? game : null);
+        if (g && g.state === 'playing') {
+          const pl = g.player;
+          const current = Math.max(MegaSystem.gauge, (pl && pl.megaEnergy) || 0);
+          if (current >= (MegaSystem.maxGauge - 0.8) && !MegaSystem.isActive) {
+            e.preventDefault();
+            MegaSystem.trigger();
+          }
+        }
+      }
+    });
+  }
 }
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = MegaSystem;

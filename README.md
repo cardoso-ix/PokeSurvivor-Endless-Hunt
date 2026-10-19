@@ -63,25 +63,48 @@ Ao derrotar o Guardião do Rift dimensional, o minigame de captura com animaçã
 
 ---
 
-### 3. 🌟 Mega Overdrive Definitivo (10 Segundos & 18 Calamidades)
-Ao encher a barra de Mega (100%) e pressionar `[Espaço]`, o Treinador entra em estado de Calamidade Elemental:
-- **Duração de 10.0 Segundos:** A barra drena linearmente atuando como cronômetro visual.
-- **Aura Protetora:** Redução de 80% em todo o dano recebido.
-- **Super Ímã:** Dobra o raio de atração de gemas de experiência (+100%).
-- **18 Habilidades Climáticas Únicas:** Disparos contínuos a cada 0.25s–0.35s baseados no tipo primário do Pokémon líder:
-  - `fire`: Chuva de meteoros diagonais gerando poças de lava.
-  - `water`: Chuva torrencial que desacelera inimigos e dispara gêiseres explosivos.
-  - `grass`: Vinhas espinhosas no chão que convertem 15% do dano causado em cura de HP.
-  - `electric`: Relâmpagos verticais com arcos voltaicos em cadeia.
-  - `ice`: Nevasca contínua com estalactites e congelamento de área.
-  - *(Todos os 18 tipos oficiais cobertos, incluindo Dragão, Fantasma, Noturno, Aço e Fada).*
+### 3. 🌟 Mega Overdrive Definitivo & Botão Retro Interativo
+Ao atingir 100% de energia de Mega, o Treinador pode acionar o Poder Supremo Elemental tanto pela **tecla `[Espaço]`** quanto pelo **Botão Físico Retro (`#hud-mega-btn`)** integrado ao HUD inferior:
+- **Botão Físico Retro com 3 Estados Reativos:**
+  - *Carregando (`0% a 99%`):* Estilo chanfrado roxo translúcido com porcentagem em tempo real (`⚡ MEGA 45%`). Cliques prematuros disparam feedback com som suave e aviso em toast: `⚡ Mega carregando: X% (Pronto ao atingir 100% ou tecla [ESPAÇO])`.
+  - *Pronto (`100%`):* O botão entra em animação de **pulso luminoso dourado e neon** (`⚡ MEGA [ESPAÇO]`), com borda chanfrada brilhante e cursor pointer convidativo.
+  - *Ativo / Em Execução:* Transição para estilo de chamas neon com **cronômetro regressivo decrescente em tempo real** (`⚡ 9.4s`).
+- **Acúmulo Dinâmico e Balanceado de Carga:**
+  - Inimigos Comuns: **+1.20% de carga** (~83 abates para carga total).
+  - Inimigos Elites: **+8.0% de carga**.
+  - Chefes Normais: **+25.0% de carga**.
+  - Guardiões de Rift: **+35.0% de carga**.
+  - Subida de Nível (Level Up): Bônus imediato de **+3.5% de carga**.
+- **Duração de 10.0 Segundos com Drenagem Linear Suave:** A barra drena uniformemente atuando como cronômetro visual.
+- **Cadência Padrão sem Metralhadora:** A aceleração mecânica frenética de tiros básicos foi completamente expurgada; as habilidades normais mantêm cadência natural enquanto o elemento do líder devasta o campo.
+- **Aura Protetora & Super Ímã:** Redução de 80% em todo dano recebido e dobro de raio de atração de gemas (+100%).
+- **Catálogo Modular dos 18 Poderes Supremos Elementais (`MEGA_ULTIMATES_DATA`):**
+  Identifica dinamicamente o tipo primário do Pokémon líder da equipe (`pl.types[0]`, `pl.mon.types[0]` ou `pl.species`) e dispara calamidades contínuas a cada 0.25s:
+  - `fire`: Chuva de meteoros diagonais abrindo crateras de chamas e poças de lava no solo.
+  - `water`: Chuva torrencial que desacelera inimigos em 40% com gêiseres e maelstrom explosivo.
+  - `grass`: Vinhas espinhosas e raízes que convertem 15% do dano causado em cura de HP.
+  - `electric`: Tempestade de relâmpagos verticais com arcos voltaicos em cadeia.
+  - `ice`: Nevasca contínua com congelamento em área e estalactites pontiagudas.
+  - `dragon`: Bombardeio de meteoros dracônicos cósmicos de energia ancestral.
+  - `ghost`: Aparição de espectros sombrios e névoa etérea de dano necrótico.
+  - `psychic`: Ondas psíquicas de distorção gravitacional que repelem e esmagam monstros.
+  - `ground`: Fissuras tectônicas e terremotos que quebram o solo.
+  - `rock`: Avalanche de rochas pontiagudas em cascata.
+  - `flying`: Furacões e tornados velozes que arrastam hordas inimigas.
+  - `bug`: Enxame voraz de gafanhotos de energia e teias venenosas.
+  - `poison`: Gêiseres de lodo tóxico com nuvens de veneno corrosivo persistente.
+  - `fighting`: Ondas de choque de impacto sísmico e socos de alta pressão.
+  - `steel`: Lâminas metálicas e espinhos de aço perfurantes.
+  - `dark`: Vórtice de escuridão profunda que suga monstros para o núcleo negro.
+  - `fairy`: Chuva de brilhos estelares mágicos com explosões prismáticas.
+  - `normal`: Hiper-raio radial de energia pura com empurrão massivo.
 
 ---
 
 ### 4. 🎴 Novo HUD Inferior Retro Pixel Art (Estilo DS / GBA)
 - **Moldura Chanfrada:** Design sólido em `#141624` com chanfros de relevo em `#3a3f58`, `#5c648d` e dourado `#f8b800`.
 - **Barra de Vida (HP):** Indicador numérico preciso (`HP 320 / 320`), cores dinâmicas (Verde >50%, Amarelo 25-50%, Vermelho <25%) e efeito de dano recebido com rastro suave (*ghost bar*).
-- **Barra de Mega:** Pulso luminoso neon em 100% e cronômetro de drenagem durante o Overdrive.
+- **Linha do Mega:** Barra com gradiente de energia + **Botão Dedicado de Mega** (`#hud-mega-btn`) ao lado da barra, perfeitamente alinhados e responsivos para teclado, mouse e touch.
 - **Bandeja de Ataques:** Slots ampliados com marcador de nível (`Nv. 3`) e máscara translúcida de recarga (*cooldown sweep*).
 
 ---
@@ -111,10 +134,12 @@ Localizado no canto inferior esquerdo, exibe os atributos em tempo real com íco
 
 ---
 
-### 8. ⚡ Marcos de Evolução Automática na Run
-- **Nível 5:** 1ª Evolução (Estágio 2).
-- **Nível 12:** 2ª Evolução (Estágio 3 / Final).
-- **Nível 21:** Forma Mega Ápice (+50% de dano e aura luminosa especial).
+### 8. ⚡ Marcos de Evolução Automática das 9 Gerações (100% Cobertas)
+Todas as **434 espécies evoluíveis** cadastradas nas 9 gerações possuem resolução automática em tempo de execução:
+- **Nível 5:** 1ª Evolução Automática garantida (Estágio 2). Cobre tanto evoluções clássicas de 3 estágios quanto Pokémon de estágio único que atingem a forma final (ex: Pikachu ➔ Raichu, Riolu ➔ Lucario, Growlithe ➔ Arcanine, Eevee ➔ Jolteon).
+- **Nível 12:** 2ª Evolução Automática (Estágio 3 / Forma Final). (ex: Ivysaur ➔ Venusaur, Charmeleon ➔ Charizard, Haunter ➔ Gengar, Gabite ➔ Garchomp).
+- **Nível 21:** Ascensão Mega / Forma Ápice (+50% de dano definitivo, aura luminosa permanente e burst estelar de partículas).
+- **Sem poluição de cartas de Level Up:** As opções de cartas de melhoria continuam dedicadas exclusivamente a novos golpes e fusões de ataques, enquanto a transformação corporal do Pokémon ocorre de forma limpa e automática na arena.
 
 ---
 

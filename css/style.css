@@ -419,10 +419,11 @@ kbd {
 }
 
 .toast {
-  position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 60;
+  position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%); z-index: 1000;
   padding: 10px 18px; border-radius: 10px;
   background: rgba(10,20,50,.95); border: 2px solid var(--edge);
   text-shadow: 2px 2px 0 var(--shadow); animation: pop .2s ease-out;
+  pointer-events: none;
 }
 
 ::-webkit-scrollbar { width: 10px; }

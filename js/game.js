@@ -143,6 +143,7 @@ G.Game = (() => {
     G.Judgment.reset();
     G.Events.reset();
     G.Weather.reset();
+    if (G.Mega && typeof G.Mega.reset === 'function') G.Mega.reset();
     G.Path.clear();
     G.Hazards.clear();
     G.World.reset(coop ? coop.seed : Math.floor(Math.random() * 1e6));

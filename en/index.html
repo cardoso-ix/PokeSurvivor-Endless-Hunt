@@ -99,10 +99,15 @@
         <div id="hud-hp-bar" class="hud-bar-fill hp-fill high" style="width: 100%;"></div>
         <div id="hud-hp-ghost" class="hud-bar-ghost" style="width: 100%;"></div>
       </div>
-      <!-- Barra de Mega -->
-      <div class="hud-bar-track mega-track">
-        <div id="hud-mega-bar" class="hud-bar-fill mega-fill" style="width: 0%;"></div>
-        <span id="hud-mega-label">MEGA: 0%</span>
+      <!-- Barra e Botão de Ativação do Mega -->
+      <div class="hud-mega-row">
+        <div class="hud-bar-track mega-track" title="Barra de Energia Mega (Clique para ativar com 100%)">
+          <div id="hud-mega-bar" class="hud-bar-fill mega-fill" style="width: 0%;"></div>
+          <span id="hud-mega-label">MEGA: 0%</span>
+        </div>
+        <button id="hud-mega-btn" class="hud-mega-btn" type="button" aria-label="Ativar Mega Supremo">
+          <span id="hud-mega-btn-txt" class="hud-mega-btn-txt">⚡ MEGA</span>
+        </button>
       </div>
     </div>
   </div>
@@ -667,6 +672,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=5d84899e79"></script>
+<script defer src="js/app.min.js?v=8ca076bfe8"></script>
 </body>
 </html>

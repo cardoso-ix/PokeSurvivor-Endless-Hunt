@@ -562,8 +562,8 @@ G.HUD = (() => {
       ctx.font = F(600, 10);
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(180,200,230,.55)';
-      ctx.fillText(touch ? 'Arrastra el dedo para moverte  ·  toca un ataque para cambiarlo'
-                         : 'WASD moverse  ·  1-4 / Q / E o clic en un ataque para cambiarlo  ·  Esc pausa', w / 2, h - 4);
+      ctx.fillText(touch ? 'Arraste o dedo para mover · toque num ataque para trocar'
+                         : 'WASD mover · 1-4 / Q / E ou clique para trocar · [Espaço] Mega · Esc pausa', w / 2, h - 4);
     }
 
     // ---------- TAREFA 1: Radar / Mini-Mapa de Navegação ----------
@@ -1214,15 +1214,17 @@ G.HUD = (() => {
         hpGhost.style.width = hpPct.toFixed(1) + '%';
       }
 
-      // 5. Barra do Mega Overdrive
+      // 5. Barra e Botão do Mega Overdrive
       const mega = (typeof G === 'object' && G.Mega) ? G.Mega : null;
       const megaBar = document.getElementById('hud-mega-bar');
       const megaLabel = document.getElementById('hud-mega-label');
+      const megaBtn = document.getElementById('hud-mega-btn');
+      const megaBtnTxt = document.getElementById('hud-mega-btn-txt');
 
       const isMegaActive = (mega && mega.isActive) || (pl.megaMode && pl.megaMode.active);
       const megaEnergy = mega ? mega.gauge : (pl.megaEnergy || 0);
       const megaMax = mega ? mega.maxGauge : (pl.megaMaxEnergy || 100);
-      const isMegaReady = !isMegaActive && (megaEnergy >= megaMax);
+      const isMegaReady = !isMegaActive && (megaEnergy >= (megaMax - 0.8));
 
       if (megaBar) {
         if (isMegaActive) {
@@ -1246,16 +1248,59 @@ G.HUD = (() => {
         }
       }
 
-      // Suporte ao clique para ativação do Mega
+      // Atualiza o estado visual do Botão Físico Retro
+      if (megaBtn) {
+        if (isMegaActive) {
+          const timeLeft = mega ? mega.timeLeft : (pl.megaMode && pl.megaMode.timer) || 0;
+          megaBtn.classList.remove('ready');
+          megaBtn.classList.add('active');
+          if (megaBtnTxt) megaBtnTxt.textContent = `⚡ ${timeLeft.toFixed(1)}s`;
+          megaBtn.title = "Mega Ativo!";
+        } else if (isMegaReady) {
+          megaBtn.classList.add('ready');
+          megaBtn.classList.remove('active');
+          if (megaBtnTxt) megaBtnTxt.textContent = '⚡ MEGA [ESPAÇO]';
+          megaBtn.title = "Mega Pronto! Clique ou aperte [ESPAÇO] para ativar o Poder Supremo!";
+        } else {
+          const pct = Math.max(0, Math.min(100, (megaEnergy / megaMax) * 100));
+          megaBtn.classList.remove('ready', 'active');
+          if (megaBtnTxt) megaBtnTxt.textContent = `⚡ MEGA ${Math.floor(pct)}%`;
+          megaBtn.title = `Carregando Mega (${Math.floor(pct)}%)`;
+        }
+      }
+
+      // Fiação de evento para o Botão e para a Barra
+      const onMegaAction = () => {
+        if (!pl) return;
+        const current = Math.max((mega && mega.gauge) || 0, pl.megaEnergy || 0);
+        const max = (mega && mega.maxGauge) || pl.megaMaxEnergy || 100;
+        if (current >= (max - 0.8) && !isMegaActive) {
+          if (typeof pl.activateMega === 'function') {
+            pl.activateMega();
+          } else if (mega && typeof mega.trigger === 'function') {
+            mega.trigger();
+          }
+        } else if (!isMegaActive) {
+          const pct = Math.floor((current / max) * 100);
+          if (typeof G === 'object' && G.UI && typeof G.UI.toast === 'function') {
+            G.UI.toast(`⚡ Mega carregando: ${pct}% (Pronto ao atingir 100% ou tecla [ESPAÇO])`, 1800);
+          }
+          if (typeof G === 'object' && G.Audio && typeof G.Audio.sfx === 'function') {
+            G.Audio.sfx('select');
+          }
+        }
+      };
+
+      if (megaBtn && !megaBtn._wired) {
+        megaBtn._wired = true;
+        megaBtn.addEventListener('click', onMegaAction);
+      }
+
       const megaTrack = document.querySelector('.mega-track');
       if (megaTrack && !megaTrack._wired) {
         megaTrack._wired = true;
         megaTrack.style.cursor = 'pointer';
-        megaTrack.addEventListener('click', () => {
-          if (pl && typeof pl.activateMega === 'function') {
-            pl.activateMega();
-          }
-        });
+        megaTrack.addEventListener('click', onMegaAction);
       }
 
       // 6. Slots de Ataques Ativos

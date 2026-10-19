@@ -3,7 +3,9 @@
  * calamidades visuais e perigos contínuos no Canvas (0.2s - 0.35s).
  */
 
-window.G = window.G || {};
+if (typeof window !== 'undefined') {
+  window.G = window.G || {};
+}
 
 const ELEMENT_PALETTES = {
   fire:     { color: '#f97316', accent: '#ef4444', aura: '#ea580c', particle: '#ffedd5', glow: 'rgba(249, 115, 22, 0.4)' },

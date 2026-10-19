@@ -595,6 +595,9 @@ G.Player = class Player {
       this.level++;
       this.xpNext = Player.xpFor(this.level);
       leveled++;
+      if (typeof this.addMegaEnergy === 'function') {
+        this.addMegaEnergy(3.5);
+      }
       this.checkEvolutionMilestones();
     }
     return leveled;
@@ -666,13 +669,15 @@ G.Player = class Player {
 
   activateMega(dur = 10) {
     if (typeof G === 'object' && G.Mega) {
-      G.Mega.trigger();
+      const res = G.Mega.trigger();
       this.megaEnergy = G.Mega.gauge;
       this.megaMode.active = G.Mega.isActive;
       this.megaMode.timer = G.Mega.timeLeft;
       this.megaMode.maxTimer = G.Mega.duration;
-      return;
+      return res;
     }
+    const current = this.megaEnergy || 0;
+    if (current < (this.megaMaxEnergy - 0.8) || this.megaMode.active) return false;
     this.megaEnergy = 0; // Consome a carga acumulada
     this.megaMode.active = true;
     this.megaMode.timer = dur;
