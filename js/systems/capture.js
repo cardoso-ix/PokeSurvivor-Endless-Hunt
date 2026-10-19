@@ -480,7 +480,7 @@ const CaptureSystem = (() => {
                   }
                 }
                 if (G.FX.dmgText) {
-                  G.FX.dmgText(this.x, this.y - 28, `+ ${monName} CAPTURADO!`, '#4ade80', true);
+                  G.FX.dmgText(this.x, this.y - 28, `+ ${monName} CAPTURADO COM SUCESSO!`, '#4ade80', true);
                 }
               }
               resolveAttempt(this);
@@ -495,7 +495,7 @@ const CaptureSystem = (() => {
                 if (G.FX.burst) G.FX.burst(this.x, this.y, '#94a3b8', 22, 105);
                 if (G.FX.burst) G.FX.burst(this.x, this.y, '#64748b', 14, 75);
                 if (G.FX.dmgText) {
-                  G.FX.dmgText(this.x, this.y - 28, 'ESCAPOU!', '#f87171', true);
+                  G.FX.dmgText(this.x, this.y - 28, 'O POKÉMON ESCAPOU!', '#f87171', true);
                 }
               }
               const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);

@@ -44,7 +44,7 @@ G.RunUI = (() => {
       const el = document.createElement('div');
       el.className = 'card';
       const tag = c.type === 'new'
-        ? `<span class="tag-chip" style="background:${c.color}">Nuevo · ${c.tag}</span>`
+        ? `<span class="tag-chip" style="background:${c.color}">Novo · ${c.tag}</span>`
         : c.type === 'up' || c.type === 'evo' || c.type === 'EVOLUTION'
           ? `<span class="tag-chip" style="background:${c.color}">${c.tag}</span>`
           : `<span class="tag-chip" style="background:${c.color === '#ffd23f' ? '#ffd23f' : '#9fb1c9'}">${c.tag}</span>`;
@@ -61,7 +61,7 @@ G.RunUI = (() => {
         const cv = el.querySelector('.evo-ico-cv');
         if (cv) G.UI.sprite(cv, c.dex, { scale: 1.5, lively: true, hero: true, shiny: !!(G.Game && G.Game.player && (G.Game.player.isShiny || G.Game.player.shiny)) });
       }
-      el.dataset.sfx = 'none';             // el juego pone su propio sonido al elegir
+      el.dataset.sfx = 'none';
       el.onclick = () => pick(i);
       box.appendChild(el);
     });
@@ -73,22 +73,21 @@ G.RunUI = (() => {
     offers = null; offerCb = null;
     $('lvl-reroll').classList.add('hidden');
     if (coopMode) {
-      // Se queda la carta elegida a la vista mientras eligen los demás.
       $('cards').querySelectorAll('.card').forEach((el, j) => el.classList.toggle('picked', j === i));
       $('cards').classList.add('done');
     } else G.UI.hide('scr-levelup');
     cb(c);
   }
 
-  /** Cooperativo: quién falta por elegir. */
+  /** Cooperativo: quem falta escolher. */
   function setWaiting(names) {
     const me = G.Social.me ? G.Social.me.name : '';
     const others = names.filter(n => n !== me);
-    const list = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1] : a[0];
+    const list = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1] : a[0];
     $('lvl-wait').textContent = !names.length ? ''
-      : !others.length ? 'Elige tu carta'
-      : names.includes(me) ? 'Faltan por elegir: ' + list([...others, 'tú'])
-      : 'Esperando a ' + list(others) + '…';
+      : !others.length ? 'Escolha sua carta'
+      : names.includes(me) ? 'Faltam escolher: ' + list([...others, 'você'])
+      : 'Esperando por ' + list(others) + '…';
   }
 
   function closeLevelUp() {
@@ -111,27 +110,27 @@ G.RunUI = (() => {
   }
 
   function showOver(r, onBack) {
-    $('over-title').textContent = r.dead ? 'Has caído…' : 'Run terminada';
+    $('over-title').textContent = r.dead ? 'Você foi derrotado…' : 'Partida Concluída!';
     $('over-stats').innerHTML = `
-      <div><span>Tiempo</span><b>${G.U.mmss(r.time)}</b></div>
-      <div><span>Nivel</span><b>${r.level}</b></div>
-      <div><span>Derrotados</span><b>${r.kills}</b></div>
-      <div><span>Jefes</span><b>${r.bosses}</b></div>
-      ${r.judge ? `<div style="grid-column:1/-1"><span>Ante Arceus</span><b class="gold">${G.U.mmss(r.judge.time)} · ${r.judge.bosses} ${r.judge.bosses === 1 ? 'legendario' : 'legendarios'}</b></div>` : ''}
-      <div style="grid-column:1/-1"><span>Pokémonedas ganadas</span>
+      <div><span>Tempo</span><b>${G.U.mmss(r.time)}</b></div>
+      <div><span>Nível</span><b>${r.level}</b></div>
+      <div><span>Inimigos Derrotados</span><b>${r.kills}</b></div>
+      <div><span>Chefes</span><b>${r.bosses}</b></div>
+      ${r.judge ? `<div style="grid-column:1/-1"><span>Perante Arceus</span><b class="gold">${G.U.mmss(r.judge.time)} · ${r.judge.bosses} ${r.judge.bosses === 1 ? 'lendário' : 'lendários'}</b></div>` : ''}
+      <div style="grid-column:1/-1"><span>PokéMoedas recebidas</span>
         <b class="gold"><span class="coin"></span> +${r.coins}</b>
         <div style="font-size:12px;color:var(--muted)">${r.breakdown}</div></div>
-      ${r.t1 || r.t10 ? `<div style="grid-column:1/-1"><span>Tickets del gacha</span><b>
+      ${r.t1 || r.t10 ? `<div style="grid-column:1/-1"><span>Tickets do Gacha</span><b>
         ${r.t1 ? G.Icons.html('ticket', 22) + ' +' + r.t1 + ' ' : ''}${r.t10 ? G.Icons.html('ticket10', 22) + ' +' + r.t10 + ' ×10' : ''}</b></div>` : ''}
-      <div style="grid-column:1/-1"><span>Movimientos</span><b style="font-size:15px">
+      <div style="grid-column:1/-1"><span>Ataques</span><b style="font-size:15px">
         ${r.moves.map(m => `${G.Icons.html('move:' + m.id, 16)} ${m.name} Nv.${m.lvl}`).join(' · ') || '—'}</b></div>
-      ${r.caught && r.caught.length ? `<div style="grid-column:1/-1" class="caught"><span>${G.Icons.html('shiny', 12)} Shinies conseguidos</span>
+      ${r.caught && r.caught.length ? `<div style="grid-column:1/-1" class="caught"><span>${G.Icons.html('shiny', 12)} Shinies capturados</span>
         <div class="caught-row" id="over-caught"></div></div>` : ''}
-      ${r.record ? '<div style="grid-column:1/-1;text-align:center" class="gold">¡Nuevo récord de tiempo!</div>' : ''}
+      ${r.record ? '<div style="grid-column:1/-1;text-align:center" class="gold">¡Novo recorde de tempo!</div>' : ''}
       ${askSupport(r) ? `<div class="support-ask" id="over-ask" style="grid-column:1/-1">
-        <button class="x" type="button" aria-label="Cerrar">×</button>
-        <p>¿Te está gustando PokéSurvivor? Lo hago yo solo y los servidores cuestan dinero. Si quieres, puedes ayudarme a mantenerlo en línea.</p>
-        <a class="btn small gold" href="${G.Funding.url}" target="_blank" rel="noopener">${G.Icons.html('heart', 14)} Apoyar en Ko-fi</a>
+        <button class="x" type="button" aria-label="Fechar">×</button>
+        <p>Está gostando do PokéSurvivor? Ajude nosso projeto para mantermos os servidores ativos!</p>
+        <a class="btn small gold" href="${G.Funding.url}" target="_blank" rel="noopener">${G.Icons.html('heart', 14)} Apoiar no Ko-fi</a>
       </div>` : ''}`;
     const ask = $('over-ask');
     if (ask) ask.querySelector('.x').onclick = () => ask.remove();
@@ -141,18 +140,18 @@ G.RunUI = (() => {
       for (const c of r.caught) {
         const w = document.createElement('div');
         w.appendChild(G.UI.spriteCanvas(c.dex, 90, 72, { shiny: true, lively: true, scale: 2 }));
-        w.insertAdjacentHTML('beforeend', `<small>${G.DEX_BY[c.dex].name}${c.isNew ? ' · ¡nuevo!' : ''}</small>`);
+        w.insertAdjacentHTML('beforeend', `<small>${G.DEX_BY[c.dex].name}${c.isNew ? ' · ¡novo!' : ''}</small>`);
         row.appendChild(w);
       }
     }
     G.UI.show('scr-over');
   }
 
-  /** Has encontrado un objeto llevando ya otro: ¿con cuál te quedas? */
+  /** Você encontrou um item já carregando outro: com qual deseja ficar? */
   function showItemChoice(cur, next, cb) {
     const box = $('item-cards');
     box.innerHTML = '';
-    [[cur, 'Quedarme con'], [next, 'Cambiar a']].forEach(([id, verb], i) => {
+    [[cur, 'Manter'], [next, 'Trocar por']].forEach(([id, verb], i) => {
       const it = G.Items.BY[id];
       const el = document.createElement('div');
       el.className = 'card' + (i === 1 ? ' evo' : '');
@@ -165,14 +164,10 @@ G.RunUI = (() => {
     G.UI.show('scr-item');
   }
 
-  // ---------------- vínculo: qué movimientos se fusionan ----------------
+  // ---------------- vínculo / fusão: quais ataques se unem ----------------
 
   let bond = null;          // { opt, cb, first, list }
 
-  /**
-   * @param opt  pl.bondOptions(): 'add' (uno suelto al grupo) o 'pair' (dos sueltos, en dos pasos)
-   * @param cb   recibe la lista de movimientos que se juntan
-   */
   function showBond(opt, cb) {
     bond = { opt, cb, first: null, list: [] };
     $('bond-back').onclick = bondBack;
@@ -184,16 +179,16 @@ G.RunUI = (() => {
     const { opt, first } = bond;
     const names = ms => ms.map(m => m.name).join(' + ');
     const step2 = opt.mode === 'pair' && first;
-    $('bond-sub').textContent = opt.mode === 'add' ? 'Elige qué movimiento se une a ' + names(opt.group)
-      : step2 ? '¿Con cuál unes ' + first.name + '?' : 'Elige el primer movimiento que vas a unir';
+    $('bond-sub').textContent = opt.mode === 'add' ? 'Escolha qual ataque vai se unir a ' + names(opt.group)
+      : step2 ? 'Com qual ataque você une ' + first.name + '?' : 'Escolha o primeiro ataque que deseja unir';
     $('bond-back').classList.toggle('hidden', !step2);
     bond.list = step2 ? opt.loose.filter(m => m !== first) : opt.loose;
     const box = $('bond-cards');
     box.innerHTML = '';
     bond.list.forEach((m, i) => {
       const col = G.U.TYPE_COLOR[m.type];
-      const desc = opt.mode === 'add' ? 'Se lanzará a la vez que ' + names(opt.group) + '.'
-        : step2 ? 'Se lanzará a la vez que ' + first.name + '. Queda un hueco libre.'
+      const desc = opt.mode === 'add' ? 'Será disparado junto com ' + names(opt.group) + '.'
+        : step2 ? 'Será disparado junto com ' + first.name + '. Libera um espaço na barra.'
         : m.desc || '';
       const el = document.createElement('div');
       el.className = 'card' + (opt.mode === 'add' || step2 ? ' bond' : '');
@@ -232,7 +227,7 @@ G.RunUI = (() => {
   function showPause(coop = false) {
     G.UI.soundControls($('pause-sound'));
     $('pause-coop').classList.toggle('hidden', !coop);
-    $('btn-quit').textContent = coop ? 'Salir de la partida' : 'Abandonar run';
+    $('btn-quit').textContent = coop ? 'Sair da Partida' : 'Abandonar Partida';
     G.UI.show('scr-pause');
   }
 

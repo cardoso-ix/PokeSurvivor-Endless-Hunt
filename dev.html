@@ -195,14 +195,14 @@
       <button id="btn-google" class="btn google grow hidden" type="button">Entrar con Google</button>
     </div>
     <div class="row" style="margin-top:10px">
-      <button id="btn-guest" class="btn ghost grow" type="button">Jugar como invitado</button>
+      <button id="btn-guest" class="btn ghost grow" type="button" data-i18n="intro.guest">Jogar como Convidado</button>
     </div>
     <p class="note center" id="login-mode"></p>
-    <p class="note center"><!-- seo:begin --><a href="guia/">Guía</a> · <a href="pokedex/">Pokédex</a> · <!-- seo:end --><a href="#" class="legal-link" data-legal>Aviso legal y privacidad</a></p>
+    <p class="note center"><!-- seo:begin --><a href="guia/">Guia</a> · <a href="pokedex/">Pokédex</a> · <!-- seo:end --><a href="#" class="legal-link" data-legal>Aviso legal e privacidade</a></p>
   </div>
 </section>
 
-<!-- ====== Test de personalidad ====== -->
+<!-- ====== Teste de Personalidade ====== -->
 <section id="scr-test" class="scr dim hidden">
   <div class="box test-box">
     <div class="progress"><i id="test-bar"></i></div>
@@ -212,31 +212,31 @@
   </div>
 </section>
 
-<!-- ====== Resultado del test ====== -->
+<!-- ====== Resultado do Teste ====== -->
 <section id="scr-result" class="scr dim hidden">
   <div class="box result">
-    <p class="sub">Tu personalidad es…</p>
+    <p class="sub">Sua personalidade é…</p>
     <div class="trait" id="res-trait"></div>
     <p id="res-text"></p>
     <canvas id="res-stage" class="stage" width="200" height="150"></canvas>
-    <h3>Tu compañero: <span class="gold" id="res-name"></span></h3>
+    <h3>Seu Companheiro: <span class="gold" id="res-name"></span></h3>
     <div class="row" style="justify-content:center;margin-top:14px">
-      <button id="res-ok" class="btn gold">¡Vamos juntos!</button>
-      <button id="res-other" class="btn">Elegir otro</button>
+      <button id="res-ok" class="btn gold" data-i18n="intro.letsGo">Vamos juntos!</button>
+      <button id="res-other" class="btn" data-i18n="intro.chooseAnother">Escolher outro</button>
     </div>
   </div>
 </section>
 
-<!-- ====== Elegir compañero ====== -->
+<!-- ====== Escolha seu Companheiro ====== -->
 <section id="scr-starters" class="scr dim hidden">
   <div class="box wide">
-    <h2>Elige a tu compañero</h2>
-    <p class="sub">Los iniciales de todas las regiones, y dos amigos más.</p>
+    <h2 data-i18n="intro.choosePartner">Escolha seu Companheiro</h2>
+    <p class="sub">Os iniciais de todas as regiões e mais dois companheiros especiais.</p>
     <div class="grid" id="starter-grid"></div>
     <div class="row between" style="margin-top:14px">
-      <button id="starter-back" class="btn ghost">Volver</button>
+      <button id="starter-back" class="btn ghost" data-back data-i18n="common.back">Voltar</button>
       <span id="starter-info" class="grow" style="color:var(--muted)"></span>
-      <button id="starter-ok" class="btn gold" disabled>Elegir</button>
+      <button id="starter-ok" class="btn gold" disabled data-i18n="upgrades.choose">Escolher</button>
     </div>
   </div>
 </section>
@@ -258,14 +258,14 @@
   <div class="menu-right">
     <div class="box">
       <div class="menu-list">
-        <button class="menu-item play" data-go="play"><span data-i18n="menu.play">Jogar</span><small data-i18n="menu.playSub">Entra en la mazmorra</small></button>
-        <button class="menu-item" data-go="dex"><span data-i18n="menu.pokemon">Pokémon</span><small id="menu-dex-count" data-i18n="menu.pokemonSub">Tu colección</small></button>
-        <button class="menu-item" data-go="upgrades"><span data-i18n="menu.upgrades">Mejoras</span><small data-i18n="menu.upgradesSub">Haz más fuerte cada run</small></button>
-        <button class="menu-item hidden" data-go="gacha" style="display:none!important">Gacha<small>9 regiones · Pokémon y shinies</small></button>
-        <button class="menu-item" data-go="goals"><span data-i18n="menu.missions">Misiones</span><small id="menu-goals-sub" data-i18n="menu.missionsSub">Misiones, logros y perfil</small></button>
-        <button class="menu-item" data-go="friends"><span data-i18n="menu.friends">Amigos</span><small id="menu-friends-sub" data-i18n="menu.friendsSub">Juega en grupo, hasta 4</small></button>
-        <button class="menu-item" data-go="rank"><span data-i18n="menu.ranking">Ranking</span><small data-i18n="menu.rankingSub">Quién aguanta más</small></button>
-        <button class="menu-item" data-go="settings"><span data-i18n="menu.settings">Ajustes</span><small data-i18n="menu.settingsSub">Sonido, gráficos, controles y cuenta</small></button>
+        <button class="menu-item play" data-go="play"><span data-i18n="menu.play">Jogar</span><small data-i18n="menu.playSub">Entrar na masmorra</small></button>
+        <button class="menu-item" data-go="dex"><span data-i18n="menu.pokemon">Pokémon</span><small id="menu-dex-count" data-i18n="menu.pokemonSub">Sua coleção</small></button>
+        <button class="menu-item" data-go="upgrades"><span data-i18n="menu.upgrades">Melhorias</span><small data-i18n="menu.upgradesSub">Fique mais forte a cada partida</small></button>
+        <button class="menu-item hidden" data-go="gacha" style="display:none!important">Gacha<small>9 regiões · Pokémon e shinies</small></button>
+        <button class="menu-item" data-go="goals"><span data-i18n="menu.missions">Missões</span><small id="menu-goals-sub" data-i18n="menu.missionsSub">Missões, conquistas e perfil</small></button>
+        <button class="menu-item" data-go="friends"><span data-i18n="menu.friends">Amigos</span><small id="menu-friends-sub" data-i18n="menu.friendsSub">Jogue em grupo, até 4 jogadores</small></button>
+        <button class="menu-item" data-go="rank"><span data-i18n="menu.ranking">Classificação</span><small data-i18n="menu.rankingSub">Quem sobrevive mais tempo</small></button>
+        <button class="menu-item" data-go="settings"><span data-i18n="menu.settings">Configurações</span><small data-i18n="menu.settingsSub">Som, gráficos, controles e conta</small></button>
       </div>
     </div>
     <div class="box" style="padding:14px 18px">
@@ -276,38 +276,38 @@
 
 <div id="topbar" class="topbar hidden">
   <div class="pill"><span class="coin"></span><span id="coins">0</span></div>
-  <div class="pill hidden" id="tickets-pill" title="Tickets del gacha" style="display:none!important"></div>
-  <div class="pill" id="rifts-pill" title="Fendas / Rifts Concluídos"><span style="font-size:13px">🌀</span> <span id="rifts-count">0</span> <span data-i18n="menu.rifts">Rifts</span></div>
+  <div class="pill hidden" id="tickets-pill" title="Tickets do Gacha" style="display:none!important"></div>
+  <div class="pill" id="rifts-pill" title="Fendas / Rifts Concluídos"><span style="font-size:13px">🌀</span> <span id="rifts-count">0</span> <span data-i18n="menu.rifts">Fendas</span></div>
   <div class="pill" id="user-pill"></div>
-  <button id="btn-news" class="btn small ghost news-btn" title="Novedades"></button>
-  <button id="btn-support" class="btn small gold hidden" title="Apoyar el proyecto"></button>
-  <button id="btn-sound" class="btn small ghost" title="Sonido"></button>
-  <button id="btn-full" class="btn small ghost hidden" title="Pantalla completa"></button>
-  <button id="btn-settings" class="btn small ghost" title="Ajustes"></button>
+  <button id="btn-news" class="btn small ghost news-btn" title="Novidades"></button>
+  <button id="btn-support" class="btn small gold hidden" title="Apoiar o projeto"></button>
+  <button id="btn-sound" class="btn small ghost" title="Som"></button>
+  <button id="btn-full" class="btn small ghost hidden" title="Tela cheia"></button>
+  <button id="btn-settings" class="btn small ghost" title="Configurações"></button>
   <button id="btn-logout" class="btn small ghost" data-i18n="menu.logout">Sair</button>
 </div>
 <div id="sound-panel" class="box sound-panel hidden"></div>
-<div id="credits-line" class="credits-line hidden">Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
+<div id="credits-line" class="credits-line hidden">Projeto de fã sem fins lucrativos · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
 
 <!-- ====== Novedades (cambios del juego) ====== -->
 <section id="scr-news" class="scr dim hidden">
   <div class="box news-box">
-    <div class="row between"><h2>Novedades</h2><button class="btn small ghost" id="news-close">Cerrar</button></div>
+    <div class="row between"><h2>Novidades</h2><button class="btn small ghost" id="news-close" data-i18n="common.close">Fechar</button></div>
     <div id="news-body" class="news-body"></div>
   </div>
 </section>
 
-<!-- ====== Vincular Gmail para recuperar la cuenta (js/ui/login.js, offerRecovery) ====== -->
+<!-- ====== Vincular Gmail para recuperar a conta ====== -->
 <section id="scr-recover" class="scr dim hidden">
   <div class="box" style="width:min(440px,100%)">
-    <h2>¿Te da miedo perder tu cuenta?</h2>
-    <p>Vincula tu Gmail: si un día olvidas la contraseña, pulsas <b>Entrar con Google</b> y es tu misma cuenta, con todo lo tuyo.</p>
+    <h2>Deseja proteger sua conta?</h2>
+    <p>Vincule seu Google/Gmail: se um dia esquecer sua senha, você poderá recuperar seu progresso.</p>
     <p class="err" id="rec-err"></p>
     <div class="row" style="gap:8px;flex-wrap:wrap">
-      <button class="btn gold grow" id="rec-link" type="button">Vincular mi Gmail</button>
-      <button class="btn ghost" id="rec-later" type="button">Ahora no</button>
+      <button class="btn gold grow" id="rec-link" type="button">Vincular Google</button>
+      <button class="btn ghost" id="rec-later" type="button">Agora não</button>
     </div>
-    <p class="note center"><a href="#" id="rec-never">No volver a preguntar</a></p>
+    <p class="note center"><a href="#" id="rec-never">Não perguntar novamente</a></p>
   </div>
 </section>
 
@@ -437,70 +437,70 @@
 <!-- ====== Amigos ====== -->
 <section id="scr-friends" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Amigos</h2>
-      <div class="row"><button id="fr-room" class="btn small gold hidden">Ir a la sala</button><button class="btn small ghost" data-back>Volver</button></div></div>
+    <div class="row between"><h2 data-i18n="menu.friends">Amigos</h2>
+      <div class="row"><button id="fr-room" class="btn small gold hidden">Ir para a sala</button><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div></div>
     <p class="sub" id="fr-me"></p>
     <form id="fr-add" class="row" autocomplete="off">
-      <input id="fr-name" class="field grow" maxlength="16" spellcheck="false" placeholder="Apodo de tu amigo">
-      <button class="btn gold" type="submit" data-sfx="confirm">Añadir amigo</button>
+      <input id="fr-name" class="field grow" maxlength="16" spellcheck="false" placeholder="Apelido do seu amigo">
+      <button class="btn gold" type="submit" data-sfx="confirm">Adicionar amigo</button>
     </form>
     <p id="fr-msg" class="note"></p>
     <div id="fr-list" class="fr-list"></div>
   </div>
 </section>
 
-<!-- ====== Sala (partida en grupo) ====== -->
+<!-- ====== Sala (partida em grupo) ====== -->
 <section id="scr-lobby" class="scr dim hidden">
   <div class="box wide">
     <div class="row between"><h2>Sala</h2>
-      <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
+      <div class="row"><button id="lobby-menu" class="btn small ghost">Menu</button><button id="lobby-leave" class="btn small ghost">Sair da sala</button></div></div>
     <p class="sub" id="lobby-sub"></p>
     <div id="lobby-members" class="lobby-members"></div>
-    <h3 id="lobby-inv-title" style="margin:14px 0 6px">Invitar amigos</h3>
+    <h3 id="lobby-inv-title" style="margin:14px 0 6px">Convidar amigos</h3>
     <div id="lobby-invite" class="fr-list"></div>
     <div class="row" style="margin-top:14px">
-      <button id="lobby-start" class="btn gold grow">Empezar partida</button>
+      <button id="lobby-start" class="btn gold grow">Começar partida</button>
     </div>
     <p class="note" id="lobby-note"></p>
   </div>
 </section>
 
-<!-- ====== Ranking ====== -->
+<!-- ====== Classificação (Ranking) ====== -->
 <section id="scr-rank" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Ranking <span class="sub" style="font-size:15px">· tiempo aguantado</span></h2><span class="row" style="gap:6px"><button id="rk-mod" class="btn small ghost hidden">Moderación</button><button class="btn small ghost" data-back>Volver</button></span></div>
+    <div class="row between"><h2 data-i18n="menu.ranking">Classificação <span class="sub" style="font-size:15px">· tempo sobrevivido</span></h2><span class="row" style="gap:6px"><button id="rk-mod" class="btn small ghost hidden">Moderação</button><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></span></div>
     <div class="gen-tabs" id="rk-mode"></div>
     <div class="filters" id="rk-period"></div>
     <div class="row rk-tools">
       <div class="filters" id="rk-scope" style="margin:0"></div>
       <input id="rk-poke" class="field" list="rk-dl" placeholder="Filtrar por Pokémon (histórico)" spellcheck="false">
       <datalist id="rk-dl"></datalist>
-      <button id="rk-clear" class="btn small ghost hidden">Quitar filtro</button>
+      <button id="rk-clear" class="btn small ghost hidden">Remover filtro</button>
     </div>
     <div id="rk-list" class="rk-list"></div>
     <div id="rk-me" class="rk-me"></div>
   </div>
 </section>
 
-<!-- ====== Moderación del ranking (sólo la cuenta de admin, ver js/ui/mod-ui.js) ====== -->
+<!-- ====== Moderação do ranking ====== -->
 <section id="scr-mod" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Moderación</h2><span class="row" style="gap:6px"><button class="btn small danger" id="mod-purge">Quitar marcas de más de 1 hora</button><button class="btn small ghost" id="mod-back">Volver</button></span></div>
+    <div class="row between"><h2>Moderação</h2><span class="row" style="gap:6px"><button class="btn small danger" id="mod-purge">Remover marcas de mais de 1 hora</button><button class="btn small ghost" id="mod-back" data-i18n="common.back">Voltar</button></span></div>
     <div class="tabs" id="mod-tabs">
-      <div class="tab on" data-tab="rep">Reportes</div>
-      <div class="tab" data-tab="sus">Baneados</div>
+      <div class="tab on" data-tab="rep">Denúncias</div>
+      <div class="tab" data-tab="sus">Banidos</div>
     </div>
     <div id="mod-list" class="rk-list" style="max-height:60vh"></div>
   </div>
 </section>
 
-<!-- ====== Misiones, logros y perfil ====== -->
+<!-- ====== Missões, conquistas e perfil ====== -->
 <section id="scr-goals" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Misiones</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 data-i18n="menu.missions">Missões</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="tabs" id="goals-tabs">
-      <div class="tab on" data-tab="missions">Misiones</div>
-      <div class="tab" data-tab="ach">Logros</div>
+      <div class="tab on" data-tab="missions" data-i18n="menu.missions">Missões</div>
+      <div class="tab" data-tab="ach">Conquistas</div>
       <div class="tab" data-tab="profile">Perfil</div>
     </div>
     <div id="goals-body" class="goals-body"></div>
@@ -536,10 +536,10 @@
   </div>
 </div>
 
-<!-- ====== Colección ====== -->
+<!-- ====== Coleção ====== -->
 <section id="scr-dex" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2 data-i18n="menu.pokemon">Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back data-i18n="common.back">Volver</button></div>
+    <div class="row between"><h2 data-i18n="menu.pokemon">Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="gen-tabs" id="dex-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
@@ -551,14 +551,14 @@
   </div>
 </section>
 
-<!-- ====== Mejoras ====== -->
+<!-- ====== Melhorias ====== -->
 <section id="scr-upgrades" class="scr dim hidden">
   <div class="box wide">
     <div class="row between"><h2 data-i18n="upgrades.title">Melhorias</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="upg-head">
       <canvas id="upg-stage" class="stage" width="120" height="96"></canvas>
       <div class="grow">
-        <p class="sub" style="margin:0" data-i18n="upgrades.subtitle">Cada Pokémon tem suas próprias melhorias: só contam quando joga com ele.</p>
+        <p class="sub" style="margin:0" data-i18n="upgrades.subtitle">Cada Pokémon possui suas próprias melhorias: elas só contam quando você joga com ele.</p>
         <div class="row" style="margin-top:8px">
           <label for="upg-mon" style="margin:0" data-i18n="upgrades.pokemon">Pokémon</label>
           <select id="upg-mon" class="field" style="width:auto;min-width:220px"></select>
@@ -572,7 +572,7 @@
 <!-- ====== Gacha ====== -->
 <section id="scr-gacha" class="scr dim hidden">
   <div class="box wide">
-    <div class="row between"><h2>Gacha</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2>Gacha</h2><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></div>
     <div class="gen-tabs" id="gacha-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
@@ -583,9 +583,9 @@
           <div class="feat" id="gacha-feat"></div>
         </div>
         <div class="row" style="margin-top:14px">
-          <button id="pull-1" class="btn grow" data-sfx="none">Tirar ×1 · <span id="cost-1"></span></button>
-          <button id="pull-10" class="btn gold grow" data-sfx="none">Tirar ×10 · <span id="cost-10"></span></button>
-          <button id="pull-10b" class="btn gold grow" data-sfx="none">Tirar ×10 · <span id="cost-10b"></span></button>
+          <button id="pull-1" class="btn grow" data-sfx="none">Sortear ×1 · <span id="cost-1"></span></button>
+          <button id="pull-10" class="btn gold grow" data-sfx="none">Sortear ×10 · <span id="cost-10"></span></button>
+          <button id="pull-10b" class="btn gold grow" data-sfx="none">Sortear ×10 · <span id="cost-10b"></span></button>
         </div>
         <p class="note tickets-line" id="gacha-tickets"></p>
         <p class="note" id="gacha-pity"></p>
@@ -596,7 +596,7 @@
 </section>
 
 <div id="pull-fx" class="hidden">
-  <canvas id="slot" width="176" height="170" title="Clic para acelerar"></canvas>
+  <canvas id="slot" width="176" height="170" title="Clique para acelerar"></canvas>
   <div class="pull-results" id="pull-results"></div>
   <button id="pull-close" class="btn gold hidden">Continuar</button>
 </div>
@@ -625,39 +625,39 @@
   </div>
 </section>
 
-<!-- ====== Durante la run ====== -->
+<!-- ====== Durante a partida ====== -->
 <section id="scr-levelup" class="scr dim hidden">
   <div class="box center">
-    <h2>¡Nivel <span id="lvl-num">2</span>!</h2>
-    <p class="sub">Elige una recompensa · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></p>
+    <h2>Subiu de Nível! (Nível <span id="lvl-num">2</span>)</h2>
+    <p class="sub">Escolha uma Recompensa · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></p>
     <div id="cards" class="cards"></div>
-    <button id="lvl-reroll" class="btn small ghost hidden" data-sfx="none" style="margin-top:10px">Cambiar opciones (<span id="lvl-rr-n">1</span>) · <kbd>R</kbd></button>
+    <button id="lvl-reroll" class="btn small ghost hidden" data-sfx="none" style="margin-top:10px">Trocar opções (<span id="lvl-rr-n">1</span>) · <kbd>R</kbd></button>
     <p id="lvl-wait" class="note hidden"></p>
   </div>
 </section>
 
 <section id="scr-bond" class="scr dim hidden">
   <div class="box center">
-    <h2 class="bond-title">¡Vínculo!</h2>
-    <p class="sub bond-hint">Los movimientos unidos se lanzan a la vez y ocupan un solo hueco</p>
+    <h2 class="bond-title">Fusão de Ataques!</h2>
+    <p class="sub bond-hint">Ataques fundidos disparam juntos e ocupam apenas um espaço na barra</p>
     <p id="bond-sub" class="sub"></p>
     <div id="bond-cards" class="cards"></div>
-    <div class="row" style="justify-content:center"><button id="bond-back" class="btn hidden">Atrás</button></div>
+    <div class="row" style="justify-content:center"><button id="bond-back" class="btn hidden">Voltar</button></div>
   </div>
 </section>
 
 <section id="scr-item" class="scr dim hidden">
   <div class="box center">
-    <h2>¡Un objeto!</h2>
-    <p class="sub">Sólo puedes llevar uno · <kbd>1</kbd> <kbd>2</kbd></p>
+    <h2>Um Item Especial!</h2>
+    <p class="sub">Você só pode carregar um item · <kbd>1</kbd> <kbd>2</kbd></p>
     <div id="item-cards" class="cards"></div>
   </div>
 </section>
 
 <section id="scr-pause" class="scr dim hidden">
   <div class="box center" style="width:min(460px,100%)">
-    <h2 data-i18n="hud.paused">Pausa</h2>
-    <p class="sub kbd-hint"><kbd>WASD</kbd> mover · <kbd>1</kbd>–<kbd>4</kbd> movimento · <kbd>Q</kbd>/<kbd>E</kbd> ciclar · <kbd>Esc</kbd> pausa</p>
+    <h2 data-i18n="hud.paused">JOGO PAUSADO</h2>
+    <p class="sub kbd-hint"><kbd>WASD</kbd> mover · <kbd>1</kbd>–<kbd>4</kbd> ataques · <kbd>Q</kbd>/<kbd>E</kbd> alternar · <kbd>Espaço</kbd> Mega · <kbd>Esc</kbd> pausar</p>
     <p class="sub touch-hint">Arrasta o dedo para mover · toque num ataque para trocar</p>
     <p id="pause-coop" class="note hidden">Partida em grupo: o jogo continua.</p>
     <div id="pause-sound" class="sound-inline"></div>

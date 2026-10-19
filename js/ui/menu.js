@@ -310,8 +310,8 @@ G.MenuUI = (() => {
       const canAfford = s.coins >= cost;
       const upgName = (window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null) || u.name;
       const upgDesc = (window.i18n ? window.i18n.t(`upgrades.${u.id}Desc`) : null) || u.unit;
-      const maxText = window.i18n ? window.i18n.t('upgrades.maxLevel') : 'Máx.';
-      const chooseText = window.i18n ? window.i18n.t('upgrades.choose') : 'Elegir';
+      const maxText = window.i18n ? window.i18n.t('upgrades.maxLevel') : 'Máximo';
+      const chooseText = window.i18n ? window.i18n.t('upgrades.choose') : 'Escolher';
       const el = document.createElement('div');
       el.className = 'panel upg-item';
       el.innerHTML = `
@@ -326,18 +326,17 @@ G.MenuUI = (() => {
           <button class="btn small ${maxed ? '' : (canAfford ? 'gold' : '')}" data-buy data-sfx="none"
             ${maxed || !canAfford ? 'disabled' : ''}
             style="${!maxed && !canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;min-width:70px;' : 'min-width:70px;'}"
-            title="${!maxed && !canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'Moedas insuficientes') : ''}">
+            title="${!maxed && !canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'PokéMoedas insuficientes') : ''}">
             ${maxed ? maxText : `<span class="coin"></span> ${cost.toLocaleString('pt-BR')}`}
           </button>
         </div>`;
       if (u.id === 'ban' && lvl > 0) el.querySelector('[data-ban]').onclick = () => { banOpen = !banOpen; renderUpgrades(); };
       el.querySelector('[data-buy]').onclick = () => {
-        // Se vuelve a leer todo al pulsar (la partida puede haber cambiado desde que se dibujó).
         const sv = G.DB.save, lv = G.DB.upgradesOf(upgDex), now = lv[u.id] || 0;
         if (now >= u.max) { renderUpgrades(); return; }
         const price = G.Upgrades.cost(u.id, now, upgDex);
         if (sv.coins < price) {
-          if (G.UI && G.UI.toast) G.UI.toast('Moedas insuficientes para este upgrade!');
+          if (G.UI && G.UI.toast) G.UI.toast('PokéMoedas insuficientes para esta melhoria!');
           renderUpgrades();
           return;
         }
@@ -346,7 +345,7 @@ G.MenuUI = (() => {
         G.DB.commit(true);
         G.Audio.sfx('buy');
         G.UI.refreshCoins();
-        G.UI.toast(`${mon.name} · ${u.name}: nivel ${now + 1}`);
+        G.UI.toast(`${mon.name} · ${upgName}: nível ${now + 1}`);
         renderUpgrades();
       };
       box.appendChild(el);
@@ -366,17 +365,16 @@ G.MenuUI = (() => {
       .sort((a, b) => G.Moves.BY_ID[a].name.localeCompare(G.Moves.BY_ID[b].name, 'es'));
     const el = document.createElement('div');
     el.className = 'panel bind-panel';
-    el.innerHTML = `<b>Atajos de movimientos</b>
-      <p class="sub" style="margin:2px 0 8px">Elige qué movimiento va siempre en cada hueco (teclas 1-4 o los iconos de abajo), para la memoria muscular. Si aún no tienes tantos movimientos, va al hueco más cercano.</p>
+    el.innerHTML = `<b>Atalhos de ataques</b>
+      <p class="sub" style="margin:2px 0 8px">Escolha qual ataque vai sempre em cada espaço (teclas 1-4 ou os ícones abaixo), para a memória muscular. Se ainda não tiver tantos ataques, vai para o espaço mais próximo.</p>
       <div class="bind-slots">${[0, 1, 2, 3].map(i => `<label class="bind-slot"><span>${i + 1}</span>
-        <select class="field" data-slot="${i}"><option value="">Libre</option>${ids.map(id =>
+        <select class="field" data-slot="${i}"><option value="">Livre</option>${ids.map(id =>
           `<option value="${id}" ${list[i] === id ? 'selected' : ''}>${G.Moves.BY_ID[id].name}</option>`).join('')}</select></label>`).join('')}</div>`;
     el.querySelectorAll('select[data-slot]').forEach(sel => {
       sel.onchange = () => {
         const l = (s.pbind[upgDex] || [null, null, null, null]).slice(0, 4);
         while (l.length < 4) l.push(null);
         const i = +sel.dataset.slot, id = sel.value || null;
-        // Un movimiento sólo puede estar en un hueco.
         for (let j = 0; j < 4; j++) if (id && l[j] === id) l[j] = null;
         l[i] = id;
         s.pbind[upgDex] = l;
@@ -388,8 +386,7 @@ G.MenuUI = (() => {
     return el;
   }
 
-  // ---------------- veto: movimientos bloqueados ----------------
-  // Lista por Pokémon en save.pban[dex]; con N niveles de Veto, N movimientos.
+  // ---------------- veto / banimento: ataques bloqueados ----------------
   let banOpen = false;
   function banList() {
     const s = G.DB.save;
@@ -400,18 +397,18 @@ G.MenuUI = (() => {
     const mon = G.DEX_BY[upgDex];
     const start = G.startMoveOf(upgDex);
     const ids = G.Moves.poolFor(mon).filter(id => id !== start)
-      .sort((a, b) => G.Moves.BY_ID[a].name.localeCompare(G.Moves.BY_ID[b].name, 'es'));
+      .sort((a, b) => G.Moves.BY_ID[a].name.localeCompare(G.Moves.BY_ID[b].name, 'pt-BR'));
     const list = banList();
     const el = document.createElement('div');
     el.className = 'panel ban-picker';
-    el.innerHTML = `<p class="sub" style="margin:0 0 8px">Toca los movimientos que no quieres que te salgan en las cartas (${list.length}/${max}). El movimiento de inicio no se puede vetar.</p>
+    el.innerHTML = `<p class="sub" style="margin:0 0 8px">Toque nos ataques que você não quer que apareçam nas cartas (${list.length}/${max}). O ataque inicial não pode ser banido.</p>
       <div class="ban-moves">${ids.map(id => { const d = G.Moves.BY_ID[id]; const on = list.includes(id);
         return `<button class="chip ${on ? 'on ban' : ''}" data-id="${id}">${G.Icons.html('move:' + id, 16)} ${d.name}${on ? ' ' + G.Icons.html('ban', 14) : ''}</button>`; }).join('')}</div>`;
     el.querySelectorAll('[data-id]').forEach(b => {
       b.onclick = () => {
         const l = banList(), id = b.dataset.id, i = l.indexOf(id);
         if (i >= 0) l.splice(i, 1);
-        else if (l.length >= max) { G.UI.toast('Ya tienes ' + max + ' vetados: quita uno primero'); return; }
+        else if (l.length >= max) { G.UI.toast(`Você já baniu ${max} ataques: remova um primeiro.`); return; }
         else l.push(id);
         G.DB.commit();
         G.Audio.sfx('select');

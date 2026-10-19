@@ -326,20 +326,19 @@ G.HUD = (() => {
       } catch (eCoop) {}
     }
 
-    // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
-    // flecha que bota encima; en la arena, cuenta atrás.
+    // Fenda: seta grande pulsando na borda ou acima da fenda; na arena, contagem regressiva.
     const rift = G.Rift.rift;
     if (rift) {
       const sx = (rift.x - cam.left()) * cam.scale, sy = (rift.y - 40 - cam.top()) * cam.scale;
       const now = performance.now() / 1000, beat = 0.5 + Math.sin(now * 7) * 0.5;
-      const label = 'GRIETA · ' + Math.round(G.U.dist(pl.x, pl.y, rift.x, rift.y) / 32) + ' m · ' + Math.ceil(rift.ttl) + ' s';
+      const label = 'FENDA · ' + Math.round(G.U.dist(pl.x, pl.y, rift.x, rift.y) / 32) + ' m · ' + Math.ceil(rift.ttl) + ' s';
       const off = sx < 0 || sx > w || sy < 0 || sy > h;
       ctx.save();
       if (off) {
         const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
         const a = Math.atan2(sy - ey, sx - ex), ca = Math.cos(a), sa = Math.sin(a);
         ctx.translate(ex, ey);
-        // Halo que late.
+        // Halo pulsante
         ctx.globalAlpha = 0.18 + beat * 0.22;
         ctx.fillStyle = '#b48aff';
         ctx.beginPath(); ctx.arc(0, 0, 30 + beat * 8, 0, 6.2832); ctx.fill();
@@ -361,7 +360,7 @@ G.HUD = (() => {
         ctx.fillStyle = '#e2d0ff';
         ctx.fillText(label, lx, ly);
       } else {
-        // Encima de la grieta: flecha hacia abajo que bota.
+        // Acima da fenda: seta para baixo saltitante
         const by = sy - 46 - Math.abs(Math.sin(now * 4)) * 10;
         ctx.translate(sx, by);
         ctx.beginPath(); ctx.moveTo(-15, -12); ctx.lineTo(15, -12); ctx.lineTo(0, 8); ctx.closePath();
@@ -369,7 +368,7 @@ G.HUD = (() => {
         ctx.fillStyle = beat > 0.5 ? '#e2d0ff' : '#a06bff'; ctx.fill();
         ctx.font = F(800, 11); ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.85)';
-        const l2 = 'GRIETA · ' + Math.ceil(rift.ttl) + ' s';
+        const l2 = 'FENDA · ' + Math.ceil(rift.ttl) + ' s';
         ctx.strokeText(l2, 0, -18); ctx.fillStyle = '#e2d0ff'; ctx.fillText(l2, 0, -18);
       }
       ctx.restore();
@@ -378,13 +377,13 @@ G.HUD = (() => {
       ctx.textAlign = 'center';
       ctx.font = F(800, 12);
       ctx.fillStyle = '#d9c2ff';
-      ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 98 : 76);
+      ctx.fillText('FENDA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 98 : 76);
     }
 
-    // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
+    // Eventos: contagem regressiva, seta para Pokémon perdido / marca
     G.Events.drawHud(ctx, w, h, pl, F);
 
-    // Aviso propio al abrirse una grieta (no lo tapan los otros avisos).
+    // Aviso de fenda aberta na tela
     if (rift && rift.t < 4.5) {
       const a = Math.min(1, rift.t * 4, (4.5 - rift.t) * 2), pop = 1 + Math.max(0, 0.25 - rift.t) * 1.6;
       const y0 = h * 0.2;
@@ -392,7 +391,7 @@ G.HUD = (() => {
       ctx.globalAlpha = a;
       ctx.translate(w / 2, y0); ctx.scale(pop, pop);
       ctx.font = F(800, 20);
-      const t1 = '¡SE HA ABIERTO UNA GRIETA!', t2 = 'Sigue la flecha morada: dentro te espera un legendario';
+      const t1 = 'UMA FENDA DIMENSIONAL FOI ABERTA!', t2 = 'Siga a seta roxa: lá dentro espera um Guardião de Rift!';
       const bw = Math.min(w - 24, Math.max(ctx.measureText(t1).width, (ctx.font = F(700, 11), ctx.measureText(t2).width)) + 36);
       roundRect(ctx, -bw / 2, -26, bw, 52, 10);
       ctx.fillStyle = 'rgba(26,11,51,.88)'; ctx.fill();

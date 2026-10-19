@@ -90,7 +90,7 @@
         time: "Tempo Sobrevivido",
         score: "Pontuação",
         kills: "Inimigos Derrotados",
-        backToMenu: "Volver ao Menu Principal"
+        backToMenu: "Voltar ao Menu Principal"
       },
       upgrades: {
         title: "Melhorias Permanentes",
@@ -442,7 +442,38 @@
     'Eléctrico': 'Elétrico', 'Fantasma': 'Fantasma', 'Fuego': 'Fogo', 'Hada': 'Fada',
     'Hielo': 'Gelo', 'Lucha': 'Lutador', 'Planta': 'Planta', 'Psíquico': 'Psíquico',
     'Roca': 'Pedra', 'Siniestro': 'Sombrio', 'Tierra': 'Terrestre', 'Veneno': 'Venenoso',
-    'Volador': 'Voador'
+    'Volador': 'Voador',
+    'tiempo de recarga': 'tempo de recarga',
+    'daño': 'dano',
+    'daño crítico': 'dano crítico',
+    'movimiento': 'ataque',
+    'movimientos': 'ataques',
+    'monedas': 'PokéMoedas',
+    'pantalla': 'tela',
+    'volver': 'voltar',
+    'ronda': 'partida',
+    'escoger': 'escolher',
+    'elegir': 'selecionar',
+    'bloqueado': 'bloqueado',
+    'desbloqueado': 'desbloqueado',
+    'mejora': 'melhoria',
+    'mejoras': 'melhorias',
+    'velocidad': 'velocidade',
+    'experiencia': 'experiência',
+    'comenzar': 'jogar',
+    'enemigo': 'inimigo',
+    'enemigos': 'inimigos',
+    'compañero': 'companheiro',
+    'compañeros': 'companheiros',
+    'objetos': 'itens',
+    'recompensa': 'recompensa',
+    'haz más fuerte cada run': 'fique mais forte a cada partida',
+    'entra en la mazmorra': 'entrar na masmorra',
+    'tu colección': 'sua coleção',
+    'quién aguanta más': 'quem sobrevive mais tempo',
+    'juega en grupo, hasta 4': 'jogue em grupo, até 4 jogadores',
+    'sonido, gráficos, controles y cuenta': 'som, gráficos, controles e conta',
+    'misiones, logros y perfil': 'missões, conquistas e perfil'
   };
 
   const PHRASES_EN = {
@@ -903,6 +934,71 @@
     };
   }
 
+  /**
+   * Auditoria de resíduos em Espanhol / Portunhol no dicionário pt-BR e nas interfaces ativas.
+   */
+  function auditSpanishWords() {
+    const SUSPICIOUS = [
+      'tiempo', 'daño', 'daños', 'movimiento', 'movimientos', 'monedas', 'pantalla', 
+      'volver', 'ronda', 'elegir', 'escoger', 'comenzar', 'jugar', 'velocidad', 
+      'experiencia', 'enemigo', 'enemigos', 'partida actual', 'reiniciar partida', 
+      'cada pokemon tiene', 'compañero', 'compañeros', 'objetos', 'subir de nivel'
+    ];
+
+    const findings = [];
+
+    // 1. Varredura recursiva no dicionário PT-BR
+    function scanObj(obj, prefix = '') {
+      if (!obj || typeof obj !== 'object') return;
+      for (const [key, val] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (typeof val === 'string') {
+          SUSPICIOUS.forEach(term => {
+            const re = new RegExp(`\\b${term}\\b`, 'i');
+            if (re.test(val)) {
+              findings.push({ source: 'dict[pt-BR]', key: fullKey, text: val, detected: term });
+            }
+          });
+        } else if (typeof val === 'object') {
+          scanObj(val, fullKey);
+        }
+      }
+    }
+    scanObj(TRANSLATIONS['pt-BR']);
+
+    // 2. Varredura no DOM visível (se no browser)
+    if (typeof document !== 'undefined' && document.body) {
+      const elements = document.querySelectorAll('[data-i18n], h1, h2, h3, button, p, span, small, label');
+      elements.forEach(el => {
+        const text = el.innerText || el.textContent;
+        if (!text || text.length > 150) return;
+        SUSPICIOUS.forEach(term => {
+          const re = new RegExp(`\\b${term}\\b`, 'i');
+          if (re.test(text)) {
+            if (!findings.some(f => f.source === 'DOM' && f.text === text.trim())) {
+              findings.push({ source: 'DOM', tag: el.tagName.toLowerCase(), text: text.trim(), detected: term });
+            }
+          }
+        });
+      });
+    }
+
+    const clean = findings.length === 0;
+    console.group(`🔍 [i18n] Auditoria de Português / Espanhol (${clean ? '0 RESÍDUOS - 100% PT-BR' : `${findings.length} ACHADOS`})`);
+    if (clean) {
+      console.log('✅ Nenhum resíduo de Espanhol/Portunhol detectado no dicionário pt-BR ou nas interfaces ativas!');
+    } else {
+      console.warn('⚠️ Foram encontrados termos suspeitos:', findings);
+    }
+    console.groupEnd();
+
+    return {
+      clean,
+      count: findings.length,
+      findings
+    };
+  }
+
   // 3. Montagem da Instância Oficial do Singleton
   const i18nInstance = {
     get currentLang() { return currentLang; },
@@ -916,7 +1012,8 @@
     updateDOM,
     startDom,
     walk,
-    testTranslations
+    testTranslations,
+    auditSpanishWords
   };
 
   // Exportação Global Universal
@@ -926,6 +1023,7 @@
     window.debugSetLangPT = () => i18nInstance.setLanguage('pt-BR');
     window.debugSetLangEN = () => i18nInstance.setLanguage('en-US');
     window.debugTestTranslations = () => i18nInstance.testTranslations();
+    window.debugAuditSpanishWords = () => i18nInstance.auditSpanishWords();
   }
 
   if (typeof window !== 'undefined' && typeof window.G === 'object') {

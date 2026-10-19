@@ -30,94 +30,94 @@
 (() => {
   const LADDERS = {
     projectile: [
-      { t: '+1 proyectil',                  m: { count: 1, spread: 1.4 } },
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: '+1 proyectil y +1 perforación',   m: { count: 1, pierce: 1, spread: 1.2 } }
+      { t: '+1 projétil',                         m: { count: 1, spread: 1.4 } },
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: '+1 projétil e +1 de perfuração',      m: { count: 1, pierce: 1, spread: 1.2 } }
     ],
     melee: [
-      { t: '+40% daño',                     m: { dmg: 1.40 } },
-      { t: '+25% alcance',                  m: { radius: 1.25 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: 'Golpea en 360° y +50% daño',    m: { arc: 9, dmg: 1.50 } }
+      { t: '+40% de dano',                        m: { dmg: 1.40 } },
+      { t: '+25% de alcance',                     m: { radius: 1.25 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: 'Golpeia em 360° e +50% de dano',      m: { arc: 9, dmg: 1.50 } }
     ],
     beam: [
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: '+30% alcance y grosor',         m: { radius: 1.30, width: 1.30 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: '+50% daño',                     m: { dmg: 1.50 } }
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: '+30% de alcance e espessura',         m: { radius: 1.30, width: 1.30 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: '+50% de dano',                        m: { dmg: 1.50 } }
     ],
     orbit: [
-      { t: '+1 orbe',                       m: { count: 1 } },
-      { t: '+55% daño',                     m: { dmg: 1.55 } },
-      { t: '+25% radio y gira más rápido',  m: { radius: 1.25, speed: 1.35 } },
-      { t: '+1 orbe y +55% daño',           m: { count: 1, dmg: 1.55 } }
+      { t: '+1 esfera',                           m: { count: 1 } },
+      { t: '+55% de dano',                        m: { dmg: 1.55 } },
+      { t: '+25% de raio e rotação acelerada',    m: { radius: 1.25, speed: 1.35 } },
+      { t: '+1 esfera e +55% de dano',            m: { count: 1, dmg: 1.55 } }
     ],
     nova: [
-      { t: '+4 proyectiles',                m: { count: 4 } },
-      { t: '+40% daño',                     m: { dmg: 1.40 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: '+4 proyectiles y +1 perforación', m: { count: 4, pierce: 1 } }
+      { t: '+4 projéteis',                        m: { count: 4 } },
+      { t: '+40% de dano',                        m: { dmg: 1.40 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: '+4 projéteis e +1 de perfuração',     m: { count: 4, pierce: 1 } }
     ],
     aura: [
-      { t: '+30% radio',                    m: { radius: 1.30 } },
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: 'Golpea un 40% más a menudo',    m: { cd: 0.70 } },
-      { t: '+30% radio y +50% daño',        m: { radius: 1.30, dmg: 1.50 } }
+      { t: '+30% de raio',                        m: { radius: 1.30 } },
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: 'Golpeia 40% mais frequente',          m: { cd: 0.70 } },
+      { t: '+30% de raio e +50% de dano',         m: { radius: 1.30, dmg: 1.50 } }
     ],
     boomerang: [
-      { t: '+1 bumerán',                    m: { count: 1 } },
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: '+30% alcance',                  m: { radius: 1.30 } },
-      { t: '+1 bumerán y +40% daño',        m: { count: 1, dmg: 1.40 } }
+      { t: '+1 bumerangue',                       m: { count: 1 } },
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: '+30% de alcance',                     m: { radius: 1.30 } },
+      { t: '+1 bumerangue e +40% de dano',        m: { count: 1, dmg: 1.40 } }
     ],
     chain: [
-      { t: '+2 saltos',                     m: { count: 2 } },
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: '+2 saltos y +40% daño',         m: { count: 2, dmg: 1.40 } }
+      { t: '+2 ricochetes',                       m: { count: 2 } },
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: '+2 ricochetes e +40% de dano',        m: { count: 2, dmg: 1.40 } }
     ],
     mine: [
-      { t: '+1 mina',                       m: { count: 1 } },
-      { t: '+50% daño',                     m: { dmg: 1.50 } },
-      { t: '+30% radio de explosión',       m: { radius: 1.30 } },
-      { t: '+1 mina y -25% recarga',        m: { count: 1, cd: 0.75 } }
+      { t: '+1 mina',                             m: { count: 1 } },
+      { t: '+50% de dano',                        m: { dmg: 1.50 } },
+      { t: '+30% de raio de explosão',            m: { radius: 1.30 } },
+      { t: '+1 mina e -25% de tempo de recarga',  m: { count: 1, cd: 0.75 } }
     ],
     meteor: [
-      { t: '+1 meteoro',                    m: { count: 1 } },
-      { t: '+45% daño',                     m: { dmg: 1.45 } },
-      { t: '+30% radio',                    m: { radius: 1.30 } },
-      { t: '+2 meteoros y -20% recarga',    m: { count: 2, cd: 0.80 } }
+      { t: '+1 meteoro',                          m: { count: 1 } },
+      { t: '+45% de dano',                        m: { dmg: 1.45 } },
+      { t: '+30% de raio de impacto',             m: { radius: 1.30 } },
+      { t: '+2 meteoros e -20% de tempo de recarga', m: { count: 2, cd: 0.80 } }
     ],
     turret: [
-      { t: '+50% daño',                     m: { dmg: 1.50 } },
-      { t: 'Dispara un 35% más rápido',     m: { rate: 0.74 } },
-      { t: '+1 a la vez',                   m: { count: 1 } },
-      { t: '+50% duración y +40% daño',     m: { dur: 1.50, dmg: 1.40 } }
+      { t: '+50% de dano',                        m: { dmg: 1.50 } },
+      { t: 'Dispara 35% mais rápido',             m: { rate: 0.74 } },
+      { t: '+1 torre simultânea',                 m: { count: 1 } },
+      { t: '+50% de duração e +40% de dano',      m: { dur: 1.50, dmg: 1.40 } }
     ],
     dash: [
-      { t: '+40% daño',                     m: { dmg: 1.40 } },
-      { t: '+30% distancia',                m: { radius: 1.30 } },
-      { t: '-25% recarga',                  m: { cd: 0.75 } },
-      { t: '+60% daño y más ancho',         m: { dmg: 1.60, width: 1.40 } }
+      { t: '+40% de dano',                        m: { dmg: 1.40 } },
+      { t: '+30% de distância',                   m: { radius: 1.30 } },
+      { t: '-25% de tempo de recarga',            m: { cd: 0.75 } },
+      { t: '+60% de dano e trajetória mais larga', m: { dmg: 1.60, width: 1.40 } }
     ],
     trail: [
-      { t: '+40% daño',                     m: { dmg: 1.40 } },
-      { t: '+40% duración',                 m: { dur: 1.40 } },
-      { t: 'Charcos un 30% más grandes',    m: { radius: 1.30 } },
-      { t: '+50% daño y +30% radio',        m: { dmg: 1.50, radius: 1.30 } }
+      { t: '+40% de dano',                        m: { dmg: 1.40 } },
+      { t: '+40% de duração',                     m: { dur: 1.40 } },
+      { t: 'Poças 30% maiores',                   m: { radius: 1.30 } },
+      { t: '+50% de dano e +30% de raio',         m: { dmg: 1.50, radius: 1.30 } }
     ],
     cone: [
-      { t: '+3 disparos',                   m: { count: 3 } },
-      { t: '+40% daño',                     m: { dmg: 1.40 } },
-      { t: '+30% alcance',                  m: { life: 1.30 } },
-      { t: '+3 disparos y +1 perforación',  m: { count: 3, pierce: 1 } }
+      { t: '+3 disparos',                         m: { count: 3 } },
+      { t: '+40% de dano',                        m: { dmg: 1.40 } },
+      { t: '+30% de alcance',                     m: { life: 1.30 } },
+      { t: '+3 disparos e +1 de perfuração',      m: { count: 3, pierce: 1 } }
     ],
     buff: [
-      { t: '+1 acumulación máxima',         m: { stacks: 1 } },
-      { t: '+40% potencia',                 m: { amount: 1.40 } },
-      { t: '+50% duración',                 m: { dur: 1.50 } },
-      { t: '+1 acumulación y +40% potencia', m: { stacks: 1, amount: 1.40 } }
+      { t: '+1 acúmulo máximo',                   m: { stacks: 1 } },
+      { t: '+40% de potência',                    m: { amount: 1.40 } },
+      { t: '+50% de duração',                     m: { dur: 1.50 } },
+      { t: '+1 acúmulo e +40% de potência',       m: { stacks: 1, amount: 1.40 } }
     ]
   };
 
@@ -485,8 +485,8 @@
    * vez la mejora de su condición (`needs`, un id de LevelUp.STATS). Sale una
    * carta dorada. Los potenciadores (buff) no evolucionan.
    */
-  const NEED_NAME = { hp: 'Vigor', atk: 'Potencia', spd: 'Carrera', cd: 'Reflejos', def: 'Coraza',
-                      rgn: 'Síntesis', mag: 'Imán', xp: 'Aprendizaje' };
+  const NEED_NAME = { hp: 'Vigor', atk: 'Potência', spd: 'Agilidade', cd: 'Reflexos', def: 'Carapaça',
+                      rgn: 'Síntese', mag: 'Ímã', xp: 'Sabedoria' };
   const EVO = {
     'tackle': ['Derribo', 'hp'],             'quick-attack': ['Velocidad Extrema', 'spd'],
     'body-slam': ['Gigaimpacto', 'atk'],     'hyper-voice': ['Alboroto', 'cd'],
@@ -519,22 +519,22 @@
     'aerial-ace': ['Acróbata', 'spd'],       'flame-wheel': ['Envite Ígneo', 'spd'],
     'bubble-beam': ['Acua Cola', 'atk'],     'hex': ['Poltergeist', 'mag']
   };
-  // Lo que gana al evolucionar, según cómo funcione.
+  // Bônus concedidos ao evoluir o ataque, conforme o seu tipo funcional.
   const EVO_MODS = {
-    projectile: { t: '×1,8 daño, +2 proyectiles, +2 perforación y más grandes', m: { dmg: 1.8, count: 2, pierce: 2, size: 1.3, spread: 1.1 } },
-    melee:      { t: '×1,9 daño, más alcance y golpea en 360°', m: { dmg: 1.9, radius: 1.3, arc: 9 } },
-    beam:       { t: '×1,8 daño, rayo un 50% más grueso y más largo', m: { dmg: 1.8, width: 1.5, radius: 1.2, cd: 0.85 } },
-    orbit:      { t: '+2 orbes, ×1,7 daño y más radio', m: { count: 2, dmg: 1.7, radius: 1.15 } },
-    nova:       { t: '+6 proyectiles, ×1,6 daño y +1 perforación', m: { count: 6, dmg: 1.6, pierce: 1 } },
-    aura:       { t: '×1,8 daño y un 35% más de radio', m: { dmg: 1.8, radius: 1.35 } },
-    boomerang:  { t: '×1,8 daño, +1 bumerán y más alcance', m: { dmg: 1.8, count: 1, radius: 1.2, size: 1.2 } },
-    chain:      { t: '×1,7 daño y +3 saltos', m: { dmg: 1.7, count: 3, radius: 1.2 } },
-    mine:       { t: '×1,8 daño, +2 minas y explosión más grande', m: { dmg: 1.8, count: 2, radius: 1.25 } },
-    meteor:     { t: '×1,7 daño, +2 meteoros y más radio', m: { dmg: 1.7, count: 2, radius: 1.2 } },
-    turret:     { t: '×1,8 daño, +1 a la vez y dispara más rápido', m: { dmg: 1.8, count: 1, rate: 0.8 } },
-    dash:       { t: '×1,9 daño, más distancia y menos recarga', m: { dmg: 1.9, radius: 1.25, cd: 0.8 } },
-    trail:      { t: '×1,8 daño, charcos más grandes y duraderos', m: { dmg: 1.8, radius: 1.25, dur: 1.3 } },
-    cone:       { t: '×1,7 daño, +4 disparos y +1 perforación', m: { dmg: 1.7, count: 4, pierce: 1 } }
+    projectile: { t: '×1,8 de dano, +2 projéteis, +2 de perfuração e projéteis maiores', m: { dmg: 1.8, count: 2, pierce: 2, size: 1.3, spread: 1.1 } },
+    melee:      { t: '×1,9 de dano, maior alcance e golpeia em 360°', m: { dmg: 1.9, radius: 1.3, arc: 9 } },
+    beam:       { t: '×1,8 de dano, feixe 50% mais largo e com maior alcance', m: { dmg: 1.8, width: 1.5, radius: 1.2, cd: 0.85 } },
+    orbit:      { t: '+2 esferas, ×1,7 de dano e maior raio de rotação', m: { count: 2, dmg: 1.7, radius: 1.15 } },
+    nova:       { t: '+6 projéteis, ×1,6 de dano e +1 de perfuração', m: { count: 6, dmg: 1.6, pierce: 1 } },
+    aura:       { t: '×1,8 de dano e 35% a mais de raio', m: { dmg: 1.8, radius: 1.35 } },
+    boomerang:  { t: '×1,8 de dano, +1 bumerangue e maior alcance', m: { dmg: 1.8, count: 1, radius: 1.2, size: 1.2 } },
+    chain:      { t: '×1,7 de dano e +3 ricochetes', m: { dmg: 1.7, count: 3, radius: 1.2 } },
+    mine:       { t: '×1,8 de dano, +2 minas e explosão maior', m: { dmg: 1.8, count: 2, radius: 1.25 } },
+    meteor:     { t: '×1,7 de dano, +2 meteoros e maior área de impacto', m: { dmg: 1.7, count: 2, radius: 1.2 } },
+    turret:     { t: '×1,8 de dano, +1 torre simultânea e disparo acelerado', m: { dmg: 1.8, count: 1, rate: 0.8 } },
+    dash:       { t: '×1,9 de dano, maior distância percorrida e menor tempo de recarga', m: { dmg: 1.9, radius: 1.25, cd: 0.8 } },
+    trail:      { t: '×1,8 de dano, poças maiores e mais duradouras', m: { dmg: 1.8, radius: 1.25, dur: 1.3 } },
+    cone:       { t: '×1,7 de dano, +4 disparos e +1 de perfuração', m: { dmg: 1.7, count: 4, pierce: 1 } }
   };
 
   /** ¿Puede evolucionar ya? → { name, needs, needName, text, ready } o null */
