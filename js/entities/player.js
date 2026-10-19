@@ -742,12 +742,15 @@ G.Player = class Player {
     this.invuln = Math.max(this.invuln, 0.4);
 
     const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#ffffff', '#e040fb', '#ff9100'];
-    const curColor = RAINBOW[Math.floor(performance.now() / 45) % RAINBOW.length];
+    const elem = this.megaAuraElement || (typeof G === 'object' && G.Mega && G.Mega.currentElement) || 'normal';
+    const pals = (typeof G === 'object' && G.ELEMENT_PALETTES) || (typeof ELEMENT_PALETTES !== 'undefined' ? ELEMENT_PALETTES : null);
+    const pal = (pals && pals[elem]) ? pals[elem] : { color: '#ffd700', accent: '#f59e0b', aura: '#facc15', particle: '#ffffff' };
+    const curColor = (Math.floor(performance.now() / 70) % 2 === 0) ? pal.color : pal.accent;
 
-    // 1. Gera Afterimages (rastros fantasma coloridos pixel art)
+    // 1. Gera Afterimages (rastros fantasma com a cor do elemento do líder)
     this.megaMode.ghostTimer -= dt;
     if (this.megaMode.ghostTimer <= 0) {
-      this.megaMode.ghostTimer = 0.038;
+      this.megaMode.ghostTimer = 0.045;
       this.megaMode.ghosts.push({
         x: this.x,
         y: this.y,
@@ -755,8 +758,8 @@ G.Player = class Player {
         animName: this.anim.currentAnim,
         frame: this.anim.frame,
         color: curColor,
-        alpha: 0.72,
-        life: 0.28
+        alpha: 0.65,
+        life: 0.26
       });
       if (this.megaMode.ghosts.length > 8) this.megaMode.ghosts.shift();
     }
@@ -765,25 +768,26 @@ G.Player = class Player {
     for (let i = this.megaMode.ghosts.length - 1; i >= 0; i--) {
       const g = this.megaMode.ghosts[i];
       g.life -= dt;
-      g.alpha = Math.max(0, g.life / 0.28) * 0.72;
+      g.alpha = Math.max(0, g.life / 0.26) * 0.65;
       if (g.life <= 0) this.megaMode.ghosts.splice(i, 1);
     }
 
-    // 2. Partículas Contínuas de Estrelas e Faíscas Pixel Art ("brilho para tudo que é lado")
+    // 2. Partículas Contínuas de Estrelas e Faíscas Pixel Art com a cor do elemento
     this.megaMode.starTimer -= dt;
     if (this.megaMode.starTimer <= 0) {
-      this.megaMode.starTimer = 0.042; // ~24 emissões por segundo
+      this.megaMode.starTimer = 0.045;
       for (let k = 0; k < 3; k++) {
         const ang = Math.random() * Math.PI * 2;
         const dist = G.U.rand(6, this.r * 1.5);
+        const pColor = Math.random() < 0.45 ? pal.color : (Math.random() < 0.5 ? pal.accent : pal.particle);
         this.megaMode.particles.push({
           x: this.x + Math.cos(ang) * dist,
           y: this.y - this.bodyH * 0.5 + Math.sin(ang) * (dist * 0.7),
-          vx: G.U.rand(-45, 45) + (this.svx || 0) * -0.2,
-          vy: G.U.rand(-140, -60),
+          vx: G.U.rand(-40, 40) + (this.svx || 0) * -0.2,
+          vy: G.U.rand(-130, -50),
           life: G.U.rand(0.25, 0.45),
           maxLife: 0.45,
-          color: RAINBOW[Math.floor(Math.random() * RAINBOW.length)],
+          color: pColor,
           size: Math.random() < 0.5 ? 4 : 2,
           isCross: Math.random() < 0.65
         });
@@ -799,20 +803,19 @@ G.Player = class Player {
       if (pt.life <= 0) this.megaMode.particles.splice(i, 1);
     }
 
-    // 3. Choque de Contato Mario Star: Inimigos que encostam sofrem dano massivo e knockback violento
+    // 3. Barreira de Proteção Elemental: Afasta monstros próximos com knockback
     this.megaMode.touchDmgTimer -= dt;
     if (this.megaMode.touchDmgTimer <= 0 && typeof G === 'object' && G.EnemyMgr) {
-      this.megaMode.touchDmgTimer = 0.08;
-      const touchRadius = this.r + 26;
-      const enemies = G.EnemyMgr.near ? G.EnemyMgr.near(this.x, this.y, touchRadius + 50) : G.EnemyMgr.all();
+      this.megaMode.touchDmgTimer = 0.20;
+      const touchRadius = this.r + 22;
+      const enemies = G.EnemyMgr.near ? G.EnemyMgr.near(this.x, this.y, touchRadius + 40) : G.EnemyMgr.all();
       for (const e of enemies) {
         if (!e.dead && G.U.dist2(this.x, this.y, e.x, e.y) <= touchRadius * touchRadius) {
-          const dmg = this.atk * 0.85;
           const kx = (e.x - this.x) || (Math.random() - 0.5);
           const ky = (e.y - this.y) || (Math.random() - 0.5);
-          e.hurt(dmg, curColor, kx, ky, 280, 'super');
+          if (typeof e.hurt === 'function') e.hurt(this.atk * 0.35, curColor, kx, ky, 220, 'super');
           if (G.FX) {
-            G.FX.spark(e.x, e.y - 10, curColor, kx, ky, 5);
+            G.FX.spark(e.x, e.y - 10, curColor, kx, ky, 4);
           }
         }
       }
@@ -1093,13 +1096,15 @@ G.Player = class Player {
       ctx.restore();
     }
 
-    // Efeito Mega Frenzy: Aura e Rastros Fantasma (Ghost Trails / Afterimages)
+    // Efeito Mega Supremo: Aura e Rastros Fantasma Temáticos do Elemento
     const isMega = this.megaMode && this.megaMode.active && !this.dead;
-    const RAINBOW = ['#ffd700', '#ff3366', '#00e5ff', '#76ff03', '#ffffff', '#e040fb', '#ff9100'];
-    const curRainbow = RAINBOW[Math.floor(performance.now() / 45) % RAINBOW.length];
+    const elem = this.megaAuraElement || (typeof G === 'object' && G.Mega && G.Mega.currentElement) || 'normal';
+    const pals = (typeof G === 'object' && G.ELEMENT_PALETTES) || (typeof ELEMENT_PALETTES !== 'undefined' ? ELEMENT_PALETTES : null);
+    const pal = (pals && pals[elem]) ? pals[elem] : { color: '#ffd700', accent: '#f59e0b', aura: '#facc15', particle: '#ffffff' };
+    const curColor = (Math.floor(performance.now() / 70) % 2 === 0) ? pal.color : pal.accent;
 
     if (isMega) {
-      // 1. Ghost Trails / Afterimages coloridos translúcidos
+      // 1. Ghost Trails / Afterimages coloridos translúcidos do elemento
       if (this.megaMode.ghosts && this.megaMode.ghosts.length) {
         for (const g of this.megaMode.ghosts) {
           if (g.alpha <= 0.02) continue;
@@ -1108,17 +1113,17 @@ G.Player = class Player {
             flash: true,
             softFlash: true,
             alpha: g.alpha,
-            color: g.color
+            color: g.color || pal.color
           });
           ctx.restore();
         }
       }
 
-      // 2. Aura de choque no chão com espinhos giratórios pixel art
+      // 2. Aura luminosa do elemento no chão com anel pulsante e faíscas giratórias
       const now = performance.now();
       ctx.save();
-      ctx.strokeStyle = curRainbow;
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = pal.aura || curColor;
+      ctx.lineWidth = 2.8;
       ctx.beginPath();
       ctx.ellipse(this.x, this.y, this.r * 2.2 + Math.sin(now / 60) * 3, (this.r * 2.2) * 0.44, 0, 0, Math.PI * 2);
       ctx.stroke();
@@ -1129,7 +1134,7 @@ G.Player = class Player {
         const a = baseAng + (s / spikes) * Math.PI * 2;
         const rx = Math.cos(a) * (this.r * 2.3);
         const ry = Math.sin(a) * (this.r * 1.0);
-        ctx.fillStyle = curRainbow;
+        ctx.fillStyle = pal.accent || curColor;
         ctx.fillRect(Math.round(this.x + rx - 2), Math.round(this.y + ry - 2), 4, 4);
       }
       ctx.restore();
@@ -1146,9 +1151,9 @@ G.Player = class Player {
 
     const alpha = this.invuln > 0 && !this.dead ? (Math.floor(this.invuln * 18) % 2 ? 0.45 : 1) : 1;
 
-    // Sprite do Pokémon com Rainbow Flash frenético estilo Super Mario Star quando em Mega Mode
+    // Sprite do Pokémon com Brilho do Tipo Elemental quando em Mega Supremo
     if (isMega) {
-      this.anim.draw(ctx, this.x, this.y, { flash: true, softFlash: true, alpha: 1, color: curRainbow });
+      this.anim.draw(ctx, this.x, this.y, { flash: true, softFlash: true, alpha: 1, color: pal.color });
     } else {
       this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
     }
@@ -1208,7 +1213,7 @@ G.Player = class Player {
       const timerStr = `⚡ ${this.megaMode.timer.toFixed(1)}s`;
       const timeY = Math.round(this.y - this.bodyH - 24);
       ctx.strokeText(timerStr, this.x, timeY);
-      ctx.fillStyle = curRainbow;
+      ctx.fillStyle = curColor;
       ctx.fillText(timerStr, this.x, timeY);
       ctx.restore();
     }

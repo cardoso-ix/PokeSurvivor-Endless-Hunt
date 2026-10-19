@@ -27,16 +27,15 @@ G.Combat = (() => {
   function tickMove(dt, pl, m, now) {
     if (m.kind === 'orbit') { orbit(pl, m, dt, now); return; }
 
-    const speedUp = (pl.megaMode && pl.megaMode.active) ? 3.0 : 1.0;
-    m.t -= dt * speedUp;
+    // Cadência normal de ataque (sem aceleração mecânica tipo metralhadora no Mega)
+    m.t -= dt;
     if (m.t > 0) return;
     // Los ataques que necesitan blanco esperan a tenerlo (no gastes animación al aire).
     if (needsTarget(m) && !(pl.target && G.U.dist(pl.x, pl.y, pl.target.x, pl.target.y) <= reach(m))) {
       m.t = 0.04;
       return;
     }
-    const cdMul = (pl.megaMode && pl.megaMode.active) ? (pl.cdMul * 0.45) : pl.cdMul;
-    m.t = Math.max(0.04, m.cd * cdMul);
+    m.t = Math.max(0.04, m.cd * pl.cdMul);
     pl.cast(m);
     if (G.Coop.active) G.Coop.cast(pl, m);
     // Vínculo: su icono destella en el HUD al lanzarse (uno que explota pegado al

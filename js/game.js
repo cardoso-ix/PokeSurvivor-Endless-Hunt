@@ -614,8 +614,15 @@ G.Game = (() => {
       if (G.Input.tap('digit' + (i + 1)) || G.Input.tap('numpad' + (i + 1))) pl.setActive(i);
     }
     if (G.Input.tap('space') || G.Input.tap(' ')) {
-      if (pl.megaEnergy >= pl.megaMaxEnergy && !pl.megaMode.active) {
-        pl.activateMega(15);
+      const isMegaReady = (G.Mega)
+        ? (G.Mega.gauge >= G.Mega.maxGauge && !G.Mega.isActive)
+        : (pl.megaEnergy >= pl.megaMaxEnergy && !pl.megaMode.active);
+      if (isMegaReady) {
+        if (G.Mega && typeof G.Mega.trigger === 'function') {
+          G.Mega.trigger();
+        } else {
+          pl.activateMega(10);
+        }
       }
     }
     if (G.Input.tap('keyq')) pl.cycle(-1);
