@@ -1,32 +1,27 @@
-# PokéSurvivor — cómo se trabaja y se publica
+# PokéSurvivor — Diretrizes de Engenharia e Publicação
 
-Normas fijas del dueño del proyecto. Se aplican SIEMPRE.
+Normas de engenharia e publicação do projeto PokéSurvivor: Endless Hunt.
 
-## Publicar una versión
-1. Se edita `dev.html` (nunca `index.html`, que se genera).
-2. `node tools/build.js && node tools/export_data.js && python tools/make_seo_pages.py`
-   - `build.js` genera `index.html`, `js/app.min.js` y **`version.json`** (la huella de esta versión).
-3. Commit (sin "Co-Authored-By" ni ninguna firma de IA) y `git push origin main` sólo cuando el dueño lo pida.
+## 🚀 Publicação de Nova Versão
+1. Sempre editar `dev.html` (nunca `index.html`, que é gerado automaticamente pelo build).
+2. Executar o pipeline de build e páginas SEO:
+   ```bash
+   node tools/build.js && python tools/make_seo_pages.py
+   ```
+   - `build.js` gera o bundle minificado e ofuscado `js/app.min.js`, o `index.html` de produção e o `version.json` com o hash da versão.
+3. Executar os testes automatizados para garantir conformidade:
+   ```bash
+   node tools/test_full_suite.js
+   node tools/test_all_evolution_chains.js
+   ```
+4. Commit claro no Git e `git push origin main`.
+5. Acionar o webhook de deploy da VPS Coolify.
 
-## Actualización automática de los jugadores (obligatorio)
-Al publicar, todos los jugadores deben pasar a la versión nueva sin perder nada
-(`js/core/updater.js`, mira `version.json` cada 5 min):
-- **Fuera de partida** (menú, sala de cooperativo incluida): aviso de 5 s y la página se recarga.
-  Si está en el gacha, la tienda de mejoras, los ajustes o escribiendo en un campo, espera a que termine.
-- **En partida**: no se toca. Al acabar, la run se guarda como siempre y, al volver al menú, se recarga.
-- Antes de recargar se sube a la nube lo pendiente.
-No quitar `updater.js` ni la escritura de `version.json` en `tools/build.js`.
+## 🔄 Atualização Automática dos Jogadores
+Ao publicar uma nova versão, os jogadores ativos recebem a atualização de forma transparente via `js/core/updater.js` (que verifica `version.json` a cada 5 min):
+- **Fora de partida** (menus, sala cooperativa): aviso de 5 s e recarregamento automático da página.
+- **Em partida**: o jogo não interrompe o jogador; ao término da partida, o progresso é salvo e o jogo atualiza suavemente ao retornar ao menu.
+- Não remover `updater.js` nem a escrita de `version.json` em `tools/build.js`.
 
-## Novedades (changelog)
-Cada cambio de juego o arreglo de fallos va también en `js/data/changelog.js`
-(español e inglés, en `new` / `chg` / `fix` de la fecha de hoy). Los cambios de
-servidores, base de datos o costes NO van ahí.
-
-## Servidores
-- Firebase: proyecto **pokesurvivor-free** (autenticación normal: cuentas gratis sin límite).
-  **Nunca** activar "Identity Platform" ni nada que lo active (funciones de bloqueo, MFA,
-  "Actualizar para habilitar"): cobra por usuario. El proyecto viejo pokesurvivor-jpter se borró el 13-10-2026 (con su facturación).
-- Cloudflare: SÓLO el dominio pokesurvivor.com (comprado allí, DNS gratis). El Worker y el TURN
-  (Cloudflare Realtime) se quitaron el 15-10-2026: el cooperativo va sólo con conexión directa
-  (STUN gratis de Google). No volver a añadir nada de pago.
-- Mantenimiento: `MAINTENANCE` en `js/main.js` (con `?dev` se puede entrar para probar).
+## 🌐 Idioma Mandatório
+- Toda a interface, menus, textos do Canvas e documentação devem estar em **Português do Brasil (pt-BR)**.

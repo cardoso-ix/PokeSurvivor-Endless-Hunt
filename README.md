@@ -4,10 +4,11 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![HTML5 Canvas](https://img.shields.io/badge/HTML5-Canvas%202D-orange.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 [![Docker Ready](https://img.shields.io/badge/Docker-Coolify%20Ready-2496ED.svg)](docs/DEPLOY_COOLIFY.md)
+[![Language](https://img.shields.io/badge/Language-Portugu%C3%AAs%20do%20Brasil%20(pt--BR)-green.svg)](#-localização-completa-em-português-do-brasil-pt-br)
 
-*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive de 10 segundos, sistema de captura em Rifts, clima dinâmico e salas cooperativas online.
+*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive Elemental dos 18 tipos, sistema de captura diegética em Rifts, evolução automática e salas cooperativas online.
 
-Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FPS estáveis sem dependências pesadas de frontend.
+Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FPS estáveis sem frameworks pesados de frontend.
 
 ---
 
@@ -17,22 +18,43 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 
 ---
 
+## 🌐 Acesso Online & Links de Teste
+
+| Ambiente | URL | Descrição |
+| :--- | :--- | :--- |
+| **Produção Online (VPS Coolify)** | [http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/](http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/) | Versão oficial com deploy contínuo |
+| **Versão de Desenvolvimento (VPS)** | [http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/dev.html](http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/dev.html) | Acesso direto com scripts modulares |
+| **Ambiente Local (PC)** | [http://localhost:8080/index.html](http://localhost:8080/index.html) | Servidor local no computador de desenvolvimento |
+| **Rede Local Wi-Fi (Mobile/LAN)** | [http://192.168.0.107:8080/index.html](http://192.168.0.107:8080/index.html) | Acesso via smartphone ou tablet na mesma rede |
+
+---
+
 ## 🎮 Controles & Como Jogar
 
 | Tecla / Controle | Ação |
 | :--- | :--- |
-| `W` `A` `S` `D` / Setas | Mover o Treinador e seu Pokémon |
-| `Espaço` / `Space` | Ativar **Mega Overdrive** (ao atingir 100% da barra) |
+| `W` `A` `S` `D` / Setas | Mover o Treinador e seu Pokémon parceiro |
+| `Espaço` / `Space` | Ativar **Mega Overdrive Elemental** (ao atingir 100% da barra) |
 | `1` `2` `3` `4` / Clique no slot | Selecionar ataque ativo |
 | `Q` / `E` / `Tab` | Alternar entre ataques anterior / próximo |
 | `+` / `−` | Ajustar escala da câmera (zoom calibrado) |
 | `Esc` / `P` | Pausar / Continuar partida |
 | `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível |
-| `R` | Rolar cartas de nível (Reroll) |
+| `R` | Trocar opções de cartas de nível (Reroll) |
 | `F2` / `'` | Abrir Painel de Administração / Depuração |
 
 **No Celular ou Tablet (Modo Paisagem/Horizontal):**  
-Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque nos slots inferiores para trocar de habilidade e pause pelo botão no topo. Pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").
+Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque no botão circular do Mega no canto inferior para acionar o poder supremo, use a bandeja inferior para alternar ataques e acesse a pausa pelo topo. O jogo pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").
+
+---
+
+## 🇧🇷 Localização Completa em Português do Brasil (pt-BR)
+
+O jogo conta com suporte nativo integral ao **Português do Brasil**, sem termos em espanhol ou construções em "Portunhol":
+- **100% dos Menus & Interfaces:** Tela de Login, Seleção de Starters, Quiz de Personalidade (8 perguntas completas e 16 traços), Configurações, Pokédex, Upgrades, Missões, Conquistas e Game Over.
+- **Catálogo de Habilidades e Golpes:** Todos os 64 ataques de base e 60 evoluções de ataques (`js/data/moves.js`) traduzidos com nomenclatura oficial de Pokémon em português.
+- **Equipamentos e Itens:** Todos os 11 itens equipáveis (`Restos`, `Faixa da Escolha`, `Faixa de Foco`, `Garra Rápida`, `Sino de Concha`, etc.) com descrições mecânicas claras.
+- **Textos Flutuantes e Canvas VFX:** Notificações de dano, status, clima, anúncios de horda, resgates de Pokémon perdidos e mensagens diegéticas de captura em português.
 
 ---
 
@@ -41,123 +63,100 @@ Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick 
 ### 1. 🧬 Censo Oficial & Trava Estrutural dos 966 Pokémon (Gerações 1 a 9)
 O ecossistema do jogo possui uma árvore genealógica completa baseada nas **540 cadeias evolutivas oficiais da PokeAPI**:
 - **507 Pokémon de Estágio 1 (Base / Iniciais):** Únicos elegíveis para seleção inicial de partida (ex: Bulbasaur, Charmander, Pichu, Magikarp, Riolu, Gastly, Dreepy, Lapras, Heracross, Mewtwo, Cosmog, Kubfu).
-- **459 Pokémon de Estágios 2 e 3 (Evoluções):** Bloqueados com 100% de rigor para seleção inicial. São obtidos exclusivamente via evolução durante a partida ou enfrentados como Guardiões de Rifts.
-- **Sanitização de Saves:** Se o jogador possuir formas evoluídas em saves antigos, o sistema migra automaticamente para a forma base correspondente via `getBaseAncestor()` sem travar o motor.
+- **459 Pokémon de Estágios 2 e 3 (Evoluções):** Bloqueados para seleção inicial. São obtidos exclusivamente via evolução automática durante a partida ou enfrentados como Guardiões de Rifts.
+- **Sanitização Automática de Saves:** Saves antigos contendo formas evoluídas são sanitizados de forma transparente, convertendo para a forma base ancestral via `getBaseAncestor()`.
 
 ---
 
-### 2. 🌀 Sistema de Captura de Rifts & Mecânica da Gold Ball
-Ao derrotar o Guardião do Rift dimensional, o minigame de captura com animação de arremesso é iniciado:
-- **Escala Dinâmica de Pokébolas por Nível:**
-  - Nv. 1 a 10: **Poké Ball** (+0% de bônus)
-  - Nv. 11 a 20: **Great Ball** (+5% de bônus)
-  - Nv. 21 a 30: **Ultra Ball** (+10% de bônus)
-  - Nv. 31+: **Ultimate Ball** (+15% de bônus)
-- **Mecânica da Gold Ball (Evento Raro Nv. 41+):**
-  - Ao atingir o nível 41 ou superior, há **10% de chance** de a Ultimate Ball ser substituída pela lendária **Gold Ball**.
-  - **Efeito:** **100% de captura garantida** (sem fuga) + **bônus imediato de 1.000 moedas de ouro**.
-- **Regras de Spawn do Guardião:**
-  - *Anti-Duplicação:* Não gera espécies já capturadas na Pokédex do jogador.
-  - *Marco dos Lendários:* Lendários e Míticos só surgem a partir de 300+ Rifts concluídos.
-  - *Pity de Shiny:* A cada 500 Rifts concluídos, o Guardião gerado é 100% garantido Shiny.
-
----
-
-### 3. 🌟 Mega Overdrive Definitivo & Botão Retro Interativo
-Ao atingir 100% de energia de Mega, o Treinador pode acionar o Poder Supremo Elemental tanto pela **tecla `[Espaço]`** quanto pelo **Botão Físico Retro (`#hud-mega-btn`)** integrado ao HUD inferior:
-- **Botão Físico Retro com 3 Estados Reativos:**
-  - *Carregando (`0% a 99%`):* Estilo chanfrado roxo translúcido com porcentagem em tempo real (`⚡ MEGA 45%`). Cliques prematuros disparam feedback com som suave e aviso em toast: `⚡ Mega carregando: X% (Pronto ao atingir 100% ou tecla [ESPAÇO])`.
-  - *Pronto (`100%`):* O botão entra em animação de **pulso luminoso dourado e neon** (`⚡ MEGA [ESPAÇO]`), com borda chanfrada brilhante e cursor pointer convidativo.
-  - *Ativo / Em Execução:* Transição para estilo de chamas neon com **cronômetro regressivo decrescente em tempo real** (`⚡ 9.4s`).
-- **Acúmulo Dinâmico e Balanceado de Carga:**
-  - Inimigos Comuns: **+1.20% de carga** (~83 abates para carga total).
-  - Inimigos Elites: **+8.0% de carga**.
-  - Chefes Normais: **+25.0% de carga**.
-  - Guardiões de Rift: **+35.0% de carga**.
-  - Subida de Nível (Level Up): Bônus imediato de **+3.5% de carga**.
-- **Duração de 10.0 Segundos com Drenagem Linear Suave:** A barra drena uniformemente atuando como cronômetro visual.
-- **Cadência Padrão sem Metralhadora:** A aceleração mecânica frenética de tiros básicos foi completamente expurgada; as habilidades normais mantêm cadência natural enquanto o elemento do líder devasta o campo.
-- **Aura Protetora & Super Ímã:** Redução de 80% em todo dano recebido e dobro de raio de atração de gemas (+100%).
-- **Catálogo Modular dos 18 Poderes Supremos Elementais (`MEGA_ULTIMATES_DATA`):**
-  Identifica dinamicamente o tipo primário do Pokémon líder da equipe (`pl.types[0]`, `pl.mon.types[0]` ou `pl.species`) e dispara calamidades contínuas a cada 0.25s:
-  - `fire`: Chuva de meteoros diagonais abrindo crateras de chamas e poças de lava no solo.
-  - `water`: Chuva torrencial que desacelera inimigos em 40% com gêiseres e maelstrom explosivo.
-  - `grass`: Vinhas espinhosas e raízes que convertem 15% do dano causado em cura de HP.
-  - `electric`: Tempestade de relâmpagos verticais com arcos voltaicos em cadeia.
-  - `ice`: Nevasca contínua com congelamento em área e estalactites pontiagudas.
-  - `dragon`: Bombardeio de meteoros dracônicos cósmicos de energia ancestral.
-  - `ghost`: Aparição de espectros sombrios e névoa etérea de dano necrótico.
-  - `psychic`: Ondas psíquicas de distorção gravitacional que repelem e esmagam monstros.
-  - `ground`: Fissuras tectônicas e terremotos que quebram o solo.
-  - `rock`: Avalanche de rochas pontiagudas em cascata.
-  - `flying`: Furacões e tornados velozes que arrastam hordas inimigas.
-  - `bug`: Enxame voraz de gafanhotos de energia e teias venenosas.
-  - `poison`: Gêiseres de lodo tóxico com nuvens de veneno corrosivo persistente.
-  - `fighting`: Ondas de choque de impacto sísmico e socos de alta pressão.
-  - `steel`: Lâminas metálicas e espinhos de aço perfurantes.
-  - `dark`: Vórtice de escuridão profunda que suga monstros para o núcleo negro.
-  - `fairy`: Chuva de brilhos estelares mágicos com explosões prismáticas.
-  - `normal`: Hiper-raio radial de energia pura com empurrão massivo.
-
----
-
-### 4. 🎴 Novo HUD Inferior Retro Pixel Art (Estilo DS / GBA)
-- **Moldura Chanfrada:** Design sólido em `#141624` com chanfros de relevo em `#3a3f58`, `#5c648d` e dourado `#f8b800`.
-- **Barra de Vida (HP):** Indicador numérico preciso (`HP 320 / 320`), cores dinâmicas (Verde >50%, Amarelo 25-50%, Vermelho <25%) e efeito de dano recebido com rastro suave (*ghost bar*).
-- **Linha do Mega:** Barra com gradiente de energia + **Botão Dedicado de Mega** (`#hud-mega-btn`) ao lado da barra, perfeitamente alinhados e responsivos para teclado, mouse e touch.
-- **Bandeja de Ataques:** Slots ampliados com marcador de nível (`Nv. 3`) e máscara translúcida de recarga (*cooldown sweep*).
-
----
-
-### 5. 📊 Painel Retro de Atributos & Status (`#stats-rpg-panel`)
-Localizado no canto inferior esquerdo, exibe os atributos em tempo real com ícones temáticos e valores precisos:
-- ⚔️ **ATK:** Multiplicador de dano | 🛡️ **DEF:** Redução de dano
-- 👟 **VEL:** Velocidade de movimento | ⏱️ **CD:** Redução de recarga
-- 🎯 **CRT:** Chance crítica | 🔮 **MAG:** Raio de atração de EXP
-- 📐 **APR:** Área dos projéteis | 💖 **REG:** Regeneração por segundo
-
----
-
-### 6. ☀️ Widget de Clima Retro (`js/systems/weather.js`)
-- Localizado no topo direito com moldura chanfrada de RPG de 38px de altura.
-- Badge embutido de 28x28px com o ícone elemental do clima (Sol, Chuva, Neve, Tempestade de Areia, etc.).
-- Temporizador digital embutido com alerta piscante nos últimos 5 segundos.
-- Barra de progresso chanfrada em relevo acompanhando a estética da barra de HP.
-
----
-
-### 7. 🧭 Bússola & Mini-Mapa Retro Pokégear (`js/ui/hud.js`)
-- Raio expandido para 72px (+20% de visibilidade).
-- Aro de bússola chanfrado com relevos metálicos e filete em ouro nobre `#f8b800`.
-- Insígnias cardeais clássicas: Badge de Norte (**N**) no topo e losangos dourados nos eixos Leste, Sul e Oeste.
-- Fundo azul-noite profundo (`#101422`), feixe de varredura suave em ciano e marcadores de alta legibilidade (jogador em verde esmeralda com ponteiro de mira, chefes em fogo pulsante e rifts em violeta).
-
----
-
-### 8. ⚡ Marcos de Evolução Automática das 9 Gerações (100% Cobertas)
-Todas as **434 espécies evoluíveis** cadastradas nas 9 gerações possuem resolução automática em tempo de execução:
-- **Nível 5:** 1ª Evolução Automática garantida (Estágio 2). Cobre tanto evoluções clássicas de 3 estágios quanto Pokémon de estágio único que atingem a forma final (ex: Pikachu ➔ Raichu, Riolu ➔ Lucario, Growlithe ➔ Arcanine, Eevee ➔ Jolteon).
-- **Nível 12:** 2ª Evolução Automática (Estágio 3 / Forma Final). (ex: Ivysaur ➔ Venusaur, Charmeleon ➔ Charizard, Haunter ➔ Gengar, Gabite ➔ Garchomp).
+### 2. ⚡ Marcos de Evolução Automática (Níveis 5, 12 e 21)
+Todas as **434 espécies evoluíveis** das 9 gerações possuem resolução automática em tempo de execução:
+- **Nível 5:** 1ª Evolução Automática garantida (Estágio 2). Cobre tanto evoluções clássicas de 3 estágios quanto Pokémon de estágio único que atingem a forma final (ex: *Pikachu ➔ Raichu*, *Riolu ➔ Lucario*, *Growlithe ➔ Arcanine*, *Eevee ➔ Jolteon*).
+- **Nível 12:** 2ª Evolução Automática (Estágio 3 / Forma Final). (ex: *Ivysaur ➔ Venusaur*, *Charmeleon ➔ Charizard*, *Haunter ➔ Gengar*, *Gabite ➔ Garchomp*).
 - **Nível 21:** Ascensão Mega / Forma Ápice (+50% de dano definitivo, aura luminosa permanente e burst estelar de partículas).
-- **Sem poluição de cartas de Level Up:** As opções de cartas de melhoria continuam dedicadas exclusivamente a novos golpes e fusões de ataques, enquanto a transformação corporal do Pokémon ocorre de forma limpa e automática na arena.
+- **Cartas de Level Up Desobstruídas:** As evoluções ocorrem automaticamente no campo de batalha, deixando os 3 cards de Level Up 100% dedicados a ataques, fusões de golpes e melhorias de atributos.
+
+---
+
+### 3. 🌀 Captura Diegética no Mapa (World-Space Pokéball) & Rifts
+A mecânica de captura foi reformulada para ocorrer diretamente no chão do Canvas, sem modais ou pausas invasivas:
+- **Resolução Física no Solo:** Ao zerar a vida do Guardião do Rift dimensional, o monstro colapsa em partículas vermelhas de energia e uma Pokébola física (`WorldCaptureBall`) é instanciada nas coordenadas exatas.
+- **Animação Física de Tensão:**
+  1. *Queda & Quique:* A Pokébola cai do alto (`y - 120`), quica no solo com gravidade e absorve a essência do monstro.
+  2. *Três Balanços Físicos:* Pausa de 0.35s ➔ Balanço 1 (-28°) ➔ Pausa ➔ Balanço 2 (+28°) ➔ Pausa ➔ Balanço 3 (-28°).
+  3. *Sucesso:* A trava central se fixa, emite faíscas estelares douradas, toca o som clássico de clique e sobe o texto flutuante verde: `✨ + [NOME] CAPTURADO COM SUCESSO! ✨`. A espécie é registrada na Pokédex e desbloqueada como jogável.
+  4. *Falha:* A Pokébola se abre, emite nuvem de fumaça cinza expansiva e sobe o texto: `💨 O POKÉMON ESCAPOU!`.
+- **Combate Contínuo:** O jogador continua se movendo, atirando e recolhendo gemas livremente enquanto a Pokébola balança no solo.
+- **Balanceamento Rigoroso de Raridade de Spawn:**
+  - `roll <= 75%` ➔ Pokémon Comum/Regional Normal.
+  - `75% < roll <= 90%` ➔ Pokémon Comum/Regional **Shiny** (15% de chance).
+  - `90% < roll <= 99%` ➔ Pokémon **Lendário Normal** (9% de chance; requer 30+ Rifts concluídos).
+  - `roll > 99%` ➔ Pokémon **Lendário Shiny** (1% de chance; requer 30+ Rifts concluídos).
+- **Tiers Dinâmicos de Pokébola:**
+  - Nv. 1 a 10: **Poké Ball** (+0% bônus | Taxa Base: 50% Normal, 20% Lendário, 15% Shiny)
+  - Nv. 11 a 20: **Great Ball** (+5% bônus)
+  - Nv. 21 a 30: **Ultra Ball** (+10% bônus)
+  - Nv. 31+: **Ultimate Ball** (+15% bônus)
+  - Nv. 41+ (Evento Raro): **Gold Ball** (10% de chance de substituição, **100% de captura garantida** + 1.000 PokéMoedas de bônus).
+
+---
+
+### 4. 🌟 Mega Overdrive Elemental Dinâmico (Todos os 18 Tipos)
+Ao atingir 100% de energia de Mega, o jogador dispara o Poder Supremo correspondente ao elemento primário do líder da equipe:
+- **Expurgo da Metralhadora Caótica:** Multiplicadores artificiais de cadência de disparo foram removidos. As habilidades da equipe mantêm cadência natural enquanto calamidades cósmicas devastam o campo.
+- **Duração de 10.0 Segundos:** Drenagem linear contínua atuando como temporizador na barra e no botão do HUD.
+- **Aura Luminosa & Super Ímã:** Redução de 80% do dano recebido e dobro de raio de coleta (+100%).
+- **Catálogo dos 18 Poderes Supremos (`MEGA_ULTIMATES_DATA`):**
+  - 🔥 `fire`: Chuva diagonal de meteoros que abre crateras de fogo e poças de brasa no solo.
+  - 💧 `water`: Gêiseres de alta pressão e chuva torrencial que arremessam inimigos e causam lentidão de 40%.
+  - 🌿 `grass`: Vinhas espinhosas perfurantes que convertem 15% do dano causado em cura de PV para o Treinador.
+  - ⚡ `electric`: Tempestade de raios verticais com arcos voltaicos em cadeia pela horda.
+  - ❄️ `ice`: Nevasca polar contínua com estalactites caindo e chance de congelamento.
+  - 🐉 `dragon`: Bombardeio astral de meteoros cósmicos com dano massivo em área.
+  - 👻 `ghost`: Fissuras do submundo com espectros sombrios e drenagem vital contínua.
+  - 🔮 `psychic`: Ondas gravitacionais e distorções cinéticas que empurram e comprimem monstros.
+  - 🌍 `ground`: Fissuras tectônicas que racham o chão em zigue-zague.
+  - 🪨 `rock`: Desabamento de megálitos e rochas pontiagudas com atordoamento.
+  - 🌪️ `flying`: Tufões e vórtices velozes que sugam hordas e disparam lâminas de vento.
+  - 🐛 `bug`: Enxame voraz de gafanhotos de energia que corroem alvos.
+  - ☠️ `poison`: Chuva ácida corrosiva e poças tóxicas borbulhantes.
+  - 🥊 `fighting`: Ondas de choque de punhos sônicos gigantes com knockback devastador.
+  - ⚙️ `steel`: Chuva de lanças metálicas e lâminas giratórias de aço.
+  - 🌑 `dark`: Vórtice de escuridão profunda que colapsa e explode em área.
+  - ✨ `fairy`: Pulso prismático com faíscas estelares mágicas que cegam e desorientam inimigos.
+  - ⚪ `normal`: Hiper-raio radial de pura energia concentrada com empurrão massivo.
+
+---
+
+### 5. 🎴 HUD Inferior Retro Pixel Art & Painel de Status em Tempo Real
+- **Design Estilo GBA / Nintendo DS:** Moldura chanfrada de alta definição com relevo e paleta retro.
+- **Botão Mega Físico (`#hud-mega-btn`):** 3 estados reativos (Carregando com porcentagem, Pronto com pulso dourado pulsante e Ativo com cronômetro regressivo).
+- **Painel de Atributos (`#stats-rpg-panel`):** Exibe no canto da tela os 8 status matemáticos da partida em tempo real:
+  - ⚔️ **ATK:** Dano ofensivo
+  - 🛡️ **DEF:** Defesa e redução de dano
+  - 👟 **SPD:** Velocidade de movimento
+  - ⏱️ **CDA:** Aceleração de recarga de ataques
+  - 🎯 **CRT:** Taxa de acerto crítico
+  - 🧲 **MAG:** Raio magnético de coleta
+  - 📖 **APR:** Sabedoria e ganho de EXP
+  - 🌿 **REG:** Regeneração contínua de PV/s
 
 ---
 
 ## 🚀 Como Colocar Online na VPS com Coolify
 
-O projeto está 100% preparado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:
+O projeto está configurado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:
 
 ### Opção 1: Deploy com 1 Clique no Coolify
-1. No painel do Coolify, adicione um novo recurso: **+ New Resource** ➔ **Public Repository**.
+1. No painel do Coolify, crie um novo recurso: **+ New Resource** ➔ **Public Repository**.
 2. Cole a URL do repositório:
    ```
    https://github.com/cardoso-ix/PokeSurvivor-Endless-Hunt.git
    ```
 3. O Coolify detectará automaticamente o `Dockerfile` e o `docker-compose.yml`.
 4. Defina o seu domínio em **Domains** (ex: `https://jogar.meudominio.com`).
-5. Clique em **Deploy**. O Nginx Alpine e os certificados SSL serão configurados automaticamente!
+5. Clique em **Deploy**. O Nginx Alpine e os certificados SSL gratuitos (Let's Encrypt) serão configurados automaticamente!
 
-📄 Consulte o guia detalhado em: [`docs/DEPLOY_COOLIFY.md`](docs/DEPLOY_COOLIFY.md).
+📄 Consulte o guia completo em: [`docs/DEPLOY_COOLIFY.md`](docs/DEPLOY_COOLIFY.md).
 
 ### Opção 2: Deploy Direto via Terminal (Docker Compose)
 ```bash
@@ -173,9 +172,9 @@ O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
 
 - `debugCheckStages()` — Varre e valida os estágios de qualquer Pokémon no console.
 - `debugCheckStarter('id')` — Testa se a espécie pode iniciar partida (apenas Estágio 1).
-- `debugSetLevel(lvl)` — Altera o nível do jogador e dispara os marcos evolutivos.
+- `debugSetLevel(lvl)` — Altera o nível do jogador e dispara os marcos evolutivos automaticamente.
 - `debugFillMega()` — Enche a barra de Mega para 100% imediatamente.
-- `debugTriggerGoldBall()` — Força a captura com Gold Ball (100% taxa + 1.000 ouro).
+- `debugTriggerGoldBall()` — Força a captura com Gold Ball (100% taxa + 1.000 moedas).
 - `debugSpawnRift()` — Abre um Rift com Guardião na arena.
 
 ---
@@ -183,22 +182,22 @@ O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
 ## 📁 Estrutura do Repositório
 
 ```
-index.html              # Interface do jogo e ordem de carregamento em produção
-dev.html                # Ambiente de desenvolvimento local com scripts modulares
+index.html              # Interface de produção otimizada gerada por build.js
+dev.html                # Ambiente de desenvolvimento modular com scripts separados
 Dockerfile              # Imagem Nginx Alpine ultra-leve para Coolify/VPS
 docker-compose.yml      # Configuração para deploy direto com 1 clique
 nginx.conf              # Configuração Nginx com Gzip e cache inteligente
-assets/                 # Sprites PMD, áudio e fontes
+assets/                 # Sprites PMD, áudios e fontes pixel art
 css/
   hud.css               # Estilos do novo HUD inferior retro e painel de atributos
-  style.css             # Estilos gerais da interface
+  style.css             # Estilos gerais da interface do jogo
 js/
-  core/                 # db, audio, input, camera, sprites, util
+  core/                 # db, audio, input, camera, sprites, i18n, updater, util
   data/                 # evolutions (árvore genealógica das 9 gens), pokedex, moves, mega_ultimates
   entities/             # player, enemy, projectile, vfx, fx, pickup
-  systems/              # capture, rift, mega, combat, spawner, levelup, weather
-  ui/                   # hud (bússola e canvas), menu, test, run-ui, gacha-ui
-tools/                  # Scripts de teste automatizado e build de produção
+  systems/              # capture, rift, mega, combat, spawner, levelup, weather, interact, judgment
+  ui/                   # hud, menu, test, run-ui, gacha-ui, settings-ui, goals-ui, social-ui
+tools/                  # Bateria de testes automatizados e scripts de build
 ```
 
 ---
