@@ -301,12 +301,15 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 }
 
 /* ---------- mejoras ---------- */
-.upg { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
-.upg-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; }
-.upg-item .ic { font-size: 26px; text-align: center; }
+.upg { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
+.upg-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; min-height: 64px; box-sizing: border-box; }
+.upg-item .ic { font-size: 26px; text-align: center; display: flex; align-items: center; justify-content: center; }
 .pips { display: flex; gap: 3px; margin-top: 4px; }
 .pips i { width: 12px; height: 6px; border-radius: 2px; background: rgba(0,0,0,.4); }
 .pips i.on { background: var(--gold); }
+.upg-btns { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-shrink: 0; }
+.upg-btns .btn { height: 32px; min-width: 84px; padding: 4px 10px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; box-sizing: border-box; text-align: center; }
+.upg-btns .upg-max-btn { background: rgba(30, 41, 59, 0.75) !important; color: #94a3b8 !important; border: 1px solid rgba(148, 163, 184, 0.3) !important; cursor: default !important; font-size: 11px !important; letter-spacing: 0.5px; text-transform: uppercase; }
 
 /* ---------- gacha ---------- */
 .banner {

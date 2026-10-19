@@ -291,16 +291,6 @@ G.MenuUI = (() => {
     G.UI.sprite($('upg-stage'), upgDex, { lively: true, scale: 2, hero: true, shiny });
     $('upg-stage').style.setProperty('--stage-c', shiny ? '#9ae6ff' : G.U.TYPE_COLOR[mon.types[0]]);
 
-    const stage = typeof G.getPokemonEvolutionStage === 'function' ? G.getPokemonEvolutionStage(upgDex) : 1;
-    let stageBadge = '';
-    const badge2 = window.i18n ? window.i18n.t('upgrades.stageBadge2') : '(x2 Ouro - Estágio 2)';
-    const badge3 = window.i18n ? window.i18n.t('upgrades.stageBadge3') : '(x3 Ouro - Estágio Final)';
-    if (stage === 2) {
-      stageBadge = `<span class="upg-stage-badge" style="font-size:11px;color:#ffa726;font-weight:bold;margin-right:6px;background:rgba(255,167,38,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,167,38,0.35)">${badge2}</span>`;
-    } else if (stage >= 3) {
-      stageBadge = `<span class="upg-stage-badge" style="font-size:11px;color:#ff5252;font-weight:bold;margin-right:6px;background:rgba(255,82,82,0.15);padding:3px 6px;border-radius:4px;border:1px solid rgba(255,82,82,0.35)">${badge3}</span>`;
-    }
-
     const box = $('upg-list');
     box.innerHTML = '';
     for (const u of G.Upgrades.LIST) {
@@ -308,24 +298,28 @@ G.MenuUI = (() => {
       const maxed = lvl >= u.max;
       const cost = maxed ? 0 : G.Upgrades.cost(u.id, lvl, upgDex);
       const canAfford = s.coins >= cost;
-      const upgName = (window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null) || u.name;
-      const upgDesc = (window.i18n ? window.i18n.t(`upgrades.${u.id}Desc`) : null) || u.unit;
-      const maxText = window.i18n ? window.i18n.t('upgrades.maxLevel') : 'Máximo';
-      const chooseText = window.i18n ? window.i18n.t('upgrades.choose') : 'Escolher';
+      const rawName = window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null;
+      const upgName = (rawName && rawName !== `upgrades.${u.id}` && !rawName.startsWith('upgrades.')) ? rawName : u.name;
+      const rawDesc = window.i18n ? window.i18n.t(`upgrades.${u.id}Desc`) : null;
+      const upgDesc = (rawDesc && rawDesc !== `upgrades.${u.id}Desc` && !rawDesc.startsWith('upgrades.')) ? rawDesc : u.unit;
+      const maxText = (window.i18n ? window.i18n.t('upgrades.maxLevel') : null) || 'Máximo';
+      const chooseText = (window.i18n ? window.i18n.t('upgrades.choose') : null) || 'Escolher';
       const el = document.createElement('div');
       el.className = 'panel upg-item';
       el.innerHTML = `
         <div class="ic">${G.Icons.html(u.icon, 32)}</div>
-        <div>
-          <b>${upgName}</b> <span style="color:var(--muted);font-size:13px">${upgDesc}</span>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+            <b style="font-size:14px;white-space:nowrap">${upgName}</b>
+            <span style="color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${upgDesc}</span>
+          </div>
           <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div>
         </div>
-        <div class="upg-btns" style="display:flex;align-items:center;gap:6px">
+        <div class="upg-btns">
           ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>${chooseText} (${banList().length}/${lvl})</button>` : ''}
-          ${!maxed && stageBadge ? stageBadge : ''}
-          <button class="btn small ${maxed ? '' : (canAfford ? 'gold' : '')}" data-buy data-sfx="none"
+          <button class="btn small ${maxed ? 'upg-max-btn' : (canAfford ? 'gold' : '')}" data-buy data-sfx="none"
             ${maxed || !canAfford ? 'disabled' : ''}
-            style="${!maxed && !canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;min-width:70px;' : 'min-width:70px;'}"
+            style="${!maxed && !canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : ''}"
             title="${!maxed && !canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'PokéMoedas insuficientes') : ''}">
             ${maxed ? maxText : `<span class="coin"></span> ${cost.toLocaleString('pt-BR')}`}
           </button>
