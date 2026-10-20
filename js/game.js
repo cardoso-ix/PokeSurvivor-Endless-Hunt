@@ -421,12 +421,7 @@ G.Game = (() => {
     if (pl && typeof pl.checkEvolutionMilestones === 'function') {
       pl.checkEvolutionMilestones();
     }
-    // A partir do nível 20, os 4 ataques estão definidos e combando juntos.
-    // Não abre mais a seleção de cartas para não pausar nem contaminar a tela!
-    if (pl && pl.level >= 20) {
-      pendingLevels = 0;
-      return;
-    }
+
     if (G.Coop.active) {
       // En grupo, las cartas salen a la vez para todos y se espera a que elijan.
       if (G.Coop.players().every(p => p.dead)) return;
@@ -1024,11 +1019,6 @@ G.Game = (() => {
       if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
     },
     triggerLevelUp(n = 1) {
-      if (pl && pl.level >= 20) {
-        pendingLevels = 0;
-        if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
-        return;
-      }
       pendingLevels += n;
       if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
       if (state === 'paused') {

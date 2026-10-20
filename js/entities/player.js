@@ -1565,8 +1565,11 @@ G.Player = class Player {
           const lvl = adminEvoMode === 'instant' ? 1 :
                       (adminEvoMode === 'official' && evo.level) ? evo.level :
                       (isSecondEvolution ? 12 : 5);
+          // Permite que a carta de evolução seja oferecida no LevelUp do nível exato (5 e 12),
+          // e se o jogador passar sem escolher, a evolução automática assume no nível seguinte.
+          const triggerLvl = adminEvoMode === 'instant' ? 1 : (lvl + 1);
 
-          if (this.level >= lvl && !this._milestonesReached.has('evo_' + evo.next.toLowerCase())) {
+          if (this.level >= triggerLvl && !this._milestonesReached.has('evo_' + evo.next.toLowerCase())) {
             targetEvo = evo;
             reqLevel = lvl;
             break;

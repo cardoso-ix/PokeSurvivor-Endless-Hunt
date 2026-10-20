@@ -10,7 +10,7 @@ G.LevelUp = (() => {
     { id: 'hp',   icon: 'heart', title: 'Vigor',        desc: '+20 de PV máximo (e recupera vida).',
       apply: pl => pl.addMaxHp(20) },
     { id: 'atk',  icon: 'fist',  title: 'Potência',     desc: '+10% de dano em todos os ataques.',
-      apply: pl => pl.atkMul *= 1.10, max: 40 },
+      apply: pl => pl.atkMul *= 1.10 },
     { id: 'spd',  icon: 'boot',  title: 'Agilidade',    desc: '+7% de velocidade de movimento.',
       apply: pl => pl.spdMul *= 1.07, max: 8 },
     { id: 'cd',   icon: 'clock', title: 'Reflexos',     desc: '-8% de tempo de recarga em todos os ataques.',
@@ -32,7 +32,8 @@ G.LevelUp = (() => {
     const out = [];
 
     // --- movimientos nuevos ---
-    if (pl.slots.length < pl.maxMoves) {
+    // Não oferece mais ataques novos a partir do Nível 20 ou com 4 ataques preenchidos
+    if (pl.slots.length < pl.maxMoves && pl.level < 20) {
       // Con 2 potenciadores ya no se ofrecen más: los buff no hacen daño y
       // llenar los 4 huecos con ellos deja la run sin salida.
       const buffs = pl.moves.filter(m => m.kind === 'buff').length;
@@ -47,6 +48,55 @@ G.LevelUp = (() => {
           title: d.name, desc: d.desc,
           apply: p => p.addMove(id)
         });
+      }
+    }
+
+        // --- cartas de evolução de espécie do Pokémon (Prioridade Máxima) ---
+    const getEvo = (typeof getEvolutionData === 'function' ? getEvolutionData :
+                    (typeof G === 'object' && G.getEvolutionData) ? G.getEvolutionData :
+                    (typeof window !== 'undefined' && window.getEvolutionData) ? window.getEvolutionData : null);
+    if (getEvo) {
+      const currentSpecies = pl.species || (pl.mon && pl.mon.name ? pl.mon.name.toLowerCase() : '');
+      const evoRaw = getEvo(currentSpecies);
+      if (evoRaw) {
+        const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
+        const isSecondEvolution = (pl.currentEvolutionStage >= 2) || (pl.evolutionHistory && pl.evolutionHistory.length >= 2);
+        // Permite evolução a partir do Nível 5 (estágio 1->2) e Nível 12 (estágio 2->3)
+        const reqLevel = isSecondEvolution ? 12 : 5;
+
+        for (const evo of evoList) {
+          const alreadyReached = pl._milestonesReached && pl._milestonesReached.has('evo_' + evo.next.toLowerCase());
+          if (pl.level >= reqLevel && !alreadyReached) {
+            let nextMon = null;
+            if (typeof G === 'object' && Array.isArray(G.DEX)) {
+              nextMon = G.DEX.find(p => p.name.toLowerCase() === evo.next.toLowerCase());
+            }
+            if (!nextMon && typeof G === 'object' && G.DEX_BY && typeof evo.next === 'number') {
+              nextMon = G.DEX_BY[evo.next];
+            }
+            const name = nextMon ? nextMon.name : (evo.next.charAt(0).toUpperCase() + evo.next.slice(1));
+            const primaryType = nextMon && nextMon.types ? nextMon.types[0] : 'normal';
+            const color = (G.U && G.U.TYPE_COLOR) ? (G.U.TYPE_COLOR[primaryType] || '#ffd23f') : '#ffd23f';
+
+            out.push({
+              w: 300,
+              type: 'EVOLUTION',
+              key: 'evo_mon:' + evo.next.toLowerCase(),
+              targetSpeciesId: evo.next,
+              dex: nextMon ? nextMon.dex : null,
+              icon: 'type:' + primaryType,
+              color: '#ffd700',
+              tag: '🌟 EVOLUÇÃO',
+              title: 'Evolução: ' + name,
+              desc: 'Evolua para ' + name + '! Aumenta atributos base e adapta seus tipos elementais.',
+              apply: p => {
+                p._milestonesReached = p._milestonesReached || new Set();
+                p._milestonesReached.add('evo_' + evo.next.toLowerCase());
+                p.evolveTo(evo.next);
+              }
+            });
+          }
+        }
       }
     }
 
@@ -124,6 +174,24 @@ G.LevelUp = (() => {
       const c = pool.splice(evo, 1)[0];
       used.add(c.key);
       picked.push(c);
+    }
+
+    // Fallback infinito: se o pool esgotou opções limitadas, alimenta com passivas infinitas (Vigor, Potência, Síntese, Cura)
+    if (pool.length === 0 && picked.length < n) {
+      const infiniteStats = STATS.filter(s => ['hp', 'atk', 'rgn', 'heal'].includes(s.id));
+      for (const s of infiniteStats) {
+        pool.push({
+          w: 10,
+          type: 'stat',
+          key: 'stat:' + s.id + ':' + Math.random(),
+          icon: s.icon,
+          color: '#8fa3c4',
+          tag: 'Passiva',
+          title: s.title,
+          desc: s.desc,
+          apply: p => { s.apply(p); p.statsTaken[s.id] = (p.statsTaken[s.id] || 0) + 1; }
+        });
+      }
     }
 
     while (picked.length < n && pool.length) {
