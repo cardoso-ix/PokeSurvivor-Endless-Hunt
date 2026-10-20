@@ -328,42 +328,105 @@ G.MenuUI = (() => {
     box.innerHTML = '';
     for (const u of G.Upgrades.LIST) {
       const lvl = levels[u.id] || 0;
-      const maxed = lvl >= u.max;
-      const cost = maxed ? 0 : G.Upgrades.cost(u.id, lvl, upgDex);
+      const baseMaxed = lvl >= u.max;
+      const overLvl = Math.max(0, lvl - u.max); // 0 a 10
+      const nextOverLvl = overLvl + 1; // 1 a 10
+      const supremeMaxed = overLvl >= 10;
+      const cost = supremeMaxed ? 0 : G.Upgrades.cost(u.id, lvl, upgDex);
       const canAfford = s.coins >= cost;
       const rawName = window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null;
       const upgName = (rawName && rawName !== `upgrades.${u.id}` && !rawName.startsWith('upgrades.')) ? rawName : u.name;
       const rawDesc = window.i18n ? window.i18n.t(`upgrades.${u.id}Desc`) : null;
-      const upgDesc = (rawDesc && rawDesc !== `upgrades.${u.id}Desc` && !rawDesc.startsWith('upgrades.')) ? rawDesc : u.unit;
-      const maxText = (window.i18n ? window.i18n.t('upgrades.maxLevel') : null) || 'Máximo';
+      let upgDesc = (rawDesc && rawDesc !== `upgrades.${u.id}Desc` && !rawDesc.startsWith('upgrades.')) ? rawDesc : u.unit;
+
+      // Descrições de super buff quando em Ascensão (+1 a +10)
+      if (baseMaxed && !supremeMaxed) {
+        const BUFF_TIPS = {
+          atk: `+15% de Dano Supremo (+150% no +10)`,
+          crit: `+5% de Chance Crítica (+50% no +10)`,
+          hp: `+50 PV Máximo (+500 PV no +10)`,
+          def: `+3,5% de Defesa Absoluta (+35% no +10)`,
+          cd: `-4% de Tempo de Recarga (-40% no +10)`,
+          spd: `+5% de Velocidade de Movimento`,
+          regen: `+2,0 PV por segundo (+20 PV/s no +10)`,
+          magnet: `+30% de Raio de Coleta de Ímã`,
+          xp: `+20% de Experiência Obtida`,
+          coins: `+35% de PokéMoedas Recebidas`,
+          reroll: `+1 Troca de Cartas por Nível`,
+          ban: `+1 Veto de Ataque por Nível`,
+          moves: `+10% de Dano das Habilidades Iniciais`
+        };
+        upgDesc = `Ascensão +${nextOverLvl}: ${BUFF_TIPS[u.id] || '+Super Bônus de Atributos'}`;
+      } else if (supremeMaxed) {
+        upgDesc = 'Ascensão Suprema +10 Concluída (Poder Máximo)';
+      }
+
       const chooseText = (window.i18n ? window.i18n.t('upgrades.choose') : null) || 'Escolher';
       const el = document.createElement('div');
       el.className = 'panel upg-item';
+
+      // Badge visual de Ascensão (+1..+10)
+      const plusBadge = overLvl > 0
+        ? `<span style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:bold;margin-left:4px;box-shadow:0 0 6px rgba(245,158,11,0.6);">+${overLvl}</span>`
+        : '';
+
+      // Pips: pips base se lvl < u.max, ou pips dourados de Ascensão se baseMaxed
+      let pipsHtml = '';
+      if (!baseMaxed) {
+        pipsHtml = `<div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div>`;
+      } else {
+        pipsHtml = `<div class="pips" style="margin-top:4px;" title="Níveis de Ascensão (+1 a +10)">
+          <span style="font-size:10px;color:#fbbf24;font-weight:bold;margin-right:4px;">ASCENSÃO:</span>
+          ${Array.from({ length: 10 }, (_, i) => `<i class="${i < overLvl ? 'on' : ''}" style="${i < overLvl ? 'background:#f59e0b;box-shadow:0 0 5px #fbbf24;border-color:#fbbf24;' : 'border-color:#78350f;background:rgba(0,0,0,0.5);'}"></i>`).join('')}
+        </div>`;
+      }
+
+      // Botão de compra
+      let buyBtnHtml = '';
+      if (supremeMaxed) {
+        buyBtnHtml = `<button class="btn small upg-max-btn" disabled style="background:#1e293b;color:#f59e0b;border:1px solid #d97706;font-weight:bold;letter-spacing:0.5px;">+10 MÁXIMO</button>`;
+      } else if (baseMaxed) {
+        buyBtnHtml = `<button class="btn small ${canAfford ? 'gold' : ''}" data-buy data-sfx="none"
+          ${!canAfford ? 'disabled' : ''}
+          style="${!canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : 'background:linear-gradient(180deg,#f59e0b,#b45309);color:#fff;font-weight:bold;border:1px solid #fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.5);'}"
+          title="${!canAfford ? 'PokéMoedas insuficientes para Ascensão' : `Liberar Ascensão +${nextOverLvl}`}">
+          +${nextOverLvl} &nbsp;<span class="coin"></span> ${cost.toLocaleString('pt-BR')}
+        </button>`;
+      } else {
+        buyBtnHtml = `<button class="btn small ${canAfford ? 'gold' : ''}" data-buy data-sfx="none"
+          ${!canAfford ? 'disabled' : ''}
+          style="${!canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : ''}"
+          title="${!canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'PokéMoedas insuficientes') : ''}">
+          <span class="coin"></span> ${cost.toLocaleString('pt-BR')}
+        </button>`;
+      }
+
       el.innerHTML = `
         <div class="ic">${G.Icons.html(u.icon, 32)}</div>
         <div style="min-width:0">
           <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
-            <b style="font-size:14px;white-space:nowrap">${upgName}</b>
-            <span style="color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${upgDesc}</span>
+            <b style="font-size:14px;white-space:nowrap">${upgName}</b>${plusBadge}
+            <span style="color:${baseMaxed ? '#fbbf24' : 'var(--muted)'};font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${upgDesc}</span>
           </div>
-          <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div>
+          ${pipsHtml}
         </div>
         <div class="upg-btns">
           ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>${chooseText} (${banList().length}/${lvl})</button>` : ''}
-          <button class="btn small ${maxed ? 'upg-max-btn' : (canAfford ? 'gold' : '')}" data-buy data-sfx="none"
-            ${maxed || !canAfford ? 'disabled' : ''}
-            style="${!maxed && !canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : ''}"
-            title="${!maxed && !canAfford ? (window.i18n && window.i18n.currentLang === 'en-US' ? 'Insufficient PokéCoins' : 'PokéMoedas insuficientes') : ''}">
-            ${maxed ? maxText : `<span class="coin"></span> ${cost.toLocaleString('pt-BR')}`}
-          </button>
+          ${buyBtnHtml}
         </div>`;
-      if (u.id === 'ban' && lvl > 0) el.querySelector('[data-ban]').onclick = () => { banOpen = !banOpen; renderUpgrades(); };
-      el.querySelector('[data-buy]').onclick = () => {
+
+      if (u.id === 'ban' && lvl > 0) {
+        const banBtn = el.querySelector('[data-ban]');
+        if (banBtn) banBtn.onclick = () => { banOpen = !banOpen; renderUpgrades(); };
+      }
+      const buyBtn = el.querySelector('[data-buy]');
+      if (buyBtn) buyBtn.onclick = () => {
         const sv = G.DB.save, lv = G.DB.upgradesOf(upgDex), now = lv[u.id] || 0;
-        if (now >= u.max) { renderUpgrades(); return; }
+        const maxTot = u.max + 10;
+        if (now >= maxTot) { renderUpgrades(); return; }
         const price = G.Upgrades.cost(u.id, now, upgDex);
         if (sv.coins < price) {
-          if (G.UI && G.UI.toast) G.UI.toast('PokéMoedas insuficientes para esta melhoria!');
+          if (G.UI && G.UI.toast) G.UI.toast('PokéMoedas insuficientes!');
           renderUpgrades();
           return;
         }
@@ -372,7 +435,12 @@ G.MenuUI = (() => {
         G.DB.commit(true);
         G.Audio.sfx('buy');
         G.UI.refreshCoins();
-        G.UI.toast(`${mon.name} · ${upgName}: nível ${now + 1}`);
+        if (now >= u.max) {
+          const nextPlus = (now - u.max) + 1;
+          G.UI.toast(`🔥 ${mon.name} · ${upgName} ASCENSÃO +${nextPlus} DESBLOQUEADA!`, 4500);
+        } else {
+          G.UI.toast(`${mon.name} · ${upgName}: nível ${now + 1}`);
+        }
         renderUpgrades();
       };
       box.appendChild(el);

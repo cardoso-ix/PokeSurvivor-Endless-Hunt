@@ -225,7 +225,7 @@ G.DB = (() => {
       if (!u || typeof u !== 'object') { delete s.pupg[d]; continue; }
       for (const id of Object.keys(u)) {
         if (!G.Upgrades.BY[id]) delete u[id];
-        else u[id] = Math.min(G.Upgrades.BY[id].max, n(u[id]));
+        else u[id] = Math.min(G.Upgrades.BY[id].max + 10, n(u[id]));
       }
     }
   }
@@ -1078,12 +1078,12 @@ G.DB = (() => {
       level: totalLevel,
       rawLevels,
       perks,
-      hpBonus: perks.hp || ((rawLevels.hp || 0) * 8),
-      atkBonus: (rawLevels.atk || 0) * 0.04,
-      spdBonus: (rawLevels.spd || 0) * 0.03,
-      defBonus: perks.dmgReduce || ((rawLevels.def || 0) * 0.02),
-      cdBonus: (rawLevels.cd || 0) * 0.03,
-      regenBonus: perks.regen || ((rawLevels.regen || 0) * 0.2)
+      hpBonus: perks.hp != null ? perks.hp : ((rawLevels.hp || 0) * 8),
+      atkBonus: perks.atkMul != null ? (perks.atkMul - 1) : ((rawLevels.atk || 0) * 0.04),
+      spdBonus: perks.spdMul != null ? (perks.spdMul - 1) : ((rawLevels.spd || 0) * 0.03),
+      defBonus: perks.dmgReduce != null ? perks.dmgReduce : ((rawLevels.def || 0) * 0.02),
+      cdBonus: perks.cdMul != null ? (1 - perks.cdMul) : ((rawLevels.cd || 0) * 0.03),
+      regenBonus: perks.regen != null ? perks.regen : ((rawLevels.regen || 0) * 0.2)
     };
   }
 
@@ -1137,18 +1137,14 @@ G.DB = (() => {
       } catch (e) {}
     }
 
-    const hpLvl = Math.max(0, Math.min(10, Math.floor(Number(raw.hp) || 0)));
-    const atkLvl = Math.max(0, Math.min(10, Math.floor(Number(raw.atk) || 0)));
-    const spdLvl = Math.max(0, Math.min(8, Math.floor(Number(raw.spd) || 0)));
-    const defLvl = Math.max(0, Math.min(8, Math.floor(Number(raw.def) || 0)));
-    const cdLvl = Math.max(0, Math.min(8, Math.floor(Number(raw.cd) || 0)));
-    const regenLvl = Math.max(0, Math.min(5, Math.floor(Number(raw.regen) || 0)));
-    const critLvl = Math.max(0, Math.min(10, Math.floor(Number(raw.crit) || 0)));
+    const pks = (typeof G === 'object' && G.Upgrades && typeof G.Upgrades.perks === 'function')
+      ? G.Upgrades.perks(raw)
+      : null;
 
-    const hpBonus = hpLvl * 8;
-    const atkBonus = Number((baseAtk * (atkLvl * 0.04)).toFixed(2));
-    const defBonus = Number((defLvl * 0.02).toFixed(2));
-    const speedBonus = Number((baseSpd * (spdLvl * 0.03)).toFixed(1));
+    const hpBonus = pks ? pks.hp : (Math.floor(Number(raw.hp) || 0) * 8);
+    const atkBonus = pks ? Number((baseAtk * (pks.atkMul - 1)).toFixed(2)) : Number((baseAtk * (Math.floor(Number(raw.atk) || 0) * 0.04)).toFixed(2));
+    const defBonus = pks ? Number(pks.dmgReduce.toFixed(2)) : Number((Math.floor(Number(raw.def) || 0) * 0.02).toFixed(2));
+    const speedBonus = pks ? Number((baseSpd * (pks.spdMul - 1)).toFixed(1)) : Number((baseSpd * (Math.floor(Number(raw.spd) || 0) * 0.03)).toFixed(1));
 
     return {
       speciesId: speciesName || String(speciesId),

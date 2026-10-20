@@ -353,9 +353,9 @@ G.Game = (() => {
     const save = G.DB.save;
     const mul = pl.coinMul;
     const parts = {
-      tiempo: Math.floor(time / 5),
-      derrotados: Math.floor(pl.kills * 0.25),
-      jefes: pl.bosses * 80,
+      tiempo: Math.floor(time * 3),              // 180 moedas por minuto de sobrevivência (antes time/5)
+      derrotados: Math.floor(pl.kills * 2.5),    // 2.5 moedas por monstro derrotado (antes 0.25)
+      jefes: pl.bosses * 800,                    // 800 moedas por chefe derrotado (antes 80)
       recogidas: pl.coins
     };
     const coins = Math.round((parts.tiempo + parts.derrotados + parts.jefes + parts.recogidas) * mul);
@@ -554,8 +554,9 @@ G.Game = (() => {
       return;
     }
     if (p.kind === 'coin') {
-      pl.coins += p.value;
-      G.FX.dmgText(who.x, who.y - who.bodyH - 6, '+' + p.value, '#ffd23f');
+      const gained = Math.round(p.value * 5 * (pl.coinMul || 1));
+      pl.coins += gained;
+      G.FX.dmgText(who.x, who.y - who.bodyH - 6, '+' + gained, '#ffd23f');
       return;
     }
     if (p.kind === 'item') {
