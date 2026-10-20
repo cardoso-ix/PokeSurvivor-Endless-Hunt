@@ -727,8 +727,8 @@ G.Game = (() => {
       return;
     }
     // Tras caer, deja que se vea la animación de Faint antes del resumen.
-    // (En la arena de la grieta no: allí caer sólo te echa de vuelta.)
-    if (pl.dead && !coop && !G.Rift.inArena) {
+    // Morte tanto no mapa normal quanto no Rift aciona Game Over definitivo na rodada
+    if (pl.dead && !coop) {
       deathT += dt;
       pl.update(dt);
       G.EnemyMgr.update(dt * 0.3, pl);
@@ -804,7 +804,7 @@ G.Game = (() => {
 
   /** Anfitrión: si caéis todos, se acaba (tras ver caer al último). */
   function checkAllDown(dt) {
-    if (G.Rift.inArena || !G.Coop.players().every(p => p.dead)) { deathT = 0; return; }
+    if (!G.Coop.players().every(p => p.dead)) { deathT = 0; return; }
     deathT += dt;
     if (deathT > 1.6) {
       deathT = 0;

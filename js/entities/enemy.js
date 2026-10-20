@@ -800,9 +800,30 @@
         ctx.lineWidth = 3;
         ctx.strokeStyle = 'rgba(0,0,0,0.85)';
         const ly = this.y - this.bodyH - 16;
-        ctx.strokeText('⚡ GUARDIÃO DO RIFT ⚡', this.x, ly);
+        const tierLabel = this.riftTier ? ` [${this.riftTierName || ('TIER ' + this.riftTier)}]` : '';
+        ctx.strokeText(`⚡ GUARDIÃO DO RIFT${tierLabel} ⚡`, this.x, ly);
         ctx.fillStyle = '#c084fc';
-        ctx.fillText('⚡ GUARDIÃO DO RIFT ⚡', this.x, ly);
+        ctx.fillText(`⚡ GUARDIÃO DO RIFT${tierLabel} ⚡`, this.x, ly);
+        ctx.restore();
+      }
+
+      // Indicador de Sombra Dimensional (Lacaio do Rift)
+      if (this.isRiftMinion && !this.dead) {
+        ctx.save();
+        const cy = this.y - this.bodyH * 0.5;
+        ctx.fillStyle = 'rgba(147, 51, 234, 0.28)';
+        ctx.beginPath();
+        ctx.arc(this.x, cy, this.r * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '700 8px Pixelify,"Segoe UI",sans-serif';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+        const ly = this.y - this.bodyH - 12;
+        ctx.strokeText('SOMBRA', this.x, ly);
+        ctx.fillStyle = '#d8b4fe';
+        ctx.fillText('SOMBRA', this.x, ly);
         ctx.restore();
       }
 

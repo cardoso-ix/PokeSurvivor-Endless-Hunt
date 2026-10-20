@@ -24,6 +24,68 @@ G.Rift = (() => {
   // Desde 2 min antes de la Sentencia de Arceus (minuto 30) ya no se abren.
   const CHECK = 30, CHANCE = 0.2, TTL = 45;
   const ARENA_R = 11, ARENA_TIME = 120, FROM = 75;
+
+  // Escalonamento Dinâmico por Nível do Jogador (começa no Nv 10, sobe no 20, 30, ..., até 100)
+  const RIFT_TIERS = [
+    { tier: 0, minLvl: 1,   name: 'Iniciação',        hpMul: 1.0,  dmgMul: 1.0,  spdBonus: 0,  shotCdMul: 1.0,  minions: 0 },
+    { tier: 1, minLvl: 10,  name: 'Grau I (Nv. 10)',   hpMul: 1.45, dmgMul: 1.30, spdBonus: 5,  shotCdMul: 0.95, minions: 0 },
+    { tier: 2, minLvl: 20,  name: 'Grau II (Nv. 20)',  hpMul: 2.10, dmgMul: 1.70, spdBonus: 10, shotCdMul: 0.90, minions: 2 },
+    { tier: 3, minLvl: 30,  name: 'Grau III (Nv. 30)', hpMul: 2.90, dmgMul: 2.15, spdBonus: 14, shotCdMul: 0.85, minions: 3 },
+    { tier: 4, minLvl: 40,  name: 'Grau IV (Nv. 40)',  hpMul: 3.90, dmgMul: 2.70, spdBonus: 18, shotCdMul: 0.80, minions: 3 },
+    { tier: 5, minLvl: 50,  name: 'Grau V (Nv. 50)',   hpMul: 5.10, dmgMul: 3.35, spdBonus: 22, shotCdMul: 0.75, minions: 4 },
+    { tier: 6, minLvl: 60,  name: 'Grau VI (Nv. 60)',  hpMul: 6.50, dmgMul: 4.10, spdBonus: 26, shotCdMul: 0.70, minions: 4 },
+    { tier: 7, minLvl: 70,  name: 'Grau VII (Nv. 70)', hpMul: 8.10, dmgMul: 4.95, spdBonus: 30, shotCdMul: 0.65, minions: 5 },
+    { tier: 8, minLvl: 80,  name: 'Grau VIII (Nv. 80)',hpMul: 10.0, dmgMul: 5.90, spdBonus: 34, shotCdMul: 0.60, minions: 5 },
+    { tier: 9, minLvl: 90,  name: 'Grau IX (Nv. 90)',  hpMul: 12.2, dmgMul: 7.00, spdBonus: 38, shotCdMul: 0.55, minions: 6 },
+    { tier: 10, minLvl: 100, name: 'Grau X Apex (Nv. 100+)', hpMul: 15.0, dmgMul: 8.50, spdBonus: 44, shotCdMul: 0.50, minions: 7 }
+  ];
+
+  function getRiftTierData(playerLevel) {
+    const lvl = Math.max(1, Number(playerLevel) || 1);
+    if (lvl < 10) return RIFT_TIERS[0];
+    const tierIdx = Math.min(10, Math.floor(lvl / 10));
+    return RIFT_TIERS[tierIdx] || RIFT_TIERS[10];
+  }
+
+  function spawnRiftMinions(count, tierData) {
+    if (!arena || arena.phase !== 'fight') return;
+    const ts = TS();
+    const pl = (G.Game && G.Game.player) ? G.Game.player : { x: arena.x, y: arena.y, level: 1 };
+    const pLvl = (arena && arena.playerLevel) || pl.level || 1;
+    const regKey = (G.Game && G.Game.currentRegion) || 'kanto';
+    const getRegionCfg = G.getRegionConfig || (() => ({ dexRange: [1, 151] }));
+    const reg = getRegionCfg(regKey);
+    const minDex = reg.dexRange ? reg.dexRange[0] : 1;
+    const maxDex = reg.dexRange ? reg.dexRange[1] : 151;
+
+    for (let i = 0; i < count; i++) {
+      const angle = (i / Math.max(1, count)) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = G.U.rand(120, (arena.r - 2.8) * ts);
+      const mx = arena.x + Math.cos(angle) * dist;
+      const my = arena.y + Math.sin(angle) * dist;
+
+      const randomDex = G.U.randInt(minDex, maxDex);
+      const monBase = (G.DEX_BY && G.DEX_BY[randomDex]) || { name: 'Sombra', spd: 80 };
+
+      const minionDef = {
+        dex: randomDex,
+        name: 'Sombra de ' + (monBase.name || 'Fenda'),
+        hp: Math.round((350 + pLvl * 45) * (tierData ? tierData.hpMul * 0.35 : 1)),
+        spd: Math.round(G.U.clamp(52 + (tierData ? tierData.spdBonus * 0.4 : 0), 50, 95)),
+        dmg: Math.round((16 + pLvl * 1.8) * (tierData ? tierData.dmgMul * 0.4 : 1)),
+        xp: Math.round(80 + pLvl * 6),
+        behavior: 'charger'
+      };
+
+      const minion = new G.Enemy(minionDef, mx, my, { hp: 1, spd: 1, dmg: 1 });
+      minion.isRiftMinion = true;
+      minion.legend = false;
+      minion.boss = false;
+      minion.flying = false;
+      if (G.EnemyMgr) G.EnemyMgr.add(minion);
+      if (G.FX && G.FX.burst) G.FX.burst(mx, my, '#a855f7', 10, 50);
+    }
+  }
   let rift = null;          // { x, y, ttl, t }
   let arena = null;         // { tx, ty, r, dex, shiny, x, y, back, biome
   let riftsCompleted = 0;   // Contador de Fendas concluídas na partida, t, phase, endT, bossId }
@@ -350,10 +412,15 @@ G.Rift = (() => {
       detectedStage = getMonStage(mon.dex || mon.name);
     }
 
+    const pLvl = forceLevel !== undefined && forceLevel !== null
+      ? Number(forceLevel)
+      : ((typeof G === 'object' && G.Game && G.Game.player) ? G.Game.player.level : 1);
+
     const cfg = {
       tx: 5000 + Math.floor(Math.random() * 3000), ty: 5000 + Math.floor(Math.random() * 3000), r: ARENA_R,
       dex: mon.dex, shiny: isShiny,
       stage: detectedStage,
+      playerLevel: pLvl,
       championReward: championReward,
       // La arena es la de uno de sus tipos, al azar.
       type: forceType || ((G.U && G.U.pick) ? G.U.pick(mon.types) : mon.types[0])
@@ -401,11 +468,14 @@ G.Rift = (() => {
     const n = (G.Game && G.Game.everyone) ? G.Game.everyone().length : 1;
     const ts = TS();
 
+    // Nível do Jogador e Fator de Escala da Fenda (Nv 10 até 100 de 10 em 10)
+    const pLvl = (arena && typeof arena.playerLevel === 'number')
+      ? arena.playerLevel
+      : ((G.Game && G.Game.player) ? G.Game.player.level : 1);
+    const tierData = getRiftTierData(pLvl);
+
     let def;
     if (stage === 1) {
-      // =======================================================================
-      // ESTÁGIO 1 (Até Lvl 20): Mais Fraco em Todas as Características
-      // =======================================================================
       def = {
         dex: mon.dex, name: mon.name, stage: 1,
         hp: Math.round((2600 + t * 9) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 2.2),
@@ -418,9 +488,6 @@ G.Rift = (() => {
         range: 260
       };
     } else if (stage === 2) {
-      // =======================================================================
-      // ESTÁGIO 2 (Lvl 21 a 41): Mais Forte que Estágio 1 em Todas Características
-      // =======================================================================
       def = {
         dex: mon.dex, name: mon.name, stage: 2,
         hp: Math.round((4200 + t * 14) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 3.0),
@@ -433,9 +500,6 @@ G.Rift = (() => {
         range: 330
       };
     } else {
-      // =======================================================================
-      // ESTÁGIO 3 (Lvl 42+): Mais Forte que Estágio 1 e 2 em Todas Características
-      // =======================================================================
       def = {
         dex: mon.dex, name: mon.name, stage: 3,
         hp: Math.round((6800 + t * 22) * G.Coop.scaleHp(n) * (n > 1 ? 1.4 : 1) * 4.0),
@@ -449,10 +513,20 @@ G.Rift = (() => {
       };
     }
 
+    // Aplicação dos Super Multiplicadores do Rift Tier (Nv 10 até 100 de 10 em 10):
+    def.hp = Math.round(def.hp * tierData.hpMul);
+    def.dmg = Math.round(def.dmg * tierData.dmgMul);
+    def.shotDmg = Math.round(def.shotDmg * tierData.dmgMul);
+    def.spd = Math.min(130, def.spd + tierData.spdBonus);
+    def.shotCd = Math.max(0.25, Number((def.shotCd * tierData.shotCdMul).toFixed(2)));
+    def.xp = Math.round(def.xp * (1 + tierData.tier * 0.35));
+
     const e = new G.Enemy(def, arena.x, arena.y - ts * 3.5, { hp: 1, spd: 1, dmg: 1 }, true);
     e.legend = true;
     e.isRiftGuardian = true;
     e.stage = stage;
+    e.riftTier = tierData.tier;
+    e.riftTierName = tierData.name;
     // Choca com as paredes e colunas da arena
     e.flying = false;
     if (arena.shiny) e.makeShiny();
@@ -467,9 +541,15 @@ G.Rift = (() => {
     arena.bossId = e.id;
     arena.bossObj = e;
 
-    const stageLabel = stage === 3 ? ' (Estágio 3 - Forma Suprema)' : (stage === 2 ? ' (Estágio 2)' : ' (Estágio 1)');
+    // Se o tier do nível trouxer lacaios da fenda (a partir do Lvl 20), invoca a primeira guarda
+    if (tierData.minions > 0) {
+      spawnRiftMinions(tierData.minions, tierData);
+    }
+
+    const stageLabel = stage === 3 ? ' (Estágio 3)' : (stage === 2 ? ' (Estágio 2)' : ' (Estágio 1)');
     const stageStars = stage === 3 ? '⚡⚡⚡ ' : (stage === 2 ? '⚡⚡ ' : '⚡ ');
-    if (G.Spawner && G.Spawner.say) G.Spawner.say(stageStars + e.name + (e.shiny ? ' Shiny' : '') + stageLabel + ' é o Guardião da Fenda!', 3.4);
+    const tierText = tierData.tier > 0 ? ` · ${tierData.name} (HP ×${tierData.hpMul.toFixed(1)} | Dano ×${tierData.dmgMul.toFixed(1)})` : '';
+    if (G.Spawner && G.Spawner.say) G.Spawner.say(stageStars + e.name + (e.shiny ? ' Shiny' : '') + stageLabel + ' é o Guardião da Fenda!' + tierText, 4.0);
     if (G.Camera && G.Camera.kick) G.Camera.kick(1.1);
     if (G.Audio && G.Audio.sfx) G.Audio.sfx('boss');
   }
@@ -499,9 +579,35 @@ G.Rift = (() => {
         handleGuardianDefeated(boss);
         return;
       }
+
+      // MORTE NO RIFT: Game Over na rodada!
       const allDown = G.Game.everyone().every(p => p.dead);
-      downT = allDown ? downT + dt : 0;
-      if (downT > 1.4 || arena.t > ARENA_TIME) { G.Coop.isHost && G.Coop.broadcast(['al']); lost(); }
+      if (allDown) {
+        // Quando o jogador morre na Fenda, NÃO expulsa de volta com vida:
+        // A partida encerra definitivamente em Game Over pelo loop de game.js!
+        return;
+      }
+
+      // Se o tempo esgotou sem derrotar o Guardião (e sem o jogador morrer)
+      if (arena.t > ARENA_TIME) {
+        G.Coop.isHost && G.Coop.broadcast(['al']);
+        lost();
+        return;
+      }
+
+      // Reposição periódica de Sombras Dimensionais se o tier for 2+ (Nv. 20+)
+      const pLvl = (arena && arena.playerLevel) || (pl ? pl.level : 1);
+      const tierData = getRiftTierData(pLvl);
+      if (tierData.minions > 0 && G.EnemyMgr && G.EnemyMgr.all) {
+        arena.minionTimer = (arena.minionTimer || 0) + dt;
+        if (arena.minionTimer >= 10) {
+          arena.minionTimer = 0;
+          const aliveMinions = G.EnemyMgr.all().filter(e => e.isRiftMinion && !e.dead).length;
+          if (aliveMinions < tierData.minions) {
+            spawnRiftMinions(tierData.minions - aliveMinions, tierData);
+          }
+        }
+      }
       return;
     }
     if (arena.phase === 'capture') {
@@ -517,6 +623,17 @@ G.Rift = (() => {
     if (!arena || arena.phase !== 'fight') return;
     arena.phase = 'capture';
     riftsCompleted++;
+
+    // Dissipa instantaneamente todas as Sombras da Fenda Dimensional ativas
+    if (G.EnemyMgr && typeof G.EnemyMgr.all === 'function') {
+      for (const en of G.EnemyMgr.all()) {
+        if (en && en.isRiftMinion && !en.dead) {
+          en.hp = 0;
+          en.dead = true;
+          if (G.FX && G.FX.burst) G.FX.burst(en.x, en.y, '#c084fc', 12, 60);
+        }
+      }
+    }
 
     // 1. O combate continua ativo no mundo (NÃO pausar o jogo!)
     if (typeof G === 'object' && G.Game) G.Game.isPaused = false;
@@ -650,7 +767,7 @@ G.Rift = (() => {
     if (pl) {
       pl.x = backX;
       pl.y = backY;
-      if (pl.dead && typeof pl.revive === 'function') pl.revive(0.3);
+      // Morte no Rift dá Game Over na rodada, sem revive indevido
     }
     if (G.Camera && pl) { G.Camera.x = pl.x; G.Camera.y = pl.y; }
     if (G.Game && typeof G.Game.flash === 'function') G.Game.flash('#c9a6ff', 0.8);
@@ -734,6 +851,9 @@ G.Rift = (() => {
     reset, update, drawable, onEvent, enterRequest() { if (!arena) start(); },
     get rift() { return rift; }, get arena() { return arena; },
     get inArena() { return !!arena; },
+    RIFT_TIERS,
+    getRiftTierData,
+    spawnRiftMinions,
     get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
     get completedCount() { return riftsCompleted; },
     debugOpen() { open(); },
