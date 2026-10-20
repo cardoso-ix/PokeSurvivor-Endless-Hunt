@@ -46,20 +46,36 @@ G.Progress = (() => {
     return out;
   }
 
-  /** Crea las misiones del día / semana si han cambiado. */
+  const DAILY_COUNT = 6;
+  const WEEKLY_COUNT = 5;
+
+  /** Cria as missões do dia / semana se mudaram ou completa se houver menos que o novo total. */
   function ensure(s) {
     if (!s) return;
     const ids = G.Ranking.periodIds();
     const key = String(s.created || 0);
     s.missions = s.missions || {};
     const M = s.missions;
-    if (M.day !== ids.d) {
-      M.day = ids.d; M.rerolled = false;
-      M.daily = pickSet(G.MissionDefs.daily, 3, rng(ids.d + key));
+    if (M.day !== ids.d || !M.daily || M.daily.length < DAILY_COUNT) {
+      if (M.day !== ids.d) {
+        M.day = ids.d;
+        M.rerolled = false;
+        M.daily = pickSet(G.MissionDefs.daily, DAILY_COUNT, rng(ids.d + key));
+      } else {
+        const existingIds = (M.daily || []).map(m => m.id);
+        const extra = pickSet(G.MissionDefs.daily, DAILY_COUNT - M.daily.length, rng(ids.d + key + 'ext'), existingIds);
+        M.daily = (M.daily || []).concat(extra);
+      }
     }
-    if (M.week !== ids.w) {
-      M.week = ids.w;
-      M.weekly = pickSet(G.MissionDefs.weekly, 2, rng(ids.w + key));
+    if (M.week !== ids.w || !M.weekly || M.weekly.length < WEEKLY_COUNT) {
+      if (M.week !== ids.w) {
+        M.week = ids.w;
+        M.weekly = pickSet(G.MissionDefs.weekly, WEEKLY_COUNT, rng(ids.w + key));
+      } else {
+        const existingIds = (M.weekly || []).map(m => m.id);
+        const extra = pickSet(G.MissionDefs.weekly, WEEKLY_COUNT - M.weekly.length, rng(ids.w + key + 'ext'), existingIds);
+        M.weekly = (M.weekly || []).concat(extra);
+      }
     }
   }
 
