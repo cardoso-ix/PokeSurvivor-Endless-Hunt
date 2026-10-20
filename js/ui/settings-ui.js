@@ -204,10 +204,29 @@ G.SettingsUI = (() => {
       return;
     }
     const nick = G.Social.me ? G.Social.me.name : (G.DB.user || '');
-    const kind = G.DB.mode === 'local' ? (isPT ? 'Conta local deste navegador' : 'Local browser account') : G.DB.nameAccount ? (isPT ? 'Nome de Usuário e Senha' : 'Username and Password') : 'Google';
+    const email = G.DB.currentEmail ? G.DB.currentEmail : '';
+    const isCloud = G.DB.mode === 'cloud';
+    const kind = !isCloud
+      ? (isPT ? 'Conta local deste navegador' : 'Local browser account')
+      : G.DB.hasGoogle
+        ? 'Google OAuth'
+        : email
+          ? (isPT ? 'E-mail e Senha' : 'Email and Password')
+          : (isPT ? 'Nome de Usuário e Senha' : 'Username and Password');
+
+    let emailRow = '';
+    if (isCloud) {
+      if (email) {
+        emailRow = `<div class="set-row"><div class="grow"><b>${isPT ? 'E-mail Vinculado' : 'Linked Email'}</b><small>${isPT ? 'Sua conta está protegida com este e-mail.' : 'Your account is secured with this email.'}</small></div><span class="gold">${esc(email)}</span></div>`;
+      } else if (!G.DB.hasGoogle) {
+        emailRow = `<div class="set-row"><div class="grow"><b>${isPT ? 'Vincular E-mail' : 'Link Email'}</b><small>${isPT ? 'Proteja seu progresso para acessar de qualquer aparelho.' : 'Secure your progress to access from any device.'}</small></div><button class="btn gold small" id="set-link-email">${isPT ? 'Proteger Conta' : 'Protect Account'}</button></div>`;
+      }
+    }
+
     box.innerHTML = section(isPT ? 'Conta' : 'Account')
       + `<div class="set-row"><div class="grow"><b>${isPT ? 'Apelido de Treinador' : 'Trainer Nickname'}</b><small>${isPT ? 'Identificador único da sua conta.' : 'Unique identifier for your account.'}</small></div><span class="gold" translate="no">${esc(nick)}</span></div>`
       + `<div class="set-row"><div class="grow"><b>${isPT ? 'Tipo de Conta' : 'Account Type'}</b></div><span>${esc(kind)}</span></div>`
+      + emailRow
       + `<div class="set-row"><div class="grow"><b>${isPT ? 'Sincronização da Partida' : 'Save Synchronization'}</b></div><span>${esc(SYNC[st] || st)}</span></div>`
       + `<div class="row wrap" style="gap:8px;margin-top:12px">
            <button class="btn" id="set-logout">${isPT ? 'Encerrar Sessão' : 'Log Out'}</button>
@@ -260,6 +279,17 @@ G.SettingsUI = (() => {
       };
     });
     const lo = $('set-login'); if (lo) lo.onclick = () => { close(); leave(); };
+    const lnk = $('set-link-email');
+    if (lnk) {
+      lnk.onclick = () => {
+        close();
+        const sc = $('scr-recover');
+        if (sc) {
+          $('rec-err').textContent = '';
+          sc.classList.remove('hidden');
+        }
+      };
+    }
     const out = $('set-logout'); if (out) out.onclick = () => { close(); leave(); };
     const del = $('set-delete');
     if (del) del.onclick = async () => {

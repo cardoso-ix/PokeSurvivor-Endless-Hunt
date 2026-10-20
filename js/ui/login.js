@@ -22,8 +22,47 @@ G.LoginUI = (() => {
     $('f-forgot').onclick = e => {
       e.preventDefault();
       $('login-err').textContent = '';
-      $('forgot-note').classList.toggle('hidden');
+      const fb = $('forgot-box');
+      if (fb) fb.classList.toggle('hidden');
     };
+    const btnReset = $('btn-reset-pass');
+    if (btnReset) {
+      btnReset.onclick = async () => {
+        $('login-err').textContent = '';
+        $('login-err').style.color = '';
+        const email = ($('f-user').value || '').trim();
+        if (!email) {
+          $('login-err').textContent = 'Digite seu e-mail no campo "Nome de Usuário ou E-mail" acima.';
+          return;
+        }
+        btnReset.disabled = true;
+        const r = await G.DB.sendPasswordReset(email);
+        btnReset.disabled = false;
+        if (!r.ok) {
+          $('login-err').textContent = r.error;
+        } else {
+          $('login-err').style.color = '#4ade80';
+          $('login-err').textContent = r.msg;
+          G.UI.toast(r.msg, 5000);
+        }
+      };
+    }
+    // Vincular E-mail e Senha para recuperar e proteger a conta
+    const recForm = $('rec-form');
+    if (recForm) {
+      recForm.onsubmit = async e => {
+        e.preventDefault();
+        $('rec-err').textContent = '';
+        $('rec-email-btn').disabled = true;
+        const email = $('rec-email').value;
+        const pass = $('rec-pass').value;
+        const r = await G.DB.linkEmail(email, pass);
+        $('rec-email-btn').disabled = false;
+        if (!r.ok) { $('rec-err').textContent = r.error; return; }
+        $('scr-recover').classList.add('hidden');
+        G.UI.toast('Conta vinculada ao e-mail ' + email + ' com sucesso! Agora você pode acessar com ele em qualquer dispositivo.', 5000);
+      };
+    }
     // Vincular Google/Gmail para recuperar a conta
     $('rec-link').onclick = async () => {
       $('rec-err').textContent = '';
@@ -51,7 +90,7 @@ G.LoginUI = (() => {
 
   let offered = false;
   function offerRecovery() {
-    if (offered || G.DB.mode !== 'cloud' || !G.DB.fb || !G.DB.nameAccount || G.DB.hasGoogle) return;
+    if (offered || G.DB.mode !== 'cloud' || !G.DB.fb || G.DB.hasEmail || G.DB.hasGoogle) return;
     try { if (localStorage.getItem('ps.recover.no.' + G.DB.fb.uid)) return; } catch (e) {}
     offered = true;
     $('rec-err').textContent = '';
@@ -76,6 +115,9 @@ G.LoginUI = (() => {
     $('btn-auth').textContent = m === 'login' ? 'Entrar' : 'Criar Conta';
     $('f-pass').autocomplete = m === 'login' ? 'current-password' : 'new-password';
     $('login-err').textContent = '';
+    const fb = $('forgot-box');
+    if (fb) fb.classList.add('hidden');
+    $('f-user').placeholder = m === 'login' ? 'Usuário ou seu@email.com' : 'Nome de usuário ou seu@email.com';
   }
 
   function open() {

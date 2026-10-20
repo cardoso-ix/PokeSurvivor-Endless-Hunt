@@ -362,6 +362,7 @@ G.DB = (() => {
   function applyInPlace(s) { assignDeep(save, s); }
 
   const VALID = /^[A-Za-z0-9_ñÑáéíóúÁÉÍÓÚ]{3,16}$/;
+  const isEmail = s => /^[^s@]+@[^s@]+.[^s@]+$/.test((s || '').trim());
 
   // =====================================================================
   //                               MODO LOCAL
@@ -744,28 +745,54 @@ G.DB = (() => {
     return readyP;
   }
 
-  async function register(name, pass) {
-    name = (name || '').trim();
-    if (!VALID.test(name)) return { ok: false, error: 'O nome deve ter de 3 a 16 letras, números ou _.' };
+  async function register(nameOrEmail, pass) {
+    const input = (nameOrEmail || '').trim();
+    const isMail = isEmail(input);
+    if (!isMail && !VALID.test(input)) {
+      return { ok: false, error: 'Digite um e-mail válido ou um nome de 3 a 16 letras, números ou _.' };
+    }
+    if (isMail && input.length > 64) {
+      return { ok: false, error: 'O e-mail deve ter no máximo 64 caracteres.' };
+    }
     const min = mode === 'cloud' ? 6 : 4;
     if ((pass || '').length < min) return { ok: false, error: `A senha deve ter pelo menos ${min} caracteres.` };
-    if (mode === 'local') return registerLocal(name, pass);
-    // Tope de cuentas del mes (Firebase cobra a partir de 50.000 al mes).
+    if (mode === 'local') return registerLocal(input, pass);
     try {
-      const legacy = await legacySave(name, pass);
-      const cred = await auth.createUserWithEmailAndPassword(nameToEmail(name), pass);
-      await openCloud(cred.user, { name, legacy });
+      const emailToUse = isMail ? input.toLowerCase() : nameToEmail(input);
+      const initialName = isMail
+        ? (input.split('@')[0].replace(/[^A-Za-z0-9_]/g, '_').slice(0, 16) || 'Treinador')
+        : input;
+      const legacy = await legacySave(input, pass);
+      const cred = await auth.createUserWithEmailAndPassword(emailToUse, pass);
+      await openCloud(cred.user, { name: initialName, legacy });
+      if (isMail && save) {
+        save.linkedEmail = input.toLowerCase();
+        commit(true);
+      }
       return { ok: true, isNew: !save.partner, imported: !!legacy };
     } catch (e) { return { ok: false, error: authError(e) }; }
   }
 
-  async function login(name, pass) {
-    name = (name || '').trim();
-    if (mode === 'local') return loginLocal(name, pass);
+  async function login(nameOrEmail, pass) {
+    const input = (nameOrEmail || '').trim();
+    if (mode === 'local') return loginLocal(input, pass);
     try {
-      const legacy = await legacySave(name, pass);
-      const cred = await auth.signInWithEmailAndPassword(nameToEmail(name), pass || '');
-      await openCloud(cred.user, { name, legacy });
+      const legacy = await legacySave(input, pass);
+      let cred;
+      if (isEmail(input)) {
+        cred = await auth.signInWithEmailAndPassword(input.toLowerCase(), pass || '');
+      } else {
+        try {
+          cred = await auth.signInWithEmailAndPassword(nameToEmail(input), pass || '');
+        } catch (err) {
+          if (input.includes('@')) {
+            cred = await auth.signInWithEmailAndPassword(input.toLowerCase(), pass || '');
+          } else {
+            throw err;
+          }
+        }
+      }
+      await openCloud(cred.user, { name: input, legacy });
       return { ok: true, isNew: !save.partner, imported: !!legacy };
     } catch (e) { return { ok: false, error: authError(e) }; }
   }
@@ -842,19 +869,30 @@ G.DB = (() => {
 
   function nameAccount() { return !!(auth && auth.currentUser && (auth.currentUser.email || '').endsWith('@' + NAME_DOMAIN)); }
 
+  function hasEmail() {
+    const u = auth && auth.currentUser;
+    if (!u) return false;
+    const email = (u.email || '').trim().toLowerCase();
+    return !!email && !email.endsWith('@' + NAME_DOMAIN);
+  }
+
+  function currentEmail() {
+    const u = auth && auth.currentUser;
+    if (!u) return '';
+    const email = (u.email || '').trim().toLowerCase();
+    return email.endsWith('@' + NAME_DOMAIN) ? '' : email;
+  }
+
   /*
-   * Recuperar la cuenta: las de nombre y contraseña no tienen correo de verdad
-   * (no se les puede mandar un enlace), así que se les ofrece VINCULAR su Gmail:
-   * si un día olvidan la contraseña, entran con Google y es la misma cuenta.
-   * Lo hace el sistema de cuentas de Firebase (gratis): ni una lectura ni una
-   * escritura de la base de datos.
+   * Recuperar a conta: vincular Gmail ou E-mail e Senha próprios.
    */
   function hasGoogle() {
     const u = auth && auth.currentUser;
     return !!(u && u.providerData.some(p => p.providerId === 'google.com'));
   }
+
   async function linkGoogle() {
-    if (!auth || !auth.currentUser) return { ok: false, error: 'Inicia sesión primero.' };
+    if (!auth || !auth.currentUser) return { ok: false, error: 'Faça login primeiro.' };
     try {
       await auth.currentUser.linkWithPopup(new firebase.auth.GoogleAuthProvider());
       return { ok: true };
@@ -862,7 +900,52 @@ G.DB = (() => {
       const c = (e && e.code) || '';
       if (c === 'auth/provider-already-linked') return { ok: true };
       if (c === 'auth/credential-already-in-use' || c === 'auth/email-already-in-use')
-        return { ok: false, error: 'Ese Gmail ya tiene su propia cuenta del juego. Usa otro Gmail.' };
+        return { ok: false, error: 'Esse Gmail já tem sua própria conta do jogo. Use outro Gmail.' };
+      if (c === 'auth/unauthorized-domain')
+        return { ok: false, error: 'Domínio aguardando liberação no Google Console. Use a vinculação por E-mail e Senha!' };
+      return { ok: false, error: authError(e) };
+    }
+  }
+
+  async function linkEmail(email, pass) {
+    if (mode !== 'cloud' || !auth || !auth.currentUser) return { ok: false, error: 'Inicie uma sessão com conexão na nuvem primeiro.' };
+    email = (email || '').trim().toLowerCase();
+    if (!isEmail(email)) return { ok: false, error: 'Digite um e-mail válido (ex: seu_email@gmail.com).' };
+    if (!pass || pass.length < 6) return { ok: false, error: 'A senha deve ter pelo menos 6 caracteres.' };
+
+    const u = auth.currentUser;
+    try {
+      if (nameAccount()) {
+        await u.updatePassword(pass);
+        await u.updateEmail(email);
+        if (save) { save.linkedEmail = email; commit(true); }
+        return { ok: true, email };
+      } else {
+        const cred = firebase.auth.EmailAuthProvider.credential(email, pass);
+        await u.linkWithCredential(cred);
+        if (save) { save.linkedEmail = email; commit(true); }
+        return { ok: true, email };
+      }
+    } catch (e) {
+      const c = (e && e.code) || '';
+      if (c === 'auth/email-already-in-use' || c === 'auth/credential-already-in-use')
+        return { ok: false, error: 'Este e-mail já pertence a outra conta do jogo.' };
+      if (c === 'auth/requires-recent-login')
+        return { ok: false, error: 'Por segurança, faça login novamente na sua conta antes de vincular.' };
+      return { ok: false, error: authError(e) };
+    }
+  }
+
+  async function sendPasswordReset(email) {
+    if (mode !== 'cloud' || !auth) return { ok: false, error: 'A recuperação necessita de conexão com a nuvem.' };
+    email = (email || '').trim().toLowerCase();
+    if (!isEmail(email)) return { ok: false, error: 'Digite um e-mail válido para receber o link de recuperação.' };
+    try {
+      await auth.sendPasswordResetEmail(email);
+      return { ok: true, msg: 'E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.' };
+    } catch (e) {
+      const c = (e && e.code) || '';
+      if (c === 'auth/user-not-found') return { ok: false, error: 'Nenhuma conta encontrada com este e-mail.' };
       return { ok: false, error: authError(e) };
     }
   }
@@ -1736,6 +1819,9 @@ G.DB = (() => {
     /** ¿La cuenta es de usuario y contraseña (no de Google)? */
     get nameAccount() { return nameAccount(); },
     get hasGoogle() { return hasGoogle(); }, linkGoogle,
+    get hasEmail() { return hasEmail(); },
+    get currentEmail() { return currentEmail(); },
+    linkEmail, sendPasswordReset, isEmail,
     get mode() { return mode; },
     get localReason() { return localReason; },
     get syncState() { return syncState; },
