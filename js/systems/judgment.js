@@ -29,7 +29,7 @@
  *   y en cada envío del anfitrión, ja: [x, y, animación, dirección] de Arceus.
  */
 G.Judgment = (() => {
-  const AT = 30 * 60;
+  const AT = Infinity; // Sobrevivência infinita
   const ARENA_R = 24;                 // en tiles (la arena de la grieta: 11)
   const BOSS_EVERY = 5;               // sin tope: siguen saliendo mientras aguantes
   const TOUCH = 0.4;                  // vida que quita tocar a Arceus

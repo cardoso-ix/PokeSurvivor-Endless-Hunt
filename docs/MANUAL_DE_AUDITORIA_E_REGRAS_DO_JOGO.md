@@ -163,11 +163,16 @@ A Mega Evolução é o ápice ofensivo e defensivo da batalha, ativada ao carreg
 - **Efeitos Visuais:** 26 speedlines em slow motion com alfa variável e vibração de tela suave (`Camera.kick(1.8)`).
 
 ### 5.3. Efeitos do Estado de Overdrive (Duração: 10.0s)
-Durante os **10.0 segundos** de Overdrive:
-1. 💥 **Dano Dobrado (2.0×):** Todos os ataques, projéteis, feixes e zonas do jogador causam **+100% de dano base**.
-2. 🛡️ **Super Defesa:** Redução de **80% do dano recebido** (`dmgTakenMul = 0.20`).
-3. 🧲 **Super Ímã:** Dobro de raio de coleta magnética (`magnetMul = 2.0`).
-4. 🌪️ **Drenagem Linear Contínua:** A barra do HUD e o botão físico drenam gradualmente de 100% até 0% em exatamente 10 segundos.
+Durante os **10.0 segundos** de Overdrive, o personagem entra em estado de transcendência heroica com os seguintes efeitos:
+1. 📏 **Gigantismo Heroico & Crescimento Visual:** O Pokémon cresce fisicamente no Canvas, transicionando suavemente para **1.55× do seu tamanho original**, escalando sua silhueta, colisão corporal (`this.r` e `this.bodyH`) e projeção de sombra no solo.
+2. 🥊 **Força & Dano Dobrados (2.0× ATK):** Todos os ataques, projéteis, feixes e zonas do jogador causam **+100% de dano base** ($2.0\times$).
+3. 👟 **Velocidade Dobrada (2.0× SPD):** A velocidade de locomoção base e em corrida é duplicada ($2.0\times$, $+100\%$), permitindo reposicionamento tático instantâneo.
+4. 🛡️ **Super Defesa & Armadura Inabalável (DEF):** Absorção direta de impacto reduzida para apenas 15% (`dmgTakenMul = 0.15`), com piso mínimo de **80% a 92% de redução de dano** calculada no HUD.
+5. ⏱️ **Cadência de Ataque Duplicada (CDA):** O cooldown de todos os ataques do deck é cortado pela metade (`cdMul × 0.5`), disparando habilidades com o dobro da frequência.
+6. 🌿 **Regeneração Duplicada (REG):** Regeneração de PV por segundo dobrada ($2.0\times$), com garantia mínima de $+12.0\text{ PV/s}$.
+7. ⭐ **Chance Crítica Ampliada (CRT):** Chance de dano crítico duplicada com bônus de $+30\%$.
+8. 🧲 **Super Ímã Magnético (MAG):** Raio de atração de gemas de EXP e PokéMoedas duplicado para $156\text{px}$ ($+100\%$).
+9. 🌪️ **Drenagem Linear Contínua:** A barra do HUD e o botão físico drenam gradualmente de 100% até 0% em exatamente 10 segundos.
 
 ### 5.4. Catálogo dos 18 Poderes Supremos Elementais (`MEGA_ULTIMATES_DATA`)
 
@@ -236,6 +241,16 @@ Localizado no canto inferior esquerdo para consulta tática imediata:
 | 🧲 **MAG** | Magnetismo e Raio de Coleta | Distância em pixels para puxar orbes de EXP e moedas (`pl.magnetMul`) |
 | 📖 **APR** | Sabedoria e Aprendizado | Bônus percentual na experiência ganha por monstro (`pl.xpMul`) |
 | 🌿 **REG** | Regeneração Vital | Pontos de vida recuperados automaticamente a cada segundo (`pl.regen`) |
+
+### 7.3. Classificação Global (Ranking) & Sistema Social de Amigos
+1. **Classificação Pública (Top 50 Global):**
+   - O Ranking lê diretamente do Firestore em tempo real (`lbs/{board}`), permitindo a consulta dos 50 melhores recordes mundiais individuais e em grupo.
+   - Filtros instantâneos por período: **Hoje**, **Semana**, **Mês**, **Ano** e **Histórico de Todos os Tempos**.
+   - Integração completa com domínios de VPS (`*.sslip.io` e IPs de produção) com validação dinâmica de host.
+2. **Sistema de Amigos e Salas Cooperativas:**
+   - Gerenciamento de amizades através do **Apelido de Treinador** único.
+   - Criação de salas multijogador em tempo real (`LobbyUI`) para sobrevivência cooperativa.
+   - Salvamento contínuo com resolução automática de pendências na nuvem.
 
 ---
 
@@ -358,6 +373,49 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
    - `👑 Forçar Lendário`: Força a Roleta a entregar uma espécie Lendária no próximo giro.
    - `🔄 Resetar Forçamento`: Restaura os pesos matemáticos estocásticos oficiais (1% Shiny, 5% Lendário, 94% Normal).
 6. **Auditoria Estatística em Lote:** Permite simular qualquer volume de giros (ex: 50, 100, 500) em milissegundos, gerando uma tabela comparativa com a taxa teórica versus taxa obtida de Lendários, Shinies, Normais e Moedas acumuladas.
+
+---
+
+## 12. Atualizações Mestres: Gameplay Contínua, Ranking Duplo & Atributos Oficiais
+
+### 12.1. Trava de Escolhas no Nível 20 (Quad-Combo Infinito)
+- Ao atingir o **Nível 20**, a tela modal de escolhas de poderes (Level Up) é automaticamente desativada.
+- Os 4 primeiros poderes escolhidos pelo jogador até o Nv. 20 tornam-se os poderes permanentes da partida e passam a **combar simultaneamente de forma contínua** (`quadComboActive = true`), sem interrupções nem pausas de jogo.
+
+### 12.2. Calibração Rara de Shinies e Lendários nos Rifts
+- **Comum Normal:** 96.0% das aparições de guardiões em fendas dimensionais.
+- **Lendário Normal:** 2.5% de probabilidade.
+- **Comum Shiny (Brilhante):** 1.3% de probabilidade (aparições eventuais e raras).
+- **Lendário Shiny:** 0.2% de probabilidade (evento ultrarraro).
+- O fallback de dex completa para variantes shiny foi reduzido de 25% para 2%, garantindo a fidelidade às probabilidades da franquia.
+
+### 12.3. Roleta Gacha Regional e Regra de Desbloqueio do Estágio 1
+- **Filtro Rigoroso por Região:** A seleção de abas na Roleta (Kanto, Johto, Hoenn, etc.) restringe o sorteio exclusivamente à geração correspondente (`gen 1 = Kanto`, `gen 2 = Johto`, etc.).
+- **Desbloqueio Base Obrigatório:** Caso o jogador obtenha uma forma evoluída de Estágio 2 ou 3 (ex: Charizard), o jogo libera automaticamente a forma base de Estágio 1 (ex: Charmander) na Pokédex, garantindo que o Pokémon seja jogável como companheiro de partida.
+
+### 12.4. Painel de Status RPG Retrátil (HUD Canto Superior Esquerdo)
+- O painel `#stats-rpg-panel` foi reposicionado diretamente abaixo do deck de ataques e vida do Pokémon no canto superior esquerdo.
+- Conta com uma **flagzinha sanfona retrátil** (`#hud-stats-toggle`) com indicador de setinha (`▼` / `▲`).
+- Inicia recolhido por padrão para evitar contaminação visual da arena de batalha e memoriza a preferência do usuário no `localStorage`.
+
+### 12.5. Sobrevivência Infinita e Ranking Duplo
+- A barreira de tempo da Sentença de Arceus (30 minutos) foi removida (`AT = Infinity`). As partidas agora possuem tempo teoricamente infinito, permitindo sessões de 1h, 2h ou mais.
+- **Ranking Duplo com Abas:**
+  - **⏱️ Maior Tempo:** Classifica os jogadores pelo tempo total sobrevivido.
+  - **🌀 Mais Fendas:** Classifica os jogadores pelo número de Fendas Dimensionais concluídas com sucesso na partida.
+  - Ambas as modalidades contam com filtros por período: **Hoje (Diário)**, **Semana (Semanal)**, **Mês (Mensal)**, **Ano (Anual)** e **Todos os Tempos (Geral)**.
+
+### 12.6. Atributos Base Oficiais da Pokémon Company
+- A Pokédex (`showDetail`) exibe os **6 Base Stats oficiais** da franquia para todos os 1.025 Pokémon (HP, ATK, DEF, SP. ATK, SP. DEF, SPEED e BST) extraídos diretamente dos padrões da Pokémon Company, além dos parâmetros de Crítico (+5% base) e Aceleração de Recarga (CDA).
+
+### 12.7. Seleção de Ataques Iniciais na Aba de Melhorias
+- Na tela de Melhorias (`scr-upgrades`), o novo painel **"🎯 ATAQUES INICIAIS DA PARTIDA"** permite ao treinador configurar com quais 1 ou 2 ataques o Pokémon iniciará o combate.
+- O 1º ataque é obrigatório (padrão nativo da espécie).
+- O 2º ataque é opcional (pode ser "Nenhum" ou qualquer outro ataque que o Pokémon aprende), salvando as preferências diretamente no perfil do Pokémon (`s.customStartMoves`).
+
+### 12.8. Otimização Gráfica e Desempenho 60 FPS
+- Canvas com aceleração de hardware por GPU (`transform: translateZ(0); will-change: transform; backface-visibility: hidden;`).
+- Renderização pixelada cirúrgica (`image-rendering: pixelated; crisp-edges;`), eliminando borrões bilineares e garantindo 60 FPS fluidos mesmo em resoluções 4K e dispositivos móveis.
 
 ---
 *Manual homologado em conformidade com o código-fonte de produção do PokéSurvivor: Endless Hunt.*

@@ -2,7 +2,7 @@
 G.RankingUI = (() => {
   const $ = G.UI.$;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let mode = 's', period = 'w', scope = 'all', dex = null;
+  let mode = 's', period = 'w', scope = 'all', dex = null, category = 'time';
   let token = 0;
 
   function init() {
@@ -27,10 +27,9 @@ G.RankingUI = (() => {
   }
 
   function open() {
-    if (!G.SocialUI.needOnline()) return;
     G.UI.show('scr-rank', true);
-    if (!G.Social.started) G.Social.start();
-    $('rk-mod').classList.toggle('hidden', !G.Ranking.isAdmin());
+    if (G.DB.online && !G.Social.started) G.Social.start();
+    $('rk-mod').classList.toggle('hidden', !(G.Ranking && G.Ranking.isAdmin && G.Ranking.isAdmin()));
     tabs();
     load();
   }
@@ -46,6 +45,13 @@ G.RankingUI = (() => {
         box.appendChild(b);
       }
     };
+    // Seletor de Categoria: Tempo Sobrevivido vs Fendas Feitas
+    if ($('rk-cat')) {
+      mk($('rk-cat'), [
+        ['time', `<b>⏱️ Maior Tempo</b>`],
+        ['rifts', `<b>🌀 Mais Fendas</b>`]
+      ], category, k => { category = k; }, 'gen-tab');
+    }
     mk($('rk-mode'), [['s', `<b>${G.Icons.html('user', 16)} Solo</b>`], ['g', `<b>${G.Icons.html('friends', 16)} Grupo</b>`]],
        mode, k => { mode = k; }, 'gen-tab');
     mk($('rk-period'), [
@@ -82,11 +88,22 @@ G.RankingUI = (() => {
     if (my !== token) return;
     list.innerHTML = '';
     if (!rows.length) {
-      list.innerHTML = '<p class="sub">Ainda não há recordes aqui. Seja o primeiro!</p>';
+      list.innerHTML = G.DB.online
+        ? '<p class="sub">Ainda não há recordes aqui. Seja o primeiro!</p>'
+        : '<p class="sub">Nenhum recorde registrado ainda. Crie ou acesse sua conta online para registrar e competir na classificação global!</p>';
     }
     const uid = G.Social.uid;
     const b = G.Ranking.board(mode, period, dex), done = G.Ranking.reported();
-    rows.forEach((r, i) => list.appendChild(rowEl(r, i + 1, r.uids.includes(uid), b, done)));
+    if ($('rk-sub')) {
+      $('rk-sub').textContent = category === 'rifts' ? '· fendas concluídas' : '· tempo sobrevivido';
+    }
+    // Ordena conforme a categoria selecionada (Tempo vs Fendas)
+    if (category === 'rifts') {
+      rows.sort((a, b) => (b.rifts || 0) - (a.rifts || 0) || b.t - a.t);
+    } else {
+      rows.sort((a, b) => b.t - a.t || (b.rifts || 0) - (a.rifts || 0));
+    }
+    rows.forEach((r, i) => list.appendChild(rowEl(r, i + 1, r.uids.includes(uid), b, done, category)));
 
     const en = G.I18n.lang === 'en';
     const pn = en ? { d: 'today', w: 'this week', m: 'this month', y: 'this year', a: 'of all time' }[period]
@@ -94,7 +111,8 @@ G.RankingUI = (() => {
     const mon = dex ? G.DEX_BY[dex].name : '';
     const where = en ? (mode === 's' ? 'solo' : 'group') + (dex ? ' with ' + mon : '')
                      : (mode === 's' ? 'solo' : 'em grupo') + (dex ? ' com ' + mon : '');
-    $('rk-me').innerHTML = !G.Social.me ? 'Defina um apelido (em Amigos) para aparecer na classificação.'
+    $('rk-me').innerHTML = G.DB.guest ? 'Você está em modo Convidado. Crie uma conta para registrar recordes na classificação.'
+      : !G.Social.me ? 'Defina um apelido (em Amigos) para aparecer na classificação.'
       : me && me.out ? (en ? `<span translate="no">You're not in the top 50 ${where} ${pn} yet. Your exact rank is in All-time.</span>`
                            : `Você ainda não está no top 50 ${pn} ${where}. Sua posição exata está em Todos os Tempos.`)
       : me ? (en ? `<span translate="no">Your best ${where} rank ${pn}: <b class="gold">#${me.pos}</b> · ${fmt(me.t)}</span>`
@@ -102,7 +120,7 @@ G.RankingUI = (() => {
       : (en ? `<span translate="no">You don't have a ${where} record ${pn} yet.</span>` : `Você ainda não possui recorde ${pn} ${where}.`);
   }
 
-  function rowEl(r, pos, mine, b, done) {
+  function rowEl(r, pos, mine, b, done, cat = 'time') {
     const el = document.createElement('div');
     el.className = 'rk-row' + (mine ? ' mine' : '') + (pos <= 3 ? ' top' + pos : '');
     el.insertAdjacentHTML('beforeend', `<span class="pos">${pos <= 3 ? G.Icons.html('trophy', 20) : ''}${pos}</span>`);
@@ -110,9 +128,18 @@ G.RankingUI = (() => {
     mons.className = 'mons';
     r.dex.forEach((d, i) => { if (G.DEX_BY[d]) mons.appendChild(G.UI.spriteCanvas(d, 44, 40, { scale: 1, shiny: !!r.shiny[i] })); });
     el.appendChild(mons);
+
+    const isRifts = cat === 'rifts';
+    const subText = isRifts
+      ? `Nv. ${r.lv || 1} · Tempo: ${fmt(r.t)} · ${(r.kills || 0).toLocaleString('pt-BR')} derrotados`
+      : `Nv. ${r.lv || 1} · ${(r.kills || 0).toLocaleString('pt-BR')} derrotados · ${(r.rifts || 0)} fendas`;
+    const scoreDisplay = isRifts
+      ? `<span class="time" style="color:#00ffcc;font-weight:bold">🌀 ${r.rifts || 0} fendas</span>`
+      : `<span class="time">${fmt(r.t)}</span>`;
+
     el.insertAdjacentHTML('beforeend',
-      `<span class="who"><b translate="no">${r.names.map((n, i) => `<a href="#" class="plink" data-u="${esc(r.uids[i] || '')}">${esc(n)}</a>`).join(' · ')}</b><small>Nv. ${r.lv || 1} · ${(r.kills || 0).toLocaleString('pt-BR')} derrotados</small></span>
-       <span class="time">${fmt(r.t)}</span>`);
+      `<span class="who"><b translate="no">${r.names.map((n, i) => `<a href="#" class="plink" data-u="${esc(r.uids[i] || '')}">${esc(n)}</a>`).join(' · ')}</b><small>${subText}</small></span>
+       ${scoreDisplay}`);
     el.querySelectorAll('.plink').forEach(a => { a.onclick = e => { e.preventDefault(); G.ProfileUI.show(a.dataset.u); }; });
     if (!mine && G.Social.me) {
       const rep = document.createElement('button');

@@ -626,3 +626,75 @@
     font-size: 11px;
   }
 }
+
+
+/* ==========================================================================
+   Flagzinha e Painel Retro de Atributos & Status (Canto Superior Esquerdo)
+   ========================================================================== */
+.hud-stats-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #141624;
+  border: 2px solid #3a3f58;
+  border-radius: 6px;
+  padding: 4px 10px;
+  margin-top: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Pixelify', 'Press Start 2P', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffd23f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.hud-stats-toggle:hover {
+  background: #1e2238;
+  border-color: #ffd23f;
+  color: #ffffff;
+}
+
+.hud-stats-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-stats-arrow {
+  font-size: 11px;
+  color: #ffd23f;
+  transition: transform 0.2s ease;
+}
+
+#stats-rpg-panel {
+  width: 100%;
+  margin-top: 4px;
+  background: #141624;
+  border: 3px solid #3a3f58;
+  border-radius: 6px;
+  box-shadow: inset -2px -2px 0px #090a10, inset 2px 2px 0px #5c648d, 0 4px 12px rgba(0, 0, 0, 0.7);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font-family: 'Pixelify', 'Press Start 2P', monospace;
+  user-select: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease;
+  max-height: 220px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+#stats-rpg-panel.collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  border-width: 0 !important;
+  pointer-events: none;
+}

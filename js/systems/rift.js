@@ -25,12 +25,13 @@ G.Rift = (() => {
   const CHECK = 30, CHANCE = 0.2, TTL = 45;
   const ARENA_R = 11, ARENA_TIME = 120, FROM = 75;
   let rift = null;          // { x, y, ttl, t }
-  let arena = null;         // { tx, ty, r, dex, shiny, x, y, back, biome, t, phase, endT, bossId }
+  let arena = null;         // { tx, ty, r, dex, shiny, x, y, back, biome
+  let riftsCompleted = 0;   // Contador de Fendas concluídas na partida, t, phase, endT, bossId }
   let checkT = CHECK, asked = false, downT = 0, misses = 0;
   const authority = () => !G.Coop.active || G.Coop.isHost;
   const TS = () => G.Tiles.T * G.Sprites.PX;
 
-  function reset() { rift = null; arena = null; checkT = CHECK; asked = false; downT = 0; misses = 0; }
+  function reset() { rift = null; arena = null; checkT = CHECK; asked = false; downT = 0; misses = 0; riftsCompleted = 0; }
 
   // ---------------- grieta en el mapa ----------------
 
@@ -40,7 +41,7 @@ G.Rift = (() => {
       rift.ttl -= dt;
       if (rift.ttl <= 0) { rift = null; return; }
       if (!arena && !pl.dead && G.U.dist2(pl.x, pl.y, rift.x, rift.y - 10) < 30 * 30) enter();
-    } else if (!arena && authority() && time > FROM && time < G.Judgment.AT - 120) {
+    } else if (!arena && authority() && time > FROM) {
       checkT -= dt;
       if (checkT <= 0) {
         checkT = CHECK;
@@ -217,12 +218,13 @@ G.Rift = (() => {
     const roll = Math.random() * 100;
     let targetTier = 'common_normal';
 
-    if (roll <= 75) {
+    // Taxas calibradas: Comum Normal (96%), Lendário Normal (2.5%), Comum Shiny (1.3%), Lendário Shiny (0.2%)
+    if (roll <= 96.0) {
       targetTier = 'common_normal';
-    } else if (roll <= 90) {
-      targetTier = 'common_shiny';
-    } else if (roll <= 99) {
+    } else if (roll <= 98.5) {
       targetTier = (riftsCleared < 30) ? 'common_normal' : 'legend_normal';
+    } else if (roll <= 99.8) {
+      targetTier = 'common_shiny';
     } else {
       targetTier = (riftsCleared < 30) ? 'common_shiny' : 'legend_shiny';
     }
@@ -269,7 +271,7 @@ G.Rift = (() => {
         if (!isLegend) {
           // Se todos os comuns do estágio já foram capturados, verifica se faltam Shinies comuns
           const missingShinies = stagePool.filter(p => !shinySet.has(p.name.toLowerCase()) && !shinySet.has(String(p.dex)));
-          if (missingShinies.length > 0 && Math.random() < 0.25) {
+          if (missingShinies.length > 0 && Math.random() < 0.02) {
             willBeShiny = true;
             candidates = missingShinies;
           } else {
@@ -514,6 +516,7 @@ G.Rift = (() => {
   function handleGuardianDefeated(boss) {
     if (!arena || arena.phase !== 'fight') return;
     arena.phase = 'capture';
+    riftsCompleted++;
 
     // 1. O combate continua ativo no mundo (NÃO pausar o jogo!)
     if (typeof G === 'object' && G.Game) G.Game.isPaused = false;
@@ -732,6 +735,7 @@ G.Rift = (() => {
     get rift() { return rift; }, get arena() { return arena; },
     get inArena() { return !!arena; },
     get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
+    get completedCount() { return riftsCompleted; },
     debugOpen() { open(); },
     start,
     /** Para pruebas: arena de un tipo ya o guardián específico. */

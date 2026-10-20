@@ -6,8 +6,16 @@
   /** Verifica se os recursos online estão disponíveis. */
   function needOnline() {
     if (G.DB.online) return true;
-    G.UI.toast(G.DB.guest ? 'Crie uma conta para jogar com amigos e aparecer na classificação.'
-      : 'Isto requer a versão online do jogo com sincronização na nuvem.', 3200);
+    if (G.DB.guest) {
+      G.UI.toast('Crie uma conta para jogar com amigos e sincronizar seu progresso!', 3600);
+      setTimeout(() => {
+        if (confirm('Você está jogando em modo Convidado. Deseja criar uma conta rápida para liberar a lista de amigos e salas cooperativas online?')) {
+          G.Flow.toLogin();
+        }
+      }, 350);
+    } else {
+      G.UI.toast('Isto requer a versão online do jogo com sincronização na nuvem.', 3200);
+    }
     return false;
   }
 

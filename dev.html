@@ -125,53 +125,57 @@
     </div>
     <div id="hud-skills-tray" class="hud-skills-row"></div>
   </div>
+
+  <!-- Flagzinha / Botão Retrátil para Parâmetros de Status -->
+  <div id="hud-stats-toggle" class="hud-stats-toggle" title="Abrir/Recolher Parâmetros de Status (Atributos)">
+    <span class="hud-stats-toggle-label">📊 STATUS & ATRIBUTOS</span>
+    <span id="hud-stats-arrow" class="hud-stats-arrow">▼</span>
+  </div>
+
+  <!-- Painel de Status Retro Pixel Art Retrátil -->
+  <div id="stats-rpg-panel" class="pixel-panel notranslate collapsed" translate="no">
+    <div class="stats-grid">
+      <!-- Coluna 1 -->
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">⚔️</span> ATK</span>
+        <span id="stat-val-atk" class="stat-val stat-atk">+0%</span>
+      </div>
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">🛡️</span> DEF</span>
+        <span id="stat-val-def" class="stat-val stat-def">0%</span>
+      </div>
+      <!-- Coluna 2 -->
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">👟</span> SPD</span>
+        <span id="stat-val-spd" class="stat-val stat-spd">+0%</span>
+      </div>
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">⏱️</span> CDA</span>
+        <span id="stat-val-cda" class="stat-val stat-cda">0%</span>
+      </div>
+      <!-- Coluna 3 -->
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">🎯</span> CRT</span>
+        <span id="stat-val-crt" class="stat-val stat-crt">+0%</span>
+      </div>
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">🧲</span> MAG</span>
+        <span id="stat-val-mag" class="stat-val stat-mag">+0%</span>
+      </div>
+      <!-- Coluna 4 -->
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">📖</span> APR</span>
+        <span id="stat-val-apr" class="stat-val stat-apr">+0%</span>
+      </div>
+      <div class="stat-slot">
+        <span class="stat-lbl"><span class="stat-ico">🌿</span> REG</span>
+        <span id="stat-val-reg" class="stat-val stat-reg">+0.0/s</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- ====== Painel de Status Retro Pixel Art (Estilo DS / GBA) ====== -->
-<div id="stats-rpg-panel" class="pixel-panel notranslate hidden" translate="no">
-  <div class="stats-panel-header">
-    <span class="stats-header-badge">STATUS</span>
-    <span class="stats-header-sub">ATRIBUTOS</span>
-  </div>
-  <div class="stats-grid">
-    <!-- Coluna 1 -->
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">⚔️</span> ATK</span>
-      <span id="stat-val-atk" class="stat-val stat-atk">+0%</span>
-    </div>
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">🛡️</span> DEF</span>
-      <span id="stat-val-def" class="stat-val stat-def">0%</span>
-    </div>
-    <!-- Coluna 2 -->
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">👟</span> SPD</span>
-      <span id="stat-val-spd" class="stat-val stat-spd">+0%</span>
-    </div>
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">⏱️</span> CDA</span>
-      <span id="stat-val-cda" class="stat-val stat-cda">0%</span>
-    </div>
-    <!-- Coluna 3 -->
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">🎯</span> CRT</span>
-      <span id="stat-val-crt" class="stat-val stat-crt">+0%</span>
-    </div>
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">🧲</span> MAG</span>
-      <span id="stat-val-mag" class="stat-val stat-mag">+0%</span>
-    </div>
-    <!-- Coluna 4 -->
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">📖</span> APR</span>
-      <span id="stat-val-apr" class="stat-val stat-apr">+0%</span>
-    </div>
-    <div class="stat-slot">
-      <span class="stat-lbl"><span class="stat-ico">🌿</span> REG</span>
-      <span id="stat-val-reg" class="stat-val stat-reg">+0.0/s</span>
-    </div>
-  </div>
-</div>
+
 
 <!-- Em celulares o jogo é jogado na horizontal -->
 <div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gire o aparelho</h2><p class="sub">PokéRift: Endless Hunt deve ser jogado na horizontal.</p></div></div>
@@ -475,6 +479,7 @@
 <section id="scr-rank" class="scr dim hidden">
   <div class="box wide">
     <div class="row between"><h2 data-i18n="menu.ranking">Classificação <span class="sub" style="font-size:15px">· tempo sobrevivido</span></h2><span class="row" style="gap:6px"><button id="rk-mod" class="btn small ghost hidden">Moderação</button><button class="btn small ghost" data-back data-i18n="common.back">Voltar</button></span></div>
+    <div class="gen-tabs" id="rk-cat"></div>
     <div class="gen-tabs" id="rk-mode"></div>
     <div class="filters" id="rk-period"></div>
     <div class="row rk-tools">
@@ -703,6 +708,7 @@
 <script defer src="js/core/settings.js"></script>
 <script defer src="js/data/music.js"></script>
 <script defer src="js/data/pokedex.js"></script>
+<script defer src="js/data/base_stats.js"></script>
 <script defer src="js/data/evolutions.js"></script>
 <script defer src="js/data/sprites-meta.js"></script>
 <!-- núcleo -->

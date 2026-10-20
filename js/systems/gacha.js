@@ -143,7 +143,7 @@ G.Gacha = (() => {
    *   - Se o Pokémon já estiver na Pokédex do jogador: ganha 1.000 PokéMoedas para Melhorias!
    *   - Se for novo: registra e desbloqueia na Pokédex.
    */
-  function pullRoulette(save, count = 1) {
+  function pullRoulette(save, count = 1, gen = 0) {
     if (!save) return null;
     save.tickets = save.tickets || { t1: 0, t10: 0 };
     const totalCost = ROULETTE_COST * count;
@@ -155,9 +155,16 @@ G.Gacha = (() => {
     save.shiny = save.shiny || {};
     save.stats = save.stats || {};
 
-    const allLegs = G.DEX.filter(p => p.rarity === 5 || p.legendary);
-    const allNorms = G.DEX.filter(p => p.rarity < 5 && !p.legendary);
-    const allShinies = G.DEX.filter(p => G.Sprites && G.Sprites.hasShiny ? G.Sprites.hasShiny(p.dex) : true);
+    // Filtra exclusivamente pela geração/região selecionada se gen > 0
+    let poolSource = G.DEX;
+    if (gen > 0) {
+      const genMons = G.DEX.filter(p => p.gen === gen);
+      if (genMons.length > 0) poolSource = genMons;
+    }
+
+    const allLegs = poolSource.filter(p => p.rarity === 5 || p.legendary || p.leg);
+    const allNorms = poolSource.filter(p => p.rarity < 5 && !p.legendary && !p.leg);
+    const allShinies = poolSource.filter(p => G.Sprites && G.Sprites.hasShiny ? G.Sprites.hasShiny(p.dex) : true);
 
     const out = [];
     for (let i = 0; i < count; i++) {
@@ -169,24 +176,24 @@ G.Gacha = (() => {
       if (forceShiny > 0) {
         forceShiny--;
         isShiny = true;
-        mon = G.U.pick(allShinies.length ? allShinies : G.DEX);
+        mon = G.U.pick(allShinies.length ? allShinies : poolSource);
         rarity = mon.rarity || (mon.legendary ? 5 : 3);
       } else if (forceLegendary > 0) {
         forceLegendary--;
-        mon = G.U.pick(allLegs);
+        mon = G.U.pick(allLegs.length ? allLegs : poolSource);
         rarity = 5;
       } else if (roll < 1.0) {
         // 1% Chance: Shiny
         isShiny = true;
-        mon = G.U.pick(allShinies.length ? allShinies : G.DEX);
+        mon = G.U.pick(allShinies.length ? allShinies : poolSource);
         rarity = mon.rarity || (mon.legendary ? 5 : 3);
       } else if (roll < 6.0) {
-        // 5% Chance: Lendário (1.0% a 6.0% = 5.0%)
-        mon = G.U.pick(allLegs);
-        rarity = 5;
+        // 5% Chance: Lendário da Região Selecionada
+        mon = G.U.pick(allLegs.length ? allLegs : poolSource);
+        rarity = mon.rarity || 5;
       } else {
-        // 94% Chance: Normal
-        mon = G.U.pick(allNorms);
+        // 94% Chance: Normal da Região Selecionada
+        mon = G.U.pick(allNorms.length ? allNorms : poolSource);
         rarity = mon.rarity || 1;
       }
 
@@ -212,6 +219,27 @@ G.Gacha = (() => {
         refund = 0;
       }
 
+      // Regra de Liberação Automática do Estágio 1:
+      // Se tirar um Pokémon de estágio 2 ou 3 (ex: Charizard), libera o estágio 1 (Charmander) para ser jogável!
+      let baseUnlockedDex = null;
+      let baseUnlockedName = null;
+      const getBase = (typeof G === 'object' && typeof G.getBaseAncestor === 'function')
+        ? G.getBaseAncestor
+        : (typeof getBaseAncestor === 'function' ? getBaseAncestor : null);
+
+      if (getBase) {
+        const rootDex = getBase(mon.dex);
+        if (rootDex && Number(rootDex) !== Number(mon.dex)) {
+          const rootDexNum = Number(rootDex);
+          if (!save.owned[rootDexNum]) {
+            save.owned[rootDexNum] = { at: Date.now(), from: 'gacha_base_unlock' };
+            baseUnlockedDex = rootDexNum;
+            const rootMon = (G.DEX_BY && G.DEX_BY[rootDexNum]) || (G.DEX && G.DEX.find(p => p.dex === rootDexNum));
+            baseUnlockedName = rootMon ? rootMon.name : ('#' + rootDexNum);
+          }
+        }
+      }
+
       save.stats.pulls = (save.stats.pulls || 0) + 1;
       out.push({
         dex: mon.dex,
@@ -220,7 +248,9 @@ G.Gacha = (() => {
         isNew,
         refund,
         isLegendary: rarity === 5 || !!mon.legendary,
-        name: mon.name
+        name: mon.name,
+        baseUnlockedDex,
+        baseUnlockedName
       });
     }
 

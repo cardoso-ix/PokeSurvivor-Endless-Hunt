@@ -143,7 +143,7 @@ G.GachaUI = (() => {
       return;
     }
 
-    const res = G.Gacha.pullRoulette(s, count);
+    const res = G.Gacha.pullRoulette(s, count, gen);
     if (!res) {
       G.Audio.sfx('error');
       G.UI.toast('Saldo de tickets insuficiente.', 3000);
@@ -181,7 +181,8 @@ G.GachaUI = (() => {
         tagHtml = `<span class="refund" style="color:#ffd23f;font-weight:bold;font-size:12px;background:rgba(255,210,63,0.18);padding:3px 8px;border-radius:6px;border:1px solid #ffd23f;">🪙 REPETIDO · +1.000 MOEDAS</span>`;
       }
 
-      c.insertAdjacentHTML('beforeend', `<b>${r.shiny ? G.Icons.html('shiny', 12) + ' ' : ''}${mon.name}</b><div class="tag">${tagHtml}</div>`);
+      let baseTag = r.baseUnlockedName ? `<div class="base-unlock-note" style="color:#4ade80;font-size:11px;font-weight:bold;margin-top:4px;">🐣 Estágio 1 Desbloqueado: ${r.baseUnlockedName} (Jogável!)</div>` : '';
+      c.insertAdjacentHTML('beforeend', `<b>${r.shiny ? G.Icons.html('shiny', 12) + ' ' : ''}${mon.name}</b><div class="tag">${tagHtml}</div>${baseTag}`);
       out.appendChild(c);
       G.Audio.sfx('reveal', { rarity: r.rarity });
       if (r.rarity === 5) G.Audio.sfx('legend');

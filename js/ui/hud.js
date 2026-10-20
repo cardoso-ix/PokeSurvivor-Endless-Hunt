@@ -1,3 +1,30 @@
+
+  function wireStatsToggle() {
+    const btn = document.getElementById('hud-stats-toggle');
+    const panel = document.getElementById('stats-rpg-panel');
+    const arrow = document.getElementById('hud-stats-arrow');
+    if (!btn || !panel || btn._wired) return;
+    btn._wired = true;
+
+    // Recupera preferência do usuário (padrão: recolhido para não poluir o mapa)
+    const isExpanded = localStorage.getItem('ps_stats_panel_expanded') === 'true';
+    if (isExpanded) {
+      panel.classList.remove('collapsed');
+      if (arrow) arrow.textContent = '▲';
+    } else {
+      panel.classList.add('collapsed');
+      if (arrow) arrow.textContent = '▼';
+    }
+
+    btn.onclick = e => {
+      e.stopPropagation();
+      const nowCollapsed = panel.classList.toggle('collapsed');
+      if (arrow) arrow.textContent = nowCollapsed ? '▼' : '▲';
+      localStorage.setItem('ps_stats_panel_expanded', String(!nowCollapsed));
+      if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('click');
+    };
+  }
+
 /* ============ hud.js — interfaz dentro del canvas ============
  * Se dibuja en coordenadas de PANTALLA (sin la transformación de cámara).
  */
@@ -940,7 +967,7 @@ G.HUD = (() => {
           if (!statsEl.classList.contains('hidden')) statsEl.classList.add('hidden');
           return;
         }
-        if (statsEl.classList.contains('hidden')) statsEl.classList.remove('hidden');
+        wireStatsToggle();
 
         const setVal = (id, val) => {
           try {

@@ -158,15 +158,23 @@ G.Game = (() => {
     // Atajos: movimientos con hueco fijo (save.pbind[dex] = [id del 1, id del 2, ...]),
     // antes de aprender nada: addMove ya los coloca.
     (save.pbind && save.pbind[mon.dex] || []).forEach((id, i) => { if (id) pl.bind[id] = i; });
-    pl.addMove(G.startMoveOf(mon.dex));
+    
+    // Suporte aos Ataques Iniciais Customizados escolhidos pelo jogador na Pokédex/Melhorias:
+    const customStarts = (save.customStartMoves && save.customStartMoves[mon.dex]) || [];
+    if (customStarts.length > 0) {
+      for (const mId of customStarts.slice(0, 2)) {
+        if (G.Moves.BY_ID[mId] && !pl.hasMove(mId)) pl.addMove(mId);
+      }
+    } else {
+      pl.addMove(G.startMoveOf(mon.dex));
+      if (perks.startMoves >= 2) {
+        const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
+        if (pool.length) pl.addMove(G.U.pick(pool));
+      }
+    }
+    pl.setActive(0);
     // Mejora "Veto": movimientos que no quieres que te salgan.
     pl.banned = new Set((save.pban && save.pban[mon.dex] || []).slice(0, perks.bans));
-    // Mejora "Repertorio": un segundo movimiento de ataque al azar.
-    if (perks.startMoves >= 2) {
-      const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
-      if (pool.length) pl.addMove(G.U.pick(pool));
-      pl.setActive(0);
-    }
 
     if (coop) {
       G.Coop.begin(coop, pl, coopApi);
@@ -372,7 +380,7 @@ G.Game = (() => {
     if (G.Social.me) G.Social.publishProfile();
 
     // Ranking: en solitario cada uno lo suyo; en grupo lo sube el anfitrión.
-    const mark = { t: Math.floor(time), lv: pl.level, kills: pl.kills };
+    const mark = { t: Math.floor(time), lv: pl.level, kills: pl.kills, rifts: G.Rift ? G.Rift.completedCount : 0 };
     // Si la partida se ha tocado (ver clean()), no sube al ranking (sin avisar); lo demás, sí.
     const ok = clean();
     const sent = ok && !coop ? G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }))
@@ -412,6 +420,12 @@ G.Game = (() => {
     if (pendingLevels <= 0 || state !== 'playing') return;
     if (pl && typeof pl.checkEvolutionMilestones === 'function') {
       pl.checkEvolutionMilestones();
+    }
+    // A partir do nível 20, os 4 ataques estão definidos e combando juntos.
+    // Não abre mais a seleção de cartas para não pausar nem contaminar a tela!
+    if (pl && pl.level >= 20) {
+      pendingLevels = 0;
+      return;
     }
     if (G.Coop.active) {
       // En grupo, las cartas salen a la vez para todos y se espera a que elijan.
@@ -1007,6 +1021,11 @@ G.Game = (() => {
       if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
     },
     triggerLevelUp(n = 1) {
+      if (pl && pl.level >= 20) {
+        pendingLevels = 0;
+        if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
+        return;
+      }
       pendingLevels += n;
       if (pl && typeof pl.checkEvolutionMilestones === 'function') pl.checkEvolutionMilestones();
       if (state === 'paused') {

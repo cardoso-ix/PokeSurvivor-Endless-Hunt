@@ -326,7 +326,7 @@ const MegaSystem = {
     // 2. Configura a aura e modo no Treinador
     if (pl) {
       pl.megaAuraElement = this.currentElement;
-      pl.dmgTakenMul = 0.20; // Proteção de 80%
+      pl.dmgTakenMul = 0.15; // Proteção de 85%
       pl.magnetMul = 2.0;    // +100% de raio de coleta
       if (pl.megaMode) {
         pl.megaMode.active = true;
@@ -366,9 +366,9 @@ const MegaSystem = {
     MegaCutscene.update(dt);
 
     // Escuta ativação via teclado (Barra de Espaço) quando carregado
-    if (!this.isActive && this.gauge >= this.maxGauge) {
+    if (!this.isActive && (this.gauge >= (this.maxGauge - 0.8) || (pl && pl.megaEnergy >= ((pl.megaMaxEnergy || 100) - 0.8)))) {
       if (typeof G === 'object' && G.Input && typeof G.Input.tap === 'function') {
-        if (G.Input.tap('space') || G.Input.tap('Space')) {
+        if (G.Input.tap('space') || G.Input.tap('Space') || G.Input.tap(' ')) {
           this.trigger();
         }
       }
@@ -383,7 +383,7 @@ const MegaSystem = {
       this.gauge = this.maxGauge;
       if (pl) {
         pl.megaDmgMul = 2.0;
-        pl.dmgTakenMul = 0.20;
+        pl.dmgTakenMul = 0.15;
         pl.magnetMul = 2.0;
         if (pl.megaMode) {
           pl.megaMode.active = true;
@@ -401,7 +401,7 @@ const MegaSystem = {
     // Mantém bônus de dano 2x, defensivo e de ímã durante todo o Overdrive
     if (pl) {
       pl.megaDmgMul = 2.0;
-      pl.dmgTakenMul = 0.20;
+      pl.dmgTakenMul = 0.15;
       pl.magnetMul = 2.0;
       if (pl.megaMode) {
         pl.megaMode.active = true;

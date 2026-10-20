@@ -107,8 +107,11 @@ G.Player = class Player {
 
     this.anim = new G.Sprites.Animator(mon.dex, 1, this.shiny);
     this.x = 0; this.y = 0;
-    this.r = G.Sprites.bodyRadius(mon.dex);
-    this.bodyH = G.Sprites.bodyHeight(mon.dex);
+    this.baseR = G.Sprites.bodyRadius(mon.dex);
+    this.baseBodyH = G.Sprites.bodyHeight(mon.dex);
+    this.megaVisualScale = 1.0;
+    this.r = this.baseR;
+    this.bodyH = this.baseBodyH;
 
     this._atkMul = 1;
     this._spdMul = 1;
@@ -350,7 +353,8 @@ G.Player = class Player {
     return this.baseAtk * this.atkMul * (1 + bAtk) * megaMul * weatherAtk;
   }
   get spd() {
-    let megaMul = (this.megaMode && this.megaMode.active) ? 1.75 : 1;
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    let megaMul = isMega ? 2.0 : 1;
     let weatherSpd = (typeof G === 'object' && G.Weather && G.Weather.getSpdMul) ? G.Weather.getSpdMul(this) : 1;
     const bSpd = (this.buffs && this.buffs.spd) ? this.buffs.spd.n * this.buffs.spd.amount : 0;
     const s = this.baseSpd * this.spdMul * (1 + bSpd) * (this.slowT > 0 ? 0.5 : 1) * megaMul * weatherSpd;
@@ -359,20 +363,28 @@ G.Player = class Player {
     return s * slow * w;
   }
   get reduction() {
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
     let weatherDef = (typeof G === 'object' && G.Weather && G.Weather.getDefBonus) ? G.Weather.getDefBonus(this) : 0;
     const bDef = (this.buffs && this.buffs.def) ? this.buffs.def.n * this.buffs.def.amount : 0;
-    return Math.min(0.85, this.dmgReduce + bDef + weatherDef);
+    const baseRed = (this.dmgReduce + bDef + weatherDef) * (isMega ? 2.0 : 1.0);
+    return isMega ? Math.max(0.80, Math.min(0.92, baseRed)) : Math.min(0.85, baseRed);
   }
   get regen() {
     let weatherRegen = (typeof G === 'object' && G.Weather && G.Weather.getRegenBonus) ? G.Weather.getRegenBonus(this) : 0;
     const bRegen = (this.buffs && this.buffs.regen) ? this.buffs.regen.n * this.buffs.regen.amount : 0;
-    return this.regenFlat + bRegen + weatherRegen;
+    const baseReg = this.regenFlat + bRegen + weatherRegen;
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    return isMega ? Math.max(12, baseReg * 2.0) : baseReg;
   }
 
   get cdMul() {
     let base = this._cdMul != null ? this._cdMul : 1;
     if (typeof G === 'object' && G.Weather && G.Weather.getCdMul) {
       base *= G.Weather.getCdMul(this);
+    }
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    if (isMega) {
+      base *= 0.5; // Duas vezes mais rápido na cadência de ataque (metade do tempo de recarga)
     }
     return base;
   }
@@ -385,7 +397,9 @@ G.Player = class Player {
   }
 
   get critChance() {
-    return this._critChance != null ? this._critChance : 0;
+    const base = this._critChance != null ? this._critChance : 0.05;
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    return isMega ? Math.min(1.0, base * 2.0 + 0.30) : base;
   }
   set critChance(val) {
     this._critChance = val;
@@ -393,8 +407,9 @@ G.Player = class Player {
 
   get magnet() {
     let base = this._magnet != null ? this._magnet : 78;
-    if (typeof G === 'object' && G.Mega && G.Mega.isActive) {
-      base *= 2.0; // +100% de raio de atração no Mega Overdrive (dobra o ímã)
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    if (isMega) {
+      base *= 2.0; // +100% de alcance de coleta no Mega Overdrive (dobra o ímã)
     }
     return base;
   }
@@ -743,12 +758,6 @@ G.Player = class Player {
         return;
       }
     }
-    this.megaMode.timer -= dt;
-
-    if (this.megaMode.timer <= 0) {
-      this.deactivateMega();
-      return;
-    }
 
     // Mantém invulnerável estilo Super Star do Mario
     this.invuln = Math.max(this.invuln, 0.4);
@@ -841,10 +850,24 @@ G.Player = class Player {
 
     this.updateMega(dt);
 
+    // Interpolação suave do crescimento visual do Pokémon no Mega (aumento de tamanho colossal e heróico)
+    const isMegaActive = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive) || (this.megaDmgMul && this.megaDmgMul > 1);
+    const targetScale = isMegaActive ? 1.55 : 1.0;
+    this.megaVisualScale = (this.megaVisualScale || 1.0) + (targetScale - (this.megaVisualScale || 1.0)) * Math.min(1, dt * 8);
+
+    if (this.anim) {
+      this.anim.scale = this.megaVisualScale;
+    }
+    const baseR = this.baseR || G.Sprites.bodyRadius(this.dex);
+    const baseBodyH = this.baseBodyH || G.Sprites.bodyHeight(this.dex);
+    this.r = baseR * this.megaVisualScale;
+    this.bodyH = baseBodyH * this.megaVisualScale;
+
     // Ativação do Mega Mode pelo teclado (Barra de Espaço) quando atingir 100% de carga
-    if (typeof G === 'object' && G.Input && (G.Input.tap('space') || G.Input.tap(' '))) {
-      if (this.megaEnergy >= this.megaMaxEnergy && !this.megaMode.active) {
-        this.activateMega(15);
+    if (typeof G === 'object' && G.Input && (G.Input.tap('space') || G.Input.tap('Space') || G.Input.tap(' '))) {
+      const isReady = (this.megaEnergy >= (this.megaMaxEnergy - 0.8)) || (typeof G === 'object' && G.Mega && G.Mega.gauge >= (G.Mega.maxGauge - 0.8));
+      if (isReady && !this.megaMode.active && !(typeof G === 'object' && G.Mega && G.Mega.isActive)) {
+        this.activateMega(10);
       }
     }
 
@@ -1074,7 +1097,7 @@ G.Player = class Player {
       ctx.beginPath(); ctx.ellipse(this.x, this.y, this.r * 1.5, this.r * 0.6, 0, 0, 6.2832); ctx.stroke();
       ctx.restore();
     }
-    G.Sprites.drawShadow(ctx, this.dex, this.x, this.y);
+    G.Sprites.drawShadow(ctx, this.dex, this.x, this.y, this.megaVisualScale || 1);
 
     // Aura persistente de Ascensão Mega / Forma Ápice (Nível 21+)
     if (this.isMegaAscended && !this.dead && !(this.megaMode && this.megaMode.active)) {
@@ -1385,8 +1408,11 @@ G.Player = class Player {
     this.isShiny = this.shiny;
 
     this.anim = new G.Sprites.Animator(nextMon.dex, 1, this.shiny);
-    this.r = G.Sprites.bodyRadius(nextMon.dex);
-    this.bodyH = G.Sprites.bodyHeight(nextMon.dex);
+    this.anim.scale = this.megaVisualScale || 1.0;
+    this.baseR = G.Sprites.bodyRadius(nextMon.dex);
+    this.baseBodyH = G.Sprites.bodyHeight(nextMon.dex);
+    this.r = this.baseR * (this.megaVisualScale || 1.0);
+    this.bodyH = this.baseBodyH * (this.megaVisualScale || 1.0);
 
     const prevDex = (prevMon && prevMon.dex) || this.dex || nextMon.dex;
     const prevName = (prevMon && prevMon.name) || 'Pokémon';
