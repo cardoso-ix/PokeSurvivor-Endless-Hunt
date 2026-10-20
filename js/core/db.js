@@ -25,6 +25,51 @@
  * El modo invitado juega con una partida en memoria que no se guarda.
  */
 G.DB = (() => {
+
+  // Intercepta requisições de autenticação na VPS/Produção para contornar restrição de Referer da Google API Key
+  function installAuthProxy() {
+    if (typeof window === 'undefined' || window._authProxyInstalled) return;
+    window._authProxyInstalled = true;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+
+    const ID_HOST = 'identitytoolkit.googleapis.com';
+    const SEC_HOST = 'securetoken.googleapis.com';
+
+    function rewriteUrl(url) {
+      if (typeof url !== 'string') return url;
+      if (url.includes(ID_HOST)) {
+        const pathAndQuery = url.substring(url.indexOf(ID_HOST) + ID_HOST.length);
+        return location.origin + '/_identitytoolkit' + (pathAndQuery.startsWith('/') ? pathAndQuery : '/' + pathAndQuery);
+      }
+      if (url.includes(SEC_HOST)) {
+        const pathAndQuery = url.substring(url.indexOf(SEC_HOST) + SEC_HOST.length);
+        return location.origin + '/_securetoken' + (pathAndQuery.startsWith('/') ? pathAndQuery : '/' + pathAndQuery);
+      }
+      return url;
+    }
+
+    if (window.fetch) {
+      const origFetch = window.fetch;
+      window.fetch = function(resource, init) {
+        if (typeof resource === 'string') {
+          resource = rewriteUrl(resource);
+        } else if (resource && resource.url) {
+          try {
+            resource = new Request(rewriteUrl(resource.url), resource);
+          } catch (e) {}
+        }
+        return origFetch.call(this, resource, init);
+      };
+    }
+
+    if (window.XMLHttpRequest) {
+      const origOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        return origOpen.call(this, method, rewriteUrl(url), ...rest);
+      };
+    }
+  }
+
   const K_ACC = 'ps.accounts', K_SES = 'ps.session', K_SAVE = 'ps.save.';
   const K_CLOUD = 'ps.cloud.', K_MIGRATED = 'ps.migrated.';
   const VERSION = 3;
@@ -455,6 +500,7 @@ G.DB = (() => {
     if (!/^https?:$/.test(location.protocol)) { localReason = 'file'; return false; }
     if (cfg && !cfg.emulator && !isAllowedHost(location.hostname)) { localReason = 'host'; return false; }
     if (!cfg || !cfg.apiKey || !cfg.projectId) { localReason = 'config'; return false; }
+    installAuthProxy();
     await loadScript(SDK + 'firebase-app-compat.js');
     await loadScript(SDK + 'firebase-auth-compat.js');
     await loadScript(SDK + 'firebase-firestore-compat.js');
@@ -652,6 +698,9 @@ G.DB = (() => {
 
   function authError(e) {
     const c = (e && e.code) || '';
+    if (e && (e.code === 'auth/requests-from-referer-blocked' || (e.message && e.message.includes('requests-from-referer')))) {
+      return 'Servidor de autenticação reiniciando. Tente novamente em alguns segundos ou recarregue a página.';
+    }
     const M = {
       'auth/email-already-in-use': 'Esse nome de usuário já existe.',
       'auth/invalid-credential': 'Usuário ou senha incorretos.',
@@ -722,12 +771,22 @@ G.DB = (() => {
   }
 
   async function loginWithGoogle() {
-    if (mode !== 'cloud') return { ok: false, error: 'Entrar con Google necesita la versión publicada del juego.' };
+    if (mode !== 'cloud') return { ok: false, error: 'Entrar com o Google necessita da versão online do jogo.' };
     try {
-      const cred = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const cred = await auth.signInWithPopup(provider);
       await openCloud(cred.user, { name: displayNameOf(cred.user) });
       return { ok: true, isNew: !save.partner };
-    } catch (e) { return { ok: false, error: authError(e) }; }
+    } catch (e) {
+      if (e && e.code === 'auth/unauthorized-domain') {
+        return {
+          ok: false,
+          error: 'Domínio da VPS pendente de autorização para OAuth no Firebase Console. Utilize o cadastro de Nome de Usuário e Senha acima para salvar na nuvem!'
+        };
+      }
+      return { ok: false, error: authError(e) };
+    }
   }
 
   /** Cambia el nombre que se ve en la partida (al elegir apodo). */
