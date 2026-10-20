@@ -10,7 +10,7 @@ window.G = window.G || {};
 const MegaCutscene = {
   active: false,
   timer: 0,
-  duration: 2.8, // Duração estendida para 2.8s para visualização ampla e contemplação do Pokémon
+  duration: 0.3, // Duração estendida para 2.8s para visualização ampla e contemplação do Pokémon
   pokemonName: 'POKÉMON',
   pokemonDex: 1,
   isShiny: false,
@@ -22,7 +22,7 @@ const MegaCutscene = {
   start(pl, element, ultimateName) {
     this.active = true;
     this.timer = 0;
-    this.duration = 2.8;
+    this.duration = 0.3;
     this.pl = pl;
     this.pokemonName = (pl && pl.mon && pl.mon.name ? pl.mon.name : (pl && pl.name ? pl.name : 'Pokémon')).toUpperCase();
     this.pokemonDex = (pl && pl.dex) || 1;
@@ -248,7 +248,7 @@ const MegaSystem = {
   gauge: 0,
   maxGauge: 100,
   isActive: false,
-  duration: 10.0, // 10.0 segundos
+  duration: 20.0, // 20 segundos de Overdrive Supremo
   timeLeft: 0,
   hazardTimer: 0,
   tickTimer: 0,
@@ -298,7 +298,7 @@ const MegaSystem = {
     this.gauge = this.maxGauge;
     if (pl) {
       pl.megaEnergy = this.maxGauge;
-      pl.megaDmgMul = 2.0; // Dano 2x garantido durante todo o Mega
+      pl.megaDmgMul = 5.0; // Buff Absurdo de Dano (5x) // Buff Absurdo de Dano (5x) // Dano 2x garantido durante todo o Mega
     }
     this.timeLeft = this.duration;
     this.hazardTimer = 0;
@@ -382,7 +382,7 @@ const MegaSystem = {
       this.timeLeft = this.duration;
       this.gauge = this.maxGauge;
       if (pl) {
-        pl.megaDmgMul = 2.0;
+        pl.megaDmgMul = 5.0; // Buff Absurdo de Dano (5x) // Buff Absurdo de Dano (5x)
         pl.dmgTakenMul = 0.15;
         pl.magnetMul = 2.0;
         if (pl.megaMode) {
@@ -400,7 +400,7 @@ const MegaSystem = {
 
     // Mantém bônus de dano 2x, defensivo e de ímã durante todo o Overdrive
     if (pl) {
-      pl.megaDmgMul = 2.0;
+      pl.megaDmgMul = 5.0; // Buff Absurdo de Dano (5x) // Buff Absurdo de Dano (5x)
       pl.dmgTakenMul = 0.15;
       pl.magnetMul = 2.0;
       if (pl.megaMode) {
@@ -443,7 +443,7 @@ const MegaSystem = {
       this.gauge = 0;
       this.timeLeft = 0;
       if (pl) {
-        pl.megaDmgMul = 1.0;
+        pl.megaDmgMul = 5.0; // Buff Absurdo de Dano (5x)
         pl.dmgTakenMul = 1.0;
         pl.magnetMul = 1.0;
         if (typeof pl.deactivateMega === 'function') pl.deactivateMega();

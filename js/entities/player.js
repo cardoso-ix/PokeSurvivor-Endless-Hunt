@@ -347,7 +347,7 @@ G.Player = class Player {
 
   get atk() {
     const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive) || (this.megaDmgMul && this.megaDmgMul > 1);
-    const megaMul = isMega ? 2.0 : 1;
+    const megaMul = isMega ? (this.megaDmgMul || 5.0) : 1;
     let weatherAtk = (typeof G === 'object' && G.Weather && G.Weather.getAtkMul) ? G.Weather.getAtkMul(this) : 1;
     const bAtk = (this.buffs && this.buffs.atk) ? this.buffs.atk.n * this.buffs.atk.amount : 0;
     return this.baseAtk * this.atkMul * (1 + bAtk) * megaMul * weatherAtk;
@@ -852,7 +852,7 @@ G.Player = class Player {
 
     // Interpolação suave do crescimento visual do Pokémon no Mega (aumento de tamanho colossal e heróico)
     const isMegaActive = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive) || (this.megaDmgMul && this.megaDmgMul > 1);
-    const targetScale = isMegaActive ? 1.55 : 1.0;
+    const targetScale = isMegaActive ? 1.85 : 1.0; // Pokémon cresce e fica gigante na tela
     this.megaVisualScale = (this.megaVisualScale || 1.0) + (targetScale - (this.megaVisualScale || 1.0)) * Math.min(1, dt * 8);
 
     if (this.anim) {

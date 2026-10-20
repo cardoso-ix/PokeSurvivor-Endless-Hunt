@@ -655,7 +655,7 @@ G.Rift = (() => {
     if (G.Camera && pl) { G.Camera.x = pl.x; G.Camera.y = pl.y; }
     if (G.Game && typeof G.Game.flash === 'function') G.Game.flash('#c9a6ff', 0.8);
     if (G.Spawner && typeof G.Spawner.say === 'function') G.Spawner.say('De volta ao campo de batalha!', 2.2, true);
-    if (pl && pl.bonds > 0 && G.Game && typeof G.Game.offerBond === 'function') G.Game.offerBond();
+    // Não abre mais tela de escolher ataques: a partir do Nv. 20 todos os 4 ataques já combam juntos automaticamente!
   }
 
   // ---------------- dibujo ----------------
