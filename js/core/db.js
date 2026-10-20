@@ -1141,10 +1141,21 @@ G.DB = (() => {
       ? G.Upgrades.perks(raw)
       : null;
 
-    const hpBonus = pks ? pks.hp : (Math.floor(Number(raw.hp) || 0) * 8);
-    const atkBonus = pks ? Number((baseAtk * (pks.atkMul - 1)).toFixed(2)) : Number((baseAtk * (Math.floor(Number(raw.atk) || 0) * 0.04)).toFixed(2));
-    const defBonus = pks ? Number(pks.dmgReduce.toFixed(2)) : Number((Math.floor(Number(raw.def) || 0) * 0.02).toFixed(2));
-    const speedBonus = pks ? Number((baseSpd * (pks.spdMul - 1)).toFixed(1)) : Number((baseSpd * (Math.floor(Number(raw.spd) || 0) * 0.03)).toFixed(1));
+    const hpLvl = Math.floor(Number(raw.hp) || 0);
+    const atkLvl = Math.floor(Number(raw.atk) || 0);
+    const spdLvl = Math.floor(Number(raw.spd) || 0);
+    const defLvl = Math.floor(Number(raw.def) || 0);
+    const cdLvl = Math.floor(Number(raw.cd) || 0);
+    const regenLvl = Math.floor(Number(raw.regen) || 0);
+    const critLvl = Math.floor(Number(raw.crit) || 0);
+
+    const hpBonus = pks ? pks.hp : (hpLvl * 8);
+    const atkBonus = pks ? Number((baseAtk * (pks.atkMul - 1)).toFixed(2)) : Number((baseAtk * (atkLvl * 0.04)).toFixed(2));
+    const defBonus = pks ? Number(pks.dmgReduce.toFixed(2)) : Number((defLvl * 0.02).toFixed(2));
+    const speedBonus = pks ? Number((baseSpd * (pks.spdMul - 1)).toFixed(1)) : Number((baseSpd * (spdLvl * 0.03)).toFixed(1));
+    const cdBonus = pks ? Number((1 - pks.cdMul).toFixed(2)) : Number((cdLvl * 0.03).toFixed(2));
+    const regenBonus = pks ? Number(pks.regen.toFixed(1)) : Number((regenLvl * 0.2).toFixed(1));
+    const critBonus = pks ? Number((pks.crit || 0).toFixed(2)) : Number((critLvl * 0.03).toFixed(2));
 
     return {
       speciesId: speciesName || String(speciesId),
@@ -1155,9 +1166,9 @@ G.DB = (() => {
       defense: defBonus,
       speed: speedBonus,
       spd: speedBonus,
-      cd: Number((cdLvl * 0.03).toFixed(2)),
-      regen: Number((regenLvl * 0.2).toFixed(1)),
-      crit: Number((critLvl * 0.03).toFixed(2)),
+      cd: cdBonus,
+      regen: regenBonus,
+      crit: critBonus,
       levels: {
         hp: hpLvl,
         atk: atkLvl,
