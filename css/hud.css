@@ -623,11 +623,17 @@
 .stat-apr { color: #38bdf8; }
 .stat-reg { color: #a3e635; }
 
-
 /* ==========================================================================
-   Garantia Estrutural: Status SEMPRE abaixo do Personagem, Vida e Ataques
+   Garantia Estrutural: HUD 100% Oculto no Boot/Menu e Status Descendo Abaixo
    ========================================================================== */
-#bottom-rpg-hud.hud-top-left {
+#bottom-rpg-hud.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+#bottom-rpg-hud.hud-top-left:not(.hidden) {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
@@ -635,6 +641,7 @@
   top: 14px !important;
   left: 14px !important;
   z-index: 90 !important;
+  pointer-events: auto !important;
 }
 
 .hud-profile-card {
@@ -647,20 +654,66 @@
   z-index: 9 !important;
 }
 
+#hud-stats-toggle,
 .hud-stats-toggle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   position: relative !important;
-  z-index: 8 !important;
+  z-index: 95 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none !important;
   margin-top: 6px !important;
+  background: #141624 !important;
+  border: 2px solid #3a3f58 !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+  font-family: 'Pixelify', 'Press Start 2P', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #ffd23f !important;
+}
+
+#hud-stats-toggle:hover,
+.hud-stats-toggle:hover {
+  background: #1e2238 !important;
+  border-color: #ffd23f !important;
+  color: #ffffff !important;
 }
 
 #stats-rpg-panel {
+  width: 100% !important;
+  box-sizing: border-box !important;
   position: relative !important;
   top: auto !important;
   bottom: auto !important;
   left: auto !important;
   right: auto !important;
   transform: none !important;
-  z-index: 7 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+  background: #141624 !important;
+  border: 2px solid #3a3f58 !important;
+  border-radius: 6px !important;
+  padding: 8px 10px !important;
+  font-family: 'Pixelify', 'Press Start 2P', monospace !important;
+  user-select: none !important;
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease;
+}
+
+#stats-rpg-panel.collapsed {
+  display: none !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#stats-rpg-panel:not(.collapsed) {
+  display: block !important;
+  max-height: 300px !important;
+  opacity: 1 !important;
+  margin-top: 6px !important;
+  pointer-events: auto !important;
+  z-index: 94 !important;
 }

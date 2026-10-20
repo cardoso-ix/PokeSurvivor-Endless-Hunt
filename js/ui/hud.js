@@ -1,4 +1,24 @@
 
+// Listener Global e Infalível para o Botão Retrátil de Status (Mouse e Touch)
+if (typeof document !== 'undefined') {
+  function handleStatsToggleClick(e) {
+    const btn = e.target && e.target.closest('#hud-stats-toggle');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const panel = document.getElementById('stats-rpg-panel');
+    const arrow = document.getElementById('hud-stats-arrow');
+    if (!panel) return;
+    const nowCollapsed = panel.classList.toggle('collapsed');
+    if (arrow) arrow.textContent = nowCollapsed ? '▼' : '▲';
+    try { localStorage.setItem('ps_stats_panel_expanded', String(!nowCollapsed)); } catch (err) {}
+    if (typeof G === 'object' && G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('click');
+  }
+  document.addEventListener('click', handleStatsToggleClick, true);
+  document.addEventListener('touchend', handleStatsToggleClick, true);
+}
+
+
   function wireStatsToggle() {
     const btn = document.getElementById('hud-stats-toggle');
     const panel = document.getElementById('stats-rpg-panel');
