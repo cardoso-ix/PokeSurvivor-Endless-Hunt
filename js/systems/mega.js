@@ -12,7 +12,7 @@ const MegaSystem = {
   gauge: 0,
   maxGauge: 100,
   isActive: false,
-  duration: 20.0, // 20 segundos exatos
+  duration: 10.0, // 10 segundos exatos (janela tática)
   timeLeft: 0,
 
   /** Reseta o estado do Mega ao reiniciar ou iniciar partida */
@@ -54,30 +54,30 @@ const MegaSystem = {
 
     this.isActive = true;
     this.gauge = this.maxGauge;
-    this.duration = 20.0;
-    this.timeLeft = 20.0;
+    this.duration = 10.0;
+    this.timeLeft = 10.0;
 
     // Super Buff Absurdo em TUDO no Pokémon durante os 20 segundos:
     if (pl) {
       pl.megaEnergy = this.maxGauge;
-      pl.megaDmgMul = 5.0; // Dano 5x brutal em todos os ataques!
-      pl.dmgTakenMul = 0.15; // Defesa super buffada: sofre só 15% de dano (85% de redução)
+      pl.megaDmgMul = 2.5; // Dano 2.5x calibrado para burst hardcore!
+      pl.dmgTakenMul = 0.45; // Defesa sólida: sofre 45% de dano (55% de redução)
       pl.magnetMul = 2.0; // Raio de coleta 2x
       if (pl.megaMode) {
         pl.megaMode.active = true;
-        pl.megaMode.timer = 20.0;
-        pl.megaMode.maxTimer = 20.0;
+        pl.megaMode.timer = 10.0;
+        pl.megaMode.maxTimer = 10.0;
       }
     }
 
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
       const pName = (pl && pl.mon && pl.mon.name) || (pl && pl.species) || 'POKÉMON';
-      G.Spawner.say(`🔥 MEGA ATIVADO! ${pName.toUpperCase()} GIGANTE COM SUPER BUFF (20s)!`, 3.0, true);
+      G.Spawner.say(`🔥 MEGA ATIVADO! ${pName.toUpperCase()} GIGANTE COM SUPER BUFF (10s)!`, 3.0, true);
     }
     if (typeof G === 'object' && G.Audio && typeof G.Audio.sfx === 'function') {
       G.Audio.sfx('mega');
     }
-    console.log('🌟 [MEGA] Ativado por 20 segundos: Pokémon cresceu e ganhou Super Buff de Dano 5x!');
+    console.log('🌟 [MEGA] Ativado por 10 segundos: Pokémon cresceu e ganhou Super Buff de Dano 2.5x!');
     return true;
   },
 
@@ -101,8 +101,8 @@ const MegaSystem = {
 
     // Mantém o super buff e o crescimento ativos durante todos os 20 segundos
     if (pl) {
-      pl.megaDmgMul = 5.0;
-      pl.dmgTakenMul = 0.15;
+      pl.megaDmgMul = 2.5;
+      pl.dmgTakenMul = 0.45;
       pl.magnetMul = 2.0;
       if (pl.megaMode) {
         pl.megaMode.active = true;
@@ -125,7 +125,7 @@ const MegaSystem = {
       if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
         G.Spawner.say('🌟 Mega finalizado: Pokémon retornou ao tamanho normal.', 2.5, true);
       }
-      console.log('🌟 [MEGA] 20 segundos concluídos. Pokémon retornou ao tamanho normal e status originais.');
+      console.log('🌟 [MEGA] 10 segundos concluídos. Pokémon retornou ao tamanho normal e status originais.');
     }
   }
 };

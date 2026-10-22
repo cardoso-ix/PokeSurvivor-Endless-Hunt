@@ -98,7 +98,7 @@ G.Pickups = (() => {
       }
     } catch (_) {}
 
-    const healChance = isLowHp ? 0.085 : 0.012;
+    const healChance = isLowHp ? 0.038 : 0.010;
     const r = Math.random();
     if (r < healChance) push(orb('heal', x + G.U.rand(-8, 8), y, 0));
     else if (r < healChance + 0.008) push(orb('magnet', x, y, 0));

@@ -660,7 +660,7 @@ G.Player = class Player {
     // Con un ataque cuerpo a cuerpo activo se recibe un 25 % menos: hay que
     // estar encima de los enemigos para pegar (iban muy por detrás).
     const close = this.activeGroup().some(m => m.kind === 'melee') ? 0.75 : 1;
-    const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive) ? 0.20 : 1.0; // Redução de 80% no dano sofrido (Aura Protetora do Mega)
+    const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive) ? 0.70 : 1.0; // Redução justa calibrada (30% direta somada à defesa)
     const d = pure ? Math.max(1, amount * megaProt) : Math.max(1, amount * (1 - this.reduction) * close * megaProt);
     this.hp -= d;
     this.invuln = 0.45;

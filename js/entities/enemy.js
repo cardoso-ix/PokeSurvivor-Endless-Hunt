@@ -1016,7 +1016,7 @@
           if (e.boss && !e.judge) pl.bosses++;
           // Carga gradual da barra de Mega (balanceada para permitir ativações emocionantes a cada ~80 abates ou chefes)
           if (typeof pl.addMegaEnergy === 'function') {
-            const gain = (e.isGuardian || e.isRiftGuardian) ? 35.0 : (e.boss ? 25.0 : (e.elite ? 8.0 : 1.20));
+            const gain = (e.isGuardian || e.isRiftGuardian) ? 35.0 : (e.boss ? 25.0 : (e.elite ? 8.0 : 0.65));
             pl.addMegaEnergy(gain);
           }
           G.Progress.kill(e);

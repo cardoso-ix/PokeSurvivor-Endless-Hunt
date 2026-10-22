@@ -571,7 +571,7 @@ G.Game = (() => {
       return;
     }
     if (p.kind === 'heal') {
-      if (mine) pl.heal(pl.maxHp * 0.3);
+      if (mine) pl.heal(pl.maxHp * 0.20);
       G.FX.ring(who.x, who.y, 6, 60, '#5fe08a', 0.4, 3);
       return;
     }
