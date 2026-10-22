@@ -1353,10 +1353,11 @@ G.HUD = (() => {
         megaTrack.addEventListener('click', onMegaAction);
       }
 
-      // 6. Slots e Cards de Ataques Ativos (Super Combo Nível 20)
+      // 6. Slots e Cards de Ataques Ativos (Disparo Simultâneo Contínuo + Sobrecarga Nv. 20)
       const tray = document.getElementById('hud-skills-tray');
       if (tray && pl.slots) {
-        const isCombo = !!(pl.level >= 20 || pl.quadComboActive);
+        const isOvercharge = pl.level >= 20;
+        const isCombo = true; // Todos os ataques disparam juntos desde o Nível 1
         const maxSlots = pl.maxMoves || 4;
 
         // Atualiza cabeçalho do combo
@@ -1365,16 +1366,16 @@ G.HUD = (() => {
         const comboBadge = document.getElementById('hud-combo-badge');
 
         if (comboContainer) {
-          comboContainer.classList.toggle('combo-unlocked', isCombo);
+          comboContainer.classList.toggle('combo-unlocked', isOvercharge);
         }
         if (comboTitle) {
-          comboTitle.textContent = isCombo
-            ? '⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡'
-            : '⚔️ ATAQUES PARA COMBAR (NOVO ATK NO LEVEL UP)';
+          comboTitle.textContent = isOvercharge
+            ? '⚡ SOBRECARGA ATIVA · ÁREA +20% | RECARGA -15% ⚡'
+            : '⚔️ DISPARO SIMULTÂNEO · TODOS OS ATAQUES ATIVOS';
         }
         if (comboBadge) {
-          comboBadge.textContent = isCombo
-            ? '🔥 COMBANDO JUNTOS'
+          comboBadge.textContent = isOvercharge
+            ? '🔥 SOBRECARGA'
             : `NV. ${pl.level}/20`;
         }
 

@@ -20,8 +20,8 @@ G.Combat = (() => {
 
   function tick(dt, pl, now) {
     if (pl.dead) return;
-    // Marco do Nível 20: o Pokémon comba todos os 4 ataques da barra abaixo juntos!
-    const movesToTick = (pl.level >= 20 || pl.quadComboActive) ? (pl.moves && pl.moves.length ? pl.moves : pl.activeGroup()) : pl.activeGroup();
+    // Disparo Contínuo: todos os ataques aprendidos disparam juntos desde o Nível 1
+    const movesToTick = (pl.moves && pl.moves.length) ? pl.moves : pl.activeGroup();
     for (const m of movesToTick) tickMove(dt, pl, m, now);
   }
 
@@ -67,6 +67,8 @@ G.Combat = (() => {
 
   const TARGETED = ['melee', 'beam', 'projectile', 'boomerang', 'chain', 'meteor', 'dash', 'cone'];
   function needsTarget(m) { return TARGETED.includes(m.kind); }
+  function aRad(m, pl) { return m.radius * ((pl && pl.areaMul) || 1); }
+  function aSize(m, pl) { return (m.size || 6) * ((pl && pl.areaMul) || 1); }
   function reach(m) {
     if (m.kind === 'melee') return m.radius + 30;
     if (m.kind === 'beam') return m.radius + 20;
@@ -96,7 +98,7 @@ G.Combat = (() => {
       G.Projectiles.spawn(Object.assign({
         x: pl.x + Math.cos(a) * 3, y: pl.y + Math.sin(a) * 3,
         vx: Math.cos(a) * m.speed, vy: Math.sin(a) * m.speed,
-        dmg: m.dmg * pl.atk, r: m.size, life: m.life,
+        dmg: m.dmg * pl.atk, r: aSize(m, pl), life: m.life,
         pierce: m.pierce | 0, color: col, homing: m.homing || 0,
         hits: new Set(), vis, ghost, owner: pl
       }, payload(m)));
@@ -130,10 +132,10 @@ G.Combat = (() => {
   function melee(pl, m) {
     const col = G.U.TYPE_COLOR[m.type];
     const half = Math.min(m.arc, 6.2832) / 2;
-    G.FX.slash(pl.x, pl.y - G.LIFT * 0.5, pl.aim, m.radius, m.arc, col, G.VFX.forMove(m));
+    G.FX.slash(pl.x, pl.y - G.LIFT * 0.5, pl.aim, aRad(m, pl), m.arc, col, G.VFX.forMove(m));
     if (ghost) return;
 
-    for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, m.radius)) {
+    for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, aRad(m, pl))) {
       if (!inArc(pl.x, pl.y, e.x, e.y, pl.aim, half)) continue;
       hit(pl, e, m.dmg * pl.atk, col, e.x - pl.x, e.y - pl.y, m.knock || 0, m);
     }
@@ -148,7 +150,7 @@ G.Combat = (() => {
     const ca = Math.cos(pl.aim), sa = Math.sin(pl.aim);
 
     // El rayo se corta en la primera pared.
-    let len = m.radius;
+    let len = aRad(m, pl);
     for (let d = 8; d < m.radius; d += 8) {
       if (G.World.isWall(pl.x + ca * d, pl.y + sa * d)) { len = d; break; }
     }
@@ -173,7 +175,7 @@ G.Combat = (() => {
 
   function aura(pl, m) {
     const col = G.U.TYPE_COLOR[m.type];
-    G.FX.ring(pl.x, pl.y, m.radius * 0.5, m.radius, col, 0.28, 2);
+    G.FX.ring(pl.x, pl.y, aRad(m, pl) * 0.5, aRad(m, pl), col, 0.28, 2);
     const vis = G.VFX.forMove(m);
     if (vis.aura) {
       for (let i = 0; i < 5; i++) {
@@ -189,7 +191,7 @@ G.Combat = (() => {
     }
     if (ghost) return;
     let healed = 0;
-    for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, m.radius)) {
+    for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, aRad(m, pl))) {
       hit(pl, e, m.dmg * pl.atk, col, e.x - pl.x, e.y - pl.y, 0, m);
       if (m.drain) healed += m.drain;
     }

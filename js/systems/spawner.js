@@ -17,10 +17,10 @@ G.Spawner = (() => {
   const CAP = 64, ELITE_FROM = 0.85;
   // Menos Pokémon pero más fuertes (la pantalla no se satura): salen ~24% de
   // los de antes, cada uno con más vida, daño y experiencia.
-  const DENSITY = 0.24, DMG_K = 2.4, XP_K = 5.6;
-  // La resistencia extra crece con la run: al principio ×3,3 y hasta ×5
-  // hacia el minuto 6, cuando ya tienes ataques para tumbarlos.
-  const hpK = t => 3.3 + Math.min(1.7, t / 210);
+  // Calibragem Pacing Clássico: taxa de spawn ajustada com XP balanceada
+  const DENSITY = 0.24, DMG_K = 2.4, XP_K = 3.4;
+  // Curva justa de resistência dos monstros: começa em ×1.8 e escala suavemente até ×3.2
+  const hpK = t => 1.8 + Math.min(1.4, t / 300);
   const SHINY_RATE = 1 / 4096;
   let acc = 0, bossIdx = 0, surgeT = 32, announce = null, announceT = 0, preloadT = 0;
   let forceShiny = 0;           // para pruebas: los N próximos salen shiny
@@ -33,7 +33,8 @@ G.Spawner = (() => {
 
   /** Enemigos por segundo según el minuto de la run. */
   function rate(t) {
-    return (1.6 + t * 0.028 + Math.pow(t / 60, 1.6) * 0.5) * DENSITY;
+    // Taxa base inicial elevada (3.2 * DENSITY) para eliminar o vazio inicial nos primeiros 2 minutos
+    return (3.2 + t * 0.025 + Math.pow(t / 60, 1.45) * 0.45) * DENSITY;
   }
 
   function ringPoint(pl, angle) {

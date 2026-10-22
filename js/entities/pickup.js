@@ -88,11 +88,21 @@ G.Pickups = (() => {
     push(orb(value >= 20 ? 'xpBig' : 'xp', x, y, value));
     if (Math.random() < TICKET_RATE) push(orb('ticket', x + G.U.rand(-6, 6), y, 1));
 
-    // Drops ocasionales.
+    // Drops ocasionales (com Alívio Dinâmico de Emergência: <30% HP eleva cura para 8.5%)
+    let isLowHp = false;
+    try {
+      const pl = (typeof G !== 'undefined' && G.Game && G.Game.player) ||
+                 (typeof window !== 'undefined' && window.game && window.game.player);
+      if (pl && pl.hp && pl.maxHp && (pl.hp / pl.maxHp < 0.30)) {
+        isLowHp = true;
+      }
+    } catch (_) {}
+
+    const healChance = isLowHp ? 0.085 : 0.012;
     const r = Math.random();
-    if (r < 0.012) push(orb('heal', x + G.U.rand(-8, 8), y, 0));
-    else if (r < 0.020) push(orb('magnet', x, y, 0));
-    else if (r < 0.026) push(orb('bomb', x, y, 0));
+    if (r < healChance) push(orb('heal', x + G.U.rand(-8, 8), y, 0));
+    else if (r < healChance + 0.008) push(orb('magnet', x, y, 0));
+    else if (r < healChance + 0.014) push(orb('bomb', x, y, 0));
   }
 
   /** Suelta un objeto suelto: 'heal' | 'magnet' | 'bomb' | 'coin'. */

@@ -382,11 +382,31 @@ G.Player = class Player {
     if (typeof G === 'object' && G.Weather && G.Weather.getCdMul) {
       base *= G.Weather.getCdMul(this);
     }
+    // Sobrecarga de Energia ao atingir Nível 20+: -15% de tempo de recarga global
+    if (this.level >= 20) {
+      base *= 0.85;
+    }
     const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
     if (isMega) {
       base *= 0.5; // Duas vezes mais rápido na cadência de ataque (metade do tempo de recarga)
     }
     return base;
+  }
+
+  get areaMul() {
+    let base = this._areaMul != null ? this._areaMul : 1;
+    // Sobrecarga de Energia ao atingir Nível 20+: +20% de área em todos os ataques
+    if (this.level >= 20) {
+      base *= 1.20;
+    }
+    const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
+    if (isMega) {
+      base *= 1.35;
+    }
+    return base;
+  }
+  set areaMul(val) {
+    this._areaMul = val;
   }
   set cdMul(val) {
     if (this.inRunModifiers) {
@@ -619,6 +639,18 @@ G.Player = class Player {
       leveled++;
       if (typeof this.addMegaEnergy === 'function') {
         this.addMegaEnergy(3.5);
+      }
+      if (this.level >= 20 && !this._overchargeAnnounced) {
+        this._overchargeAnnounced = true;
+        if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+          G.Spawner.say('⚡ SOBRECARGA ATIVADA! (+20% Área, -15% Recarga)', 3.5, true);
+        }
+        if (typeof G === 'object' && G.Audio && typeof G.Audio.sfx === 'function') {
+          G.Audio.sfx('legend');
+        }
+        if (typeof G === 'object' && G.FX && typeof G.FX.ring === 'function') {
+          G.FX.ring(this.x, this.y, 10, 140, '#ffd700', 0.8, 6);
+        }
       }
       this.checkEvolutionMilestones();
     }
