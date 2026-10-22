@@ -359,16 +359,16 @@ G.MenuUI = (() => {
       // Descrições de super buff quando em Ascensão (+1 a +10)
       if (baseMaxed && !supremeMaxed) {
         const BUFF_TIPS = {
-          atk: `+15% de Dano Supremo (+150% no +10)`,
-          crit: `+5% de Chance Crítica (+50% no +10)`,
-          hp: `+50 PV Máximo (+500 PV no +10)`,
-          def: `+3,5% de Defesa Absoluta (+35% no +10)`,
-          cd: `-4% de Tempo de Recarga (-40% no +10)`,
-          spd: `+5% de Velocidade de Movimento`,
-          regen: `+2,0 PV por segundo (+20 PV/s no +10)`,
-          magnet: `+30% de Raio de Coleta de Ímã`,
-          xp: `+20% de Experiência Obtida`,
-          coins: `+35% de PokéMoedas Recebidas`,
+          atk: `+10% de Dano Supremo (+100% no +10)`,
+          crit: `+2,5% de Chance Crítica (+25% no +10)`,
+          hp: `+35 PV Máximo (+350 PV no +10)`,
+          def: `+2,0% de Defesa Absoluta (+20% no +10)`,
+          cd: `-2,5% de Tempo de Recarga (-25% no +10)`,
+          spd: `+2,5% de Velocidade de Movimento (+25% no +10)`,
+          regen: `+1,0 PV por segundo (+10 PV/s no +10)`,
+          magnet: `+15% de Raio de Coleta de Ímã (+150% no +10)`,
+          xp: `+10% de Experiência Obtida (+100% no +10)`,
+          coins: `+10% de PokéMoedas Recebidas (+100% no +10)`,
           reroll: `+1 Troca de Cartas por Nível`,
           ban: `+1 Veto de Ataque por Nível`,
           moves: `+10% de Dano das Habilidades Iniciais`
@@ -405,7 +405,7 @@ G.MenuUI = (() => {
       } else if (baseMaxed) {
         buyBtnHtml = `<button class="btn small ${canAfford ? 'gold' : ''}" data-buy data-sfx="none"
           ${!canAfford ? 'disabled' : ''}
-          style="${!canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : 'background:linear-gradient(180deg,#f59e0b,#b45309);color:#fff;font-weight:bold;border:1px solid #fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.5);'}"
+          style="${!canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : 'background:linear-gradient(180deg,#f59e0b,#b45309);color:#fff;font-weight:bold;border:1px solid #fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.5);'} white-space:nowrap; padding:4px 8px;"
           title="${!canAfford ? 'PokéMoedas insuficientes para Ascensão' : `Liberar Ascensão +${nextOverLvl}`}">
           +${nextOverLvl} &nbsp;<span class="coin"></span> ${cost.toLocaleString('pt-BR')}
         </button>`;
