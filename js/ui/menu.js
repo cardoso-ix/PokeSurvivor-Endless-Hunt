@@ -73,7 +73,12 @@ G.MenuUI = (() => {
     G.UI.sprite($('menu-partner'), mon.dex, { lively: true, scale: 4, hero: true, shiny });
     $('menu-partner').style.setProperty('--stage-c', shiny ? '#9ae6ff' : G.U.TYPE_COLOR[mon.types[0]]);
     $('menu-partner').classList.toggle('shiny', shiny);
-    $('menu-partner-name').innerHTML = mon.name + (shiny ? ' ' + G.Icons.html('shiny', 24) : '');
+    const isLeg = mon.leg || mon.rarity >= 5;
+    let badge = '';
+    if (shiny && isLeg) badge = ' <span class="badge-gold" style="font-size:11px; color:#ffd700; font-weight:bold;">✨👑 +50% ATQ</span>';
+    else if (shiny) badge = ' <span class="badge-shiny" style="font-size:11px; color:#9ae6ff; font-weight:bold;">✨ +25% ATQ</span>';
+    else if (isLeg) badge = ' <span class="badge-leg" style="font-size:11px; color:#f59e0b; font-weight:bold;">👑 +20% ATQ</span>';
+    $('menu-partner-name').innerHTML = mon.name + badge;
     $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) + ' ' + G.UI.stars(mon.rarity);
     // Normal / shiny a mano, aquí mismo (en el móvil no se encontraba en la ficha).
     const seg = $('menu-shiny');
@@ -240,6 +245,18 @@ G.MenuUI = (() => {
         <h3>${own ? p.name : '???'}</h3>
         <div style="color:${G.Gacha.RARITY_COLOR[p.rarity]}">${G.UI.stars(p.rarity, 24)} ${G.Gacha.RARITY_NAME[p.rarity]}</div>
         <div style="margin:6px 0">${own ? G.UI.typeChips(p.types) : ''}</div>
+        ${(() => {
+          const isL = p.leg || p.rarity >= 5;
+          const isS = viewShiny;
+          if (isL && isS) {
+            return '<div style="margin:6px 0;padding:6px;background:rgba(255,215,0,0.15);border:1px solid #ffd700;border-radius:4px;font-size:11px;color:#ffd700;font-weight:bold;text-align:center">✨👑 PRESTÍGIO APEX: +50% DANO · +25% HP · +10% VEL</div>';
+          } else if (isS) {
+            return '<div style="margin:6px 0;padding:6px;background:rgba(154,230,255,0.15);border:1px solid #9ae6ff;border-radius:4px;font-size:11px;color:#9ae6ff;font-weight:bold;text-align:center">✨ PRESTÍGIO SHINY: +25% DANO · +10% HP · +5% VEL</div>';
+          } else if (isL) {
+            return '<div style="margin:6px 0;padding:6px;background:rgba(245,158,11,0.15);border:1px solid #f59e0b;border-radius:4px;font-size:11px;color:#f59e0b;font-weight:bold;text-align:center">👑 PRESTÍGIO LENDÁRIO: +20% DANO · +15% HP · +5% VEL</div>';
+          }
+          return '';
+        })()}
       </div>
       ${own ? `
         ${bar('Vida In-game', p.hp, max.hp, p.hp)}

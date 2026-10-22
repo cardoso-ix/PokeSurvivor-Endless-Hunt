@@ -11,26 +11,28 @@
  */
 
 const CaptureSystem = (() => {
-  // Configuração Oficial da Gold Ball (Nv 41+, 10% chance, 100% garantido, +1000 ouro)
+  // Configuração Rebalanceada da Gold Ball (Nv 41+, 10% chance de proc, bônus dinâmico e +1000 ouro)
   const GOLD_BALL_CONFIG = {
     id: 'gold_ball',
     name: 'Gold Ball',
     chance: 0.10,
-    isGuaranteed: true,
+    isGuaranteed: false, // Removido 100% garantido para preservar mérito
     isGold: true,
-    catchRate: 1.00,
-    bonus: 1.00,
+    catchRate: 0.49,
+    bonus: 0.14,      // +14% para Normais
+    bonusRare: 0.08,  // +8% para Shinies / Lendários
+    bonusApex: 0.04,  // +4% para Shiny Lendário
     minLevel: 41,
     maxLevel: Infinity,
     colorTop: '#ffd700',
     accent: '#ffaa00',
-    label: '⭐ 100% GARANTIDO',
+    label: '⭐ +14% CHANCE & OURO',
     goldReward: 1000,
     coinBonus: 1000,
     icon: '⭐'
   };
 
-  // Tabela Dinâmica de Pokébolas escalonadas pelo nível da partida
+  // Tabela Dinâmica de Pokébolas escalonadas pelo nível da partida (Bônus Rebalanceados)
   const POKEBALL_TIERS = {
     POKEBALL: {
       id: 'poke_ball',
@@ -48,10 +50,10 @@ const CaptureSystem = (() => {
       name: 'Great Ball',
       minLevel: 11,
       maxLevel: 20,
-      bonus: 0.05,
+      bonus: 0.03, // +3%
       colorTop: '#2563eb',
       accent: '#ef4444',
-      label: '+5% Chance',
+      label: '+3% Chance',
       icon: '🔵'
     },
     ULTRABALL: {
@@ -59,10 +61,10 @@ const CaptureSystem = (() => {
       name: 'Ultra Ball',
       minLevel: 21,
       maxLevel: 30,
-      bonus: 0.10,
+      bonus: 0.06, // +6%
       colorTop: '#1e293b',
       accent: '#facc15',
-      label: '+10% Chance',
+      label: '+6% Chance',
       icon: '🟡'
     },
     ULTIMATEBALL: {
@@ -70,10 +72,10 @@ const CaptureSystem = (() => {
       name: 'Ultimate Ball',
       minLevel: 31,
       maxLevel: Infinity,
-      bonus: 0.15,
+      bonus: 0.10, // +10%
       colorTop: '#7c3aed',
       accent: '#ec4899',
-      label: '+15% Chance',
+      label: '+10% Chance',
       icon: '🟣'
     },
     GOLDBALL: GOLD_BALL_CONFIG
@@ -97,13 +99,34 @@ const CaptureSystem = (() => {
     return POKEBALL_TIERS.POKEBALL;
   }
 
-  function getBaseCatchRate(speciesId, isShiny = false, isLegendary = false) {
-    // 1. Variante Shiny tem prioridade máxima: 15% fixo
-    if (isShiny) return 0.15;
-    // 2. Lendário / Mítico: 20%
-    if (isLegendary || isLegendaryOrMythical(speciesId)) return 0.20;
-    // 3. Normal / Básico: 50%
-    return 0.50;
+  function getMonStage(monOrDex) {
+    if (!monOrDex) return 1;
+    if (typeof getPokemonEvolutionStage === 'function') return getPokemonEvolutionStage(monOrDex);
+    if (typeof G === 'object' && typeof G.getPokemonEvolutionStage === 'function') return G.getPokemonEvolutionStage(monOrDex);
+    if (typeof window !== 'undefined' && typeof window.getPokemonEvolutionStage === 'function') return window.getPokemonEvolutionStage(monOrDex);
+    return 1;
+  }
+
+  function getBaseCatchRate(speciesId, isShiny = false, isLegendary = false, stage = 1) {
+    const isLeg = !!(isLegendary || isLegendaryOrMythical(speciesId));
+    
+    // 1º Shiny Lendário: 2% base (0.02)
+    if (isShiny && isLeg) {
+      return 0.02;
+    }
+    // 2º Lendário Normal: 6% base (0.06)
+    if (isLeg) {
+      return 0.06;
+    }
+    // 3º Shiny Comum: 10% base (0.10)
+    if (isShiny) {
+      return 0.10;
+    }
+    // 4º a 6º Normais por estágio evolutivo:
+    const stg = Number(stage) || (speciesId ? getMonStage(speciesId) : 1);
+    if (stg === 3 || stg >= 3) return 0.18; // 4º Normal Estágio 3: 18% base
+    if (stg === 2) return 0.28;             // 5º Normal Estágio 2: 28% base
+    return 0.38;                           // 6º Normal Estágio 1: 38% base (default)
   }
 
   function isLegendaryOrMythical(speciesId) {
@@ -270,7 +293,42 @@ const CaptureSystem = (() => {
         }
       }
 
-      // 2. Checar se o Pokémon já está registrado na Pokédex
+      // 2. CALCULAR RECOMPENSA DE CAÇADOR EM OURO (GOLD BOUNTY TURBINADO)
+      const stg = Number(data.stage) || (data.speciesId ? getMonStage(data.speciesId) : 1);
+      const isLeg = !!(data.isLegendary || isLegendaryOrMythical(data.speciesId));
+      const isSh = !!data.isShiny;
+
+      let goldBounty = 0;
+      if (isSh && isLeg) {
+        goldBounty = 20000; // Shiny Lendário: +20.000 Ouro
+      } else if (isLeg) {
+        goldBounty = 8000;  // Lendário Normal: +8.000 Ouro
+      } else {
+        let stageGold = 250;
+        if (stg === 3 || stg >= 3) stageGold = 3000;      // Normal Estágio 3: +3.000 Ouro
+        else if (stg === 2) stageGold = 1200;             // Normal Estágio 2: +1.200 Ouro
+        else stageGold = 250;                             // Normal Estágio 1: +250 Ouro
+
+        goldBounty = stageGold + (isSh ? 5000 : 0);       // Shiny Comum: +5.000 somado ao estágio
+      }
+
+      data.goldBounty = goldBounty;
+
+      // Creditar Gold Bounty no saldo persistente
+      if (dbObj.save) {
+        dbObj.save.coins = (dbObj.save.coins || 0) + goldBounty;
+        if (dbObj.save.stats) {
+          dbObj.save.stats.coinsEarned = (dbObj.save.stats.coinsEarned || 0) + goldBounty;
+        }
+      }
+
+      // Atualizar o ouro da partida atual em tempo real
+      const pl = (typeof G === 'object' && G.Game && G.Game.player) || (typeof game !== 'undefined' && game && game.player) || null;
+      if (pl) {
+        pl.coins = (pl.coins || 0) + goldBounty;
+      }
+
+      // 3. Checar se o Pokémon já está registrado na Pokédex
       const isAlreadyCaptured = (targetDex != null && dbObj.save && dbObj.save.owned && !!dbObj.save.owned[targetDex]) ||
                                 (typeof dbObj.isPokemonCaptured === 'function' && dbObj.isPokemonCaptured(targetDex != null ? targetDex : data.speciesId)) ||
                                 (typeof dbObj.owns === 'function' && targetDex != null && dbObj.owns(targetDex));
@@ -278,8 +336,7 @@ const CaptureSystem = (() => {
       data.isDuplicate = !!isAlreadyCaptured;
 
       if (isAlreadyCaptured) {
-        // RECOMPENSA DE REPETIDO ESCALONADA POR ESTÁGIO:
-        // Estágio 1: 500 Moedas / 500 Tickets | Estágio 2: 750 Moedas / 750 Tickets | Estágio 3: 1000 Moedas / 1000 Tickets
+        // RECOMPENSA ADICIONAL DE DUPLICATA ESCALONADA:
         const stage = data.stage || 1;
         const duplicateCoins = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
         const duplicateTickets = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
@@ -295,14 +352,11 @@ const CaptureSystem = (() => {
           dbObj.save.tickets.t1 = (dbObj.save.tickets.t1 || 0) + duplicateTickets;
         }
 
-        // Atualiza a entidade do player em tempo real se a partida estiver em execução
-        const pl = (typeof G === 'object' && G.Game && G.Game.player) || (typeof game !== 'undefined' && game && game.player) || null;
         if (pl) {
           pl.coins = (pl.coins || 0) + duplicateCoins;
           pl.t1 = (pl.t1 || 0) + duplicateTickets;
         }
 
-        // Se a duplicata for Shiny e o jogador ainda não possuía a forma Shiny, registra na coleção Shiny
         if (data.isShiny) {
           if (typeof dbObj.grantShiny === 'function' && targetDex != null) {
             dbObj.grantShiny(targetDex, 'rift');
@@ -330,6 +384,9 @@ const CaptureSystem = (() => {
         } else if (dbObj.save) {
           dbObj.save.coins = (dbObj.save.coins || 0) + 1000;
           if (dbObj.commit) dbObj.commit('gold');
+        }
+        if (pl) {
+          pl.coins = (pl.coins || 0) + 1000;
         }
       }
 
@@ -381,14 +438,41 @@ const CaptureSystem = (() => {
       this.ballTier = params.ballTier || resolveCaptureBall(this.level, this.forceGold);
       this.isGoldBall = !!(this.ballTier && this.ballTier.isGold);
 
-      // Taxas
-      this.baseRate = getBaseCatchRate(this.speciesId, this.isShiny, this.isLegendary);
-      this.ballBonus = this.ballTier.bonus || 0;
-      this.finalChance = this.isGoldBall ? 1.0 : Math.min(0.95, this.baseRate + this.ballBonus);
+      // Identificação e Estágio Evolutivo
+      this.stage = params.stage || (this.mon ? getMonStage(this.mon.dex || this.mon.name) : 1);
+      this.isShinyLegend = !!(this.isShiny && this.isLegendary);
+
+      // Taxas Base
+      this.baseRate = getBaseCatchRate(this.speciesId, this.isShiny, this.isLegendary, this.stage);
+
+      // Bônus da Pokébola (Gold Ball dinâmica por raridade)
+      let effectiveBallBonus = this.ballTier.bonus || 0;
+      if (this.isGoldBall) {
+        if (this.isShinyLegend) {
+          effectiveBallBonus = this.ballTier.bonusApex || 0.04;
+        } else if (this.isShiny || this.isLegendary) {
+          effectiveBallBonus = this.ballTier.bonusRare || 0.08;
+        } else {
+          effectiveBallBonus = this.ballTier.bonus || 0.14;
+        }
+      }
+      this.ballBonus = effectiveBallBonus;
+
+      // TRAVA MÁXIMA RIGOROSA (CAP DE MÉRITO < 50%):
+      // - Normais: MÁXIMO ABSOLUTO DE 0.48 (48% - NUNCA atinge ou passa de 50%!)
+      // - Shiny Comum: máximo de 0.22 (22%)
+      // - Lendário Normal: máximo de 0.16 (16%)
+      // - Shiny Lendário: máximo de 0.08 (8%)
+      let maxCap = 0.48;
+      if (this.isShinyLegend) maxCap = 0.08;
+      else if (this.isLegendary) maxCap = 0.16;
+      else if (this.isShiny) maxCap = 0.22;
+
+      this.finalChance = Math.min(maxCap, this.baseRate + this.ballBonus);
 
       // RNG da Captura
       this.roll = Math.random();
-      this.isSuccess = this.isGoldBall || (this.roll <= this.finalChance);
+      this.isSuccess = (this.roll <= this.finalChance);
 
       // Coordenadas de origem e destino para o arremesso balístico
       this.targetX = params.x || 0;
@@ -605,23 +689,27 @@ const CaptureSystem = (() => {
                   }
                 }
                 if (G.FX.dmgText) {
+                  const bountyStr = `💰 +${(this.goldBounty || 250).toLocaleString('pt-BR')} OURO!`;
                   if (this.isDuplicate) {
                     const c = this.rewardCoins || 500;
                     const tk = this.rewardTickets || 500;
-                    G.FX.dmgText(this.x, this.y - 44, `✨ ${monName} REPETIDO! ✨`, '#ffd23f', true);
-                    G.FX.dmgText(this.x, this.y - 20, `+${c} MOEDAS · +${tk} TICKETS!`, '#4ade80', true);
+                    G.FX.dmgText(this.x, this.y - 50, `✨ ${monName} REPETIDO! ✨`, '#ffd23f', true);
+                    G.FX.dmgText(this.x, this.y - 28, bountyStr, '#4ade80', true);
+                    G.FX.dmgText(this.x, this.y - 6, `+${c} BÔNUS · +${tk} TICKETS!`, '#38bdf8', true);
                   } else {
-                    G.FX.dmgText(this.x, this.y - 36, `✨ + ${monName} CAPTURADO COM SUCESSO! ✨`, '#4ade80', true);
+                    G.FX.dmgText(this.x, this.y - 44, `✨ ${monName} CAPTURADO! ✨`, '#4ade80', true);
+                    G.FX.dmgText(this.x, this.y - 20, bountyStr, '#ffd23f', true);
                   }
                 }
               }
               if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+                const bountyStr = `+${(this.goldBounty || 250).toLocaleString('pt-BR')} PokéMoedas`;
                 if (this.isDuplicate) {
                   const c = this.rewardCoins || 500;
                   const tk = this.rewardTickets || 500;
-                  G.Spawner.say(`🎉 ${monName} repetido! Você ganhou +${c} PokéMoedas e +${tk} Tickets para a Roleta!`, 4.0, true);
+                  G.Spawner.say(`🎉 ${monName} repetido! Recompensa de Caçador: ${bountyStr} (+${c} bônus e +${tk} Tickets)!`, 4.5, true);
                 } else {
-                  G.Spawner.say(`🎉 ${monName} capturado e registrado na Pokédex!`, 3.5, true);
+                  G.Spawner.say(`🎉 ${monName} capturado! Recompensa de Caçador: ${bountyStr}!`, 4.0, true);
                 }
               }
             } else {

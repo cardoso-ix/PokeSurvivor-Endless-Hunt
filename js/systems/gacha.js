@@ -182,17 +182,22 @@ G.Gacha = (() => {
         forceLegendary--;
         mon = G.U.pick(allLegs.length ? allLegs : poolSource);
         rarity = 5;
-      } else if (roll < 1.0) {
-        // 1% Chance: Shiny
+      } else if (roll < 0.2) {
+        // 0.2% Chance: Shiny Lendário Ultra-Raro
+        isShiny = true;
+        mon = G.U.pick(allLegs.length ? allLegs : allShinies);
+        rarity = 5;
+      } else if (roll < 1.7) {
+        // 1.5% Chance: Shiny Comum
         isShiny = true;
         mon = G.U.pick(allShinies.length ? allShinies : poolSource);
         rarity = mon.rarity || (mon.legendary ? 5 : 3);
-      } else if (roll < 6.0) {
-        // 5% Chance: Lendário da Região Selecionada
+      } else if (roll < 8.2) {
+        // 6.5% Chance: Lendário Normal da Região Selecionada
         mon = G.U.pick(allLegs.length ? allLegs : poolSource);
         rarity = mon.rarity || 5;
       } else {
-        // 94% Chance: Normal da Região Selecionada
+        // 91.8% Chance: Normal da Região Selecionada
         mon = G.U.pick(allNorms.length ? allNorms : poolSource);
         rarity = mon.rarity || 1;
       }

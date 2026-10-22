@@ -46,6 +46,38 @@ G.Player = class Player {
       def: base.def
     };
 
+    // --- PRESTÍGIO DE RARIDADE (Poder Real: Shiny, Lendário e Shiny Lendário) ---
+    const isLegend = !!(this.mon && (this.mon.leg === true || (this.mon.rarity && this.mon.rarity >= 5)));
+    const isShiny = !!(this.shiny || this.isShiny);
+    const isShinyLegend = isLegend && isShiny;
+
+    let rarityDmgMul = 1.0;
+    let rarityHpMul = 1.0;
+    let raritySpdMul = 1.0;
+
+    if (isShinyLegend) {
+      rarityDmgMul = 1.50; // Shiny Lendário (Apex): +50% Dano Base
+      rarityHpMul = 1.25;  // +25% HP Máximo
+      raritySpdMul = 1.10; // +10% Velocidade
+    } else if (isShiny) {
+      rarityDmgMul = 1.25; // Shiny Comum: +25% Dano Base
+      rarityHpMul = 1.10;  // +10% HP Máximo
+      raritySpdMul = 1.05; // +5% Velocidade
+    } else if (isLegend) {
+      rarityDmgMul = 1.20; // Lendário Normal: +20% Dano Base
+      rarityHpMul = 1.15;  // +15% HP Máximo
+      raritySpdMul = 1.05; // +5% Velocidade
+    }
+
+    this.rarityMultipliers = {
+      isLegend,
+      isShiny,
+      isShinyLegend,
+      dmg: rarityDmgMul,
+      hp: rarityHpMul,
+      spd: raritySpdMul
+    };
+
     // --- CAMADA 2: Meta-Upgrades da Espécie (db.js / localStorage) ---
     const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : ((typeof global !== 'undefined' && global.db) ? global.db : null));
     const getBonusFn = (dbObj && typeof dbObj.getSpeciesUpgradeBonus === 'function')
@@ -58,14 +90,14 @@ G.Player = class Player {
     const calcDef = Number(((base.def || 0) + (metaBonus.def || 0)).toFixed(2));
     const calcSpd = Number(((base.speed || 100) + (metaBonus.speed || 0)).toFixed(1));
 
-    // --- SOMA OBRIGATÓRIA DOS ATRIBUTOS REAIS ---
-    this.maxHp = Math.round((base.hp || 100) + (metaBonus.hp || 0));
+    // --- SOMA OBRIGATÓRIA DOS ATRIBUTOS REAIS COM MULTIPLICADOR DE PRESTÍGIO ---
+    this.maxHp = Math.round(((base.hp || 100) + (metaBonus.hp || 0)) * rarityHpMul);
     this.currentHp = this.maxHp;
     this.hp = this.maxHp;
 
     // Amarração direta aos atributos base de combate e movimento
-    this.baseAtk = calcAtk;
-    this.baseSpd = calcSpd;
+    this.baseAtk = Number((calcAtk * rarityDmgMul).toFixed(2));
+    this.baseSpd = Number((calcSpd * raritySpdMul).toFixed(1));
     this._dmgReduce = calcDef;
 
     // Log de diagnóstico e prova real no Console (F12)
@@ -305,24 +337,57 @@ G.Player = class Player {
       };
     }
 
+    // Recalcula multiplicadores de prestígio (Shiny, Lendário, Shiny Lendário)
+    const isLegend = !!(this.mon && (this.mon.leg === true || (this.mon.rarity && this.mon.rarity >= 5)));
+    const isShiny = !!(this.shiny || this.isShiny);
+    const isShinyLegend = isLegend && isShiny;
+
+    let rarityDmgMul = 1.0;
+    let rarityHpMul = 1.0;
+    let raritySpdMul = 1.0;
+
+    if (isShinyLegend) {
+      rarityDmgMul = 1.50; // +50% Dano Base
+      rarityHpMul = 1.25;  // +25% HP Máximo
+      raritySpdMul = 1.10; // +10% Velocidade
+    } else if (isShiny) {
+      rarityDmgMul = 1.25; // +25% Dano Base
+      rarityHpMul = 1.10;  // +10% HP Máximo
+      raritySpdMul = 1.05; // +5% Velocidade
+    } else if (isLegend) {
+      rarityDmgMul = 1.20; // +20% Dano Base
+      rarityHpMul = 1.15;  // +15% HP Máximo
+      raritySpdMul = 1.05; // +5% Velocidade
+    }
+
+    this.rarityMultipliers = {
+      isLegend,
+      isShiny,
+      isShinyLegend,
+      dmg: rarityDmgMul,
+      hp: rarityHpMul,
+      spd: raritySpdMul
+    };
+
     const oldMaxHp = this.maxHp || 1;
     const hpRatio = oldMaxHp > 0 ? (this.hp / oldMaxHp) : 1;
 
-    // HP Máximo: Base + Meta + Cartas da run
-    const newMaxHp = Math.round(this.basePokedexStats.hp + (this.permanentMetaStats.hpBonus || 0) + (this.inRunModifiers.hpFlat || 0));
+    // HP Máximo: (Base + Meta + Cartas da run) escalado por prestígio
+    const rawHp = this.basePokedexStats.hp + (this.permanentMetaStats.hpBonus || 0) + (this.inRunModifiers.hpFlat || 0);
+    const newMaxHp = Math.round(rawHp * rarityHpMul);
     this.maxHp = Math.max(1, newMaxHp);
 
     if (preserveHpRatio) {
       this.hp = Math.max(1, Math.min(this.maxHp, Math.round(this.maxHp * hpRatio)));
     }
 
-    // Ataque: Base + Meta (multiplicado pelo inRunModifiers.atkMul via getter)
+    // Ataque: Base + Meta (escalado por prestígio e multiplicado por inRunModifiers.atkMul via getter)
     const metaAtkBonus = this.permanentMetaStats.atkBonus || 0;
-    this.baseAtk = this.basePokedexStats.atk * (1 + metaAtkBonus);
+    this.baseAtk = this.basePokedexStats.atk * (1 + metaAtkBonus) * rarityDmgMul;
 
-    // Velocidade: Base + Meta (multiplicado pelo inRunModifiers.spdMul via getter)
+    // Velocidade: Base + Meta (escalado por prestígio e multiplicado por inRunModifiers.spdMul via getter)
     const metaSpdBonus = this.permanentMetaStats.spdBonus || 0;
-    this.baseSpd = this.basePokedexStats.spd * (1 + metaSpdBonus);
+    this.baseSpd = this.basePokedexStats.spd * (1 + metaSpdBonus) * raritySpdMul;
 
     // Defesa: Meta + InRun
     const metaDefBonus = this.permanentMetaStats.defBonus || 0;
@@ -1217,6 +1282,45 @@ G.Player = class Player {
     }
 
     const alpha = this.invuln > 0 && !this.dead ? (Math.floor(this.invuln * 18) % 2 ? 0.45 : 1) : 1;
+
+    // Efeito visual sutil de Aura e Partículas Estelares para Pokémon Shiny / Shiny Lendário
+    if ((this.shiny || this.isShiny) && !this.dead && !isMega) {
+      ctx.save();
+      const tNow = performance.now();
+      const isApex = this.rarityMultipliers && this.rarityMultipliers.isShinyLegend;
+      
+      // Aro de luz estelar cintilante sob os pés
+      ctx.globalAlpha = 0.35 + Math.sin(tNow / 160) * 0.15;
+      ctx.strokeStyle = isApex ? '#ffd700' : '#9ae6ff';
+      ctx.lineWidth = isApex ? 2.5 : 1.8;
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y, this.r * 1.6, this.r * 0.65, 0, 0, 6.2832);
+      ctx.stroke();
+
+      if (isApex) {
+        // Segundo anel concêntrico azul-celeste para Shiny Lendário
+        ctx.strokeStyle = '#9ae6ff';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.r * 2.0, this.r * 0.82, 0, 0, 6.2832);
+        ctx.stroke();
+      }
+
+      // 2 a 3 faíscas estelares cintilando sutilmente ao redor do corpo
+      for (let s = 0; s < (isApex ? 3 : 2); s++) {
+        const ang = (tNow * 0.002 + s * (Math.PI * 2 / (isApex ? 3 : 2))) % (Math.PI * 2);
+        const dist = this.r * (1.1 + Math.sin(tNow * 0.003 + s) * 0.3);
+        const sx = Math.round(this.x + Math.cos(ang) * dist);
+        const sy = Math.round(this.y - this.bodyH * 0.45 + Math.sin(ang) * (dist * 0.5));
+        ctx.fillStyle = isApex ? (s % 2 === 0 ? '#ffd700' : '#ffffff') : '#9ae6ff';
+        ctx.fillRect(sx - 1, sy - 1, 3, 3);
+        ctx.fillRect(sx, sy - 2, 1, 1);
+        ctx.fillRect(sx, sy + 2, 1, 1);
+        ctx.fillRect(sx - 2, sy, 1, 1);
+        ctx.fillRect(sx + 2, sy, 1, 1);
+      }
+      ctx.restore();
+    }
 
     // Sprite do Pokémon com Brilho do Tipo Elemental quando em Mega Supremo
     if (isMega) {

@@ -103,7 +103,11 @@ G.HUD = (() => {
       ctx.font = F(800, 13);
       ctx.fillStyle = '#eaf2ff';
       ctx.textAlign = 'left';
-      ctx.fillText(pl.mon.name, px, py + 10);
+      let prestigeBadge = '';
+      if (pl.rarityMultipliers && pl.rarityMultipliers.isShinyLegend) prestigeBadge = ' ✨👑 +50% ATQ';
+      else if (pl.rarityMultipliers && pl.rarityMultipliers.isShiny) prestigeBadge = ' ✨ +25% ATQ';
+      else if (pl.rarityMultipliers && pl.rarityMultipliers.isLegend) prestigeBadge = ' 👑 +20% ATQ';
+      ctx.fillText(pl.mon.name + prestigeBadge, px, py + 10);
 
       ctx.font = F(700, 11);
       ctx.fillStyle = '#ffcb3d';
@@ -1227,10 +1231,14 @@ G.HUD = (() => {
         lvlEl.textContent = pl.level;
       }
 
-      // 3. Nome do Personagem / Líder / Ascensão
+      // 3. Nome do Personagem / Líder / Ascensão com Badge de Poder Real
       const nameEl = document.getElementById('hud-char-name');
       if (nameEl) {
-        const charTitle = (pl.ascensionTitle || (pl.mon && pl.mon.name) || 'TREINADOR').toUpperCase();
+        let badge = '';
+        if (pl.rarityMultipliers && pl.rarityMultipliers.isShinyLegend) badge = ' ✨👑 +50% ATQ';
+        else if (pl.rarityMultipliers && pl.rarityMultipliers.isShiny) badge = ' ✨ +25% ATQ';
+        else if (pl.rarityMultipliers && pl.rarityMultipliers.isLegend) badge = ' 👑 +20% ATQ';
+        const charTitle = ((pl.ascensionTitle || (pl.mon && pl.mon.name) || 'TREINADOR') + badge).toUpperCase();
         if (nameEl.textContent !== charTitle) nameEl.textContent = charTitle;
       }
 

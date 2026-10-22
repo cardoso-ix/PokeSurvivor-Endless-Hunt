@@ -280,10 +280,10 @@ G.Rift = (() => {
     const roll = Math.random() * 100;
     let targetTier = 'common_normal';
 
-    // Taxas calibradas: Comum Normal (96%), Lendário Normal (2.5%), Comum Shiny (1.3%), Lendário Shiny (0.2%)
-    if (roll <= 96.0) {
+    // Taxas calibradas: Comum Normal (94.0%), Lendário Normal (3.8%), Comum Shiny (2.0%), Lendário Shiny (0.2%)
+    if (roll <= 94.0) {
       targetTier = 'common_normal';
-    } else if (roll <= 98.5) {
+    } else if (roll <= 97.8) {
       targetTier = (riftsCleared < 30) ? 'common_normal' : 'legend_normal';
     } else if (roll <= 99.8) {
       targetTier = 'common_shiny';
