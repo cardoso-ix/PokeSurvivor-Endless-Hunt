@@ -417,5 +417,10 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 - Canvas com aceleração de hardware por GPU (`transform: translateZ(0); will-change: transform; backface-visibility: hidden;`).
 - Renderização pixelada cirúrgica (`image-rendering: pixelated; crisp-edges;`), eliminando borrões bilineares e garantindo 60 FPS fluidos mesmo em resoluções 4K e dispositivos móveis.
 
+### 12.9. Pokémons Shiny no Mapa (Mega Jackpot de 5.000 Tickets & Não Capturáveis)
+- **Não Capturáveis:** Pokémons Shiny encontrados selvagens pelo mapa ou em fendas não são capturáveis (não abrem sequência de captura nem são adicionados à Pokédex por abate).
+- **Jackpot de 5.000 Tickets:** Ao derrotar qualquer Pokémon Shiny no mapa, o jogador recebe imediatamente **5.000 Tickets da Roleta Gacha** (`pl.t1 += 5000`), persistidos automaticamente no banco de dados com anúncio e celebração na tela.
+- **Valorização da Roleta Gacha:** A coleção de Shinies e Lendários é valorizada e centralizada na Roleta da Sorte, tornando os Shinies do mapa no maior evento de obtenção de tickets de todo o jogo.
+
 ---
 *Manual homologado em conformidade com o código-fonte de produção do PokéSurvivor: Endless Hunt.*

@@ -676,7 +676,11 @@ G.Rift = (() => {
     const monName = guardianMon ? guardianMon.name : 'Guardião';
     console.log("🌟 Guardião de Rift derrotado:", monName);
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
-      G.Spawner.say(`⚡ ${monName.toUpperCase()} DERROTADO! ARREMESSANDO POKÉBOLA!`, 2.5, true);
+      if (isShiny) {
+        G.Spawner.say(`✨ ${monName.toUpperCase()} SHINY DERROTADO! +5.000 TICKETS DE ROLETA!`, 4.5, true);
+      } else {
+        G.Spawner.say(`⚡ ${monName.toUpperCase()} DERROTADO! ARREMESSANDO POKÉBOLA!`, 2.5, true);
+      }
     }
 
     // Inicia a captura diegética no chão do mapa

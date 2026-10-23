@@ -229,12 +229,13 @@ G.Game = (() => {
   let banked = { t1: 0, t10: 0 };
   function bankTickets(save_ = true) {
     const sv = G.DB.save;
-    if (!sv || !pl) return;
+    const p = pl || (typeof G === 'object' && G.Game && G.Game.player);
+    if (!sv || !p) return;
     sv.tickets = sv.tickets || { t1: 0, t10: 0 };
-    const d1 = Math.max(0, pl.t1 - banked.t1), d10 = Math.max(0, pl.t10 - banked.t10);
+    const d1 = Math.max(0, p.t1 - banked.t1), d10 = Math.max(0, p.t10 - banked.t10);
     if (!d1 && !d10) return;
     sv.tickets.t1 += d1; sv.tickets.t10 += d10;
-    banked = { t1: pl.t1, t10: pl.t10 };
+    banked = { t1: p.t1, t10: p.t10 };
     if (save_) G.DB.commit('run');
   }
 
@@ -328,18 +329,44 @@ G.Game = (() => {
     G.Audio.sfx('shinyGet');
   };
 
-  /** Un shiny salvaje cae: te lo quedas (y la versión normal si no la tenías). */
+  /**
+   * Pokémon Shiny selvagem derrotado no mapa:
+   * NÃO é capturável!
+   * Ao morrer, entrega 5.000 Tickets da Roleta da Sorte imediatamente ao jogador!
+   */
   G.onShinyCaught = e => {
-    if (!G.DB.save || !pl) return;
-    if (G.Coop.isHost) G.Coop.shinyCaught(e);
-    const isNew = G.DB.grantShiny(e.dex, 'wild');
-    G.DB.save.stats.shinies++;
-    G.DB.commit(true);
-    caught.push({ dex: e.dex, isNew });
-    G.Spawner.say(isNew ? 'Você capturou ' + e.name + ' brilhante!' : 'Mais um ' + e.name + ' brilhante! (+300 PokéMoedas)', 4);
-    if (!isNew) pl.coins += 300;
-    G.Audio.sfx('shinyGet');
+    const p = pl || (typeof G === 'object' && G.Game && G.Game.player);
+    if (!G.DB.save || !p) return;
+    if (e && e._shinyRewarded) return;
+    if (e) e._shinyRewarded = true;
+    if (G.Coop && G.Coop.isHost) G.Coop.shinyCaught(e);
+
+    const ticketReward = 5000;
+    p.t1 = (p.t1 || 0) + ticketReward;
+    bankTickets(true);
+
+    const monName = (e.name || (G.DEX_BY && G.DEX_BY[e.dex] ? G.DEX_BY[e.dex].name : '') || 'Pokémon').toUpperCase();
+    if (G.Spawner && G.Spawner.say) {
+      G.Spawner.say(`✨ ${monName} BRILHANTE DERROTADO! +5.000 TICKETS DE ROLETA!`, 4.5, true);
+    }
+
+    if (G.FX) {
+      const ex = e.x != null ? e.x : p.x;
+      const ey = e.y != null ? e.y : p.y;
+      G.FX.burst(ex, ey, '#38bdf8', 40, 260);
+      G.FX.ring(ex, ey, 25, 160, '#ffd700', 0.8, 6);
+      G.FX.dmgText(ex, ey - 30, '+5.000 TICKETS! 🎟️', '#38bdf8', true);
+    }
+    if (G.Audio) {
+      G.Audio.sfx('shinyGet');
+      setTimeout(() => { if (G.Audio) G.Audio.sfx('shiny'); }, 200);
+    }
+
+    if (G.DB.save.stats) {
+      G.DB.save.stats.shiniesDefeated = (G.DB.save.stats.shiniesDefeated || 0) + 1;
+    }
   };
+  G.onShinyKilled = G.onShinyCaught;
 
   function endRun(dead = true) {
     if (state === 'over' || !pl) return;
@@ -1035,6 +1062,7 @@ G.Game = (() => {
     toUI() { state = 'ui'; Backdrop.restore(); },
     pauseGame() { if (state === 'playing') state = 'paused'; },
     resumeGame() { if (state === 'paused') state = 'playing'; },
+    bankTickets,
     get currentRegion() { return currentRegion; },
     set currentRegion(r) {
       currentRegion = r;

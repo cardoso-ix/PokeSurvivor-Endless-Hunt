@@ -271,6 +271,10 @@ const CaptureSystem = (() => {
    * Resolução de Persistência no Save Permanente (Pokédex, Moedas & Tickets)
    */
   function resolveAttempt(data) {
+    if (data.isShiny) {
+      data.isSuccess = false;
+      return data;
+    }
     const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && (window.db || window.DB)) ? (window.db || window.DB) : null);
 
     if (data.isSuccess && dbObj) {
@@ -442,8 +446,13 @@ const CaptureSystem = (() => {
       this.stage = params.stage || (this.mon ? getMonStage(this.mon.dex || this.mon.name) : 1);
       this.isShinyLegend = !!(this.isShiny && this.isLegendary);
 
-      // Taxas Base
-      this.baseRate = getBaseCatchRate(this.speciesId, this.isShiny, this.isLegendary, this.stage);
+      // Taxas Base (Pokémons Shiny não são capturáveis)
+      if (this.isShiny) {
+        this.baseRate = 0;
+        this.finalChance = 0;
+      } else {
+        this.baseRate = getBaseCatchRate(this.speciesId, this.isShiny, this.isLegendary, this.stage);
+      }
 
       // Bônus da Pokébola (Gold Ball dinâmica por raridade)
       let effectiveBallBonus = this.ballTier.bonus || 0;
@@ -818,6 +827,46 @@ const CaptureSystem = (() => {
     if (modalEl) {
       modalEl.classList.add('hidden');
       modalEl.style.display = 'none';
+    }
+
+    // Regra Hardcore: Pokémons Shiny NÃO são capturáveis! Ao derrotá-los, entrega 5.000 Tickets de Roleta!
+    if (params.isShiny) {
+      if (params.boss && params.boss._shinyRewarded) {
+        if (typeof params.onComplete === 'function') {
+          params.onComplete(false, false);
+        }
+        return null;
+      }
+      if (params.boss) params.boss._shinyRewarded = true;
+
+      const pl = (typeof G === 'object' && G.Game && G.Game.player) || (typeof game !== 'undefined' && game && game.player) || null;
+      let banked = false;
+      if (pl) {
+        pl.t1 = (pl.t1 || 0) + 5000;
+        if (typeof G === 'object' && G.Game && typeof G.Game.bankTickets === 'function') {
+          G.Game.bankTickets(true);
+          banked = true;
+        }
+      }
+      if (typeof G === 'object' && G.DB && G.DB.save) {
+        G.DB.save.tickets = G.DB.save.tickets || { t1: 0, t10: 0 };
+        if (!banked) {
+          G.DB.save.tickets.t1 = (G.DB.save.tickets.t1 || 0) + 5000;
+        }
+        if (G.DB.save.stats) G.DB.save.stats.shiniesDefeated = (G.DB.save.stats.shiniesDefeated || 0) + 1;
+        if (G.DB.commit) G.DB.commit(true);
+      }
+      const monName = (params.mon && params.mon.name) || params.speciesId || 'Pokémon';
+      if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
+        G.Spawner.say(`✨ ${monName.toUpperCase()} BRILHANTE DERROTADO! +5.000 TICKETS DE ROLETA!`, 4.5, true);
+      }
+      if (typeof G === 'object' && G.Audio && typeof G.Audio.sfx === 'function') {
+        G.Audio.sfx('shinyGet');
+      }
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(false, false);
+      }
+      return null;
     }
 
     // Determina coordenadas seguras
