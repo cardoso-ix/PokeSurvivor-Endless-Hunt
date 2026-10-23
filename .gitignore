@@ -19,5 +19,11 @@ desktop.ini
 # Contactos privados (emails de terceros): nunca al repositorio público
 docs/CONTACTOS_CREADORES.md
 
+# Chaves de API e scripts locais de ambiente
+.env
+.env.*
+run-claude.bat
+run-claude.ps1
+
 # Caché local de wrangler (Cloudflare)
 .wrangler/
