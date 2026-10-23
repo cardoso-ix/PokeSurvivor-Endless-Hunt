@@ -51,22 +51,30 @@ G.Player = class Player {
     const isShiny = !!(this.shiny || this.isShiny);
     const isShinyLegend = isLegend && isShiny;
 
+    const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+    const rMulti = (bCfg && bCfg.player && bCfg.player.rarityMultipliers) || {
+      shinyLegend: { dmg: 1.50, hp: 1.25, spd: 1.10 },
+      shiny:       { dmg: 1.25, hp: 1.10, spd: 1.05 },
+      legendary:   { dmg: 1.20, hp: 1.15, spd: 1.05 },
+      common:      { dmg: 1.00, hp: 1.00, spd: 1.00 }
+    };
+
     let rarityDmgMul = 1.0;
     let rarityHpMul = 1.0;
     let raritySpdMul = 1.0;
 
     if (isShinyLegend) {
-      rarityDmgMul = 1.50; // Shiny Lendário (Apex): +50% Dano Base
-      rarityHpMul = 1.25;  // +25% HP Máximo
-      raritySpdMul = 1.10; // +10% Velocidade
+      rarityDmgMul = rMulti.shinyLegend.dmg;
+      rarityHpMul = rMulti.shinyLegend.hp;
+      raritySpdMul = rMulti.shinyLegend.spd;
     } else if (isShiny) {
-      rarityDmgMul = 1.25; // Shiny Comum: +25% Dano Base
-      rarityHpMul = 1.10;  // +10% HP Máximo
-      raritySpdMul = 1.05; // +5% Velocidade
+      rarityDmgMul = rMulti.shiny.dmg;
+      rarityHpMul = rMulti.shiny.hp;
+      raritySpdMul = rMulti.shiny.spd;
     } else if (isLegend) {
-      rarityDmgMul = 1.20; // Lendário Normal: +20% Dano Base
-      rarityHpMul = 1.15;  // +15% HP Máximo
-      raritySpdMul = 1.05; // +5% Velocidade
+      rarityDmgMul = rMulti.legendary.dmg;
+      rarityHpMul = rMulti.legendary.hp;
+      raritySpdMul = rMulti.legendary.spd;
     }
 
     this.rarityMultipliers = {
@@ -225,8 +233,12 @@ G.Player = class Player {
   /** Segundos que hay que estar junto a un compañero caído para levantarlo. */
   static get REVIVE_TIME() { return 3; }
 
-  // (×2 y luego ×4 el 2026-10-10: se subía de nivel demasiado rápido.)
+  // Curva de XP delegada ao BalanceConfig
   static xpFor(level) {
+    const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+    if (bCfg && bCfg.xp && typeof bCfg.xp.forLevel === 'function') {
+      return bCfg.xp.forLevel(level);
+    }
     return Math.floor((8 + level * 6 + Math.pow(level, 1.75) * 1.6) * 4);
   }
 
@@ -346,18 +358,26 @@ G.Player = class Player {
     let rarityHpMul = 1.0;
     let raritySpdMul = 1.0;
 
+    const bCfgRecalc = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+    const rMultiRecalc = (bCfgRecalc && bCfgRecalc.player && bCfgRecalc.player.rarityMultipliers) || {
+      shinyLegend: { dmg: 1.50, hp: 1.25, spd: 1.10 },
+      shiny:       { dmg: 1.25, hp: 1.10, spd: 1.05 },
+      legendary:   { dmg: 1.20, hp: 1.15, spd: 1.05 },
+      common:      { dmg: 1.00, hp: 1.00, spd: 1.00 }
+    };
+
     if (isShinyLegend) {
-      rarityDmgMul = 1.50; // +50% Dano Base
-      rarityHpMul = 1.25;  // +25% HP Máximo
-      raritySpdMul = 1.10; // +10% Velocidade
+      rarityDmgMul = rMultiRecalc.shinyLegend.dmg;
+      rarityHpMul = rMultiRecalc.shinyLegend.hp;
+      raritySpdMul = rMultiRecalc.shinyLegend.spd;
     } else if (isShiny) {
-      rarityDmgMul = 1.25; // +25% Dano Base
-      rarityHpMul = 1.10;  // +10% HP Máximo
-      raritySpdMul = 1.05; // +5% Velocidade
+      rarityDmgMul = rMultiRecalc.shiny.dmg;
+      rarityHpMul = rMultiRecalc.shiny.hp;
+      raritySpdMul = rMultiRecalc.shiny.spd;
     } else if (isLegend) {
-      rarityDmgMul = 1.20; // +20% Dano Base
-      rarityHpMul = 1.15;  // +15% HP Máximo
-      raritySpdMul = 1.05; // +5% Velocidade
+      rarityDmgMul = rMultiRecalc.legendary.dmg;
+      rarityHpMul = rMultiRecalc.legendary.hp;
+      raritySpdMul = rMultiRecalc.legendary.spd;
     }
 
     this.rarityMultipliers = {

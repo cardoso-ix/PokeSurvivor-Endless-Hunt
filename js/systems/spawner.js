@@ -11,17 +11,17 @@
  * jugáis (ver G.Coop.scaleRate / scaleHp).
  */
 G.Spawner = (() => {
-  // Tope de enemigos a la vez (antes 420: con tantos se ralentizaba). Cuando
-  // se llega al tope, los que siguen saliendo son "élite" (más vida, daño y
-  // experiencia), así la dificultad no baja.
-  const CAP = 64, ELITE_FROM = 0.85;
-  // Menos Pokémon pero más fuertes (la pantalla no se satura): salen ~24% de
-  // los de antes, cada uno con más vida, daño y experiencia.
-  // Calibragem Pacing Clássico: taxa de spawn ajustada com XP balanceada
-  const DENSITY = 0.24, DMG_K = 2.4, XP_K = 3.4;
-  // Curva justa de resistência dos monstros: começa em ×1.8 e escala suavemente até ×3.2
-  const hpK = t => 1.8 + Math.min(1.4, t / 300);
-  const SHINY_RATE = 1 / 4096;
+  const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+  const sCfg = bCfg && bCfg.spawner;
+
+  // Constantes de Spawner conectadas ao BalanceConfig
+  const CAP = (sCfg && sCfg.cap) || 64;
+  const ELITE_FROM = (sCfg && sCfg.eliteThreshold) || 0.85;
+  const DENSITY = (sCfg && sCfg.density) || 0.24;
+  const DMG_K = (sCfg && sCfg.dmgK) || 2.4;
+  const XP_K = (sCfg && sCfg.xpK) || 3.4;
+  const hpK = (sCfg && typeof sCfg.hpK === 'function') ? sCfg.hpK : (t => 1.8 + Math.min(1.4, t / 300));
+  const SHINY_RATE = (sCfg && sCfg.shinyRate) || (1 / 4096);
   let acc = 0, bossIdx = 0, surgeT = 32, announce = null, announceT = 0, preloadT = 0;
   let forceShiny = 0;           // para pruebas: los N próximos salen shiny
 
@@ -31,9 +31,11 @@ G.Spawner = (() => {
     G.Sprites.preload(G.Enemies.upcomingDex(0, 80));
   }
 
-  /** Enemigos por segundo según el minuto de la run. */
+  /** Enemigos por segundo según el minuto de la run (Data-Driven via BalanceConfig). */
   function rate(t) {
-    // Taxa base inicial elevada (3.2 * DENSITY) para eliminar o vazio inicial nos primeiros 2 minutos
+    if (sCfg && typeof sCfg.rate === 'function') {
+      return sCfg.rate(t, DENSITY);
+    }
     return (3.2 + t * 0.025 + Math.pow(t / 60, 1.45) * 0.45) * DENSITY;
   }
 

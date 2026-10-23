@@ -108,25 +108,35 @@ const CaptureSystem = (() => {
   }
 
   function getBaseCatchRate(speciesId, isShiny = false, isLegendary = false, stage = 1) {
+    const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+    const cr = (bCfg && bCfg.rewards && bCfg.rewards.captureRates) || {
+      shinyLegendary: 0.02,
+      legendary: 0.06,
+      shinyCommon: 0.10,
+      stage3: 0.18,
+      stage2: 0.28,
+      stage1: 0.38
+    };
+
     const isLeg = !!(isLegendary || isLegendaryOrMythical(speciesId));
     
-    // 1º Shiny Lendário: 2% base (0.02)
+    // 1º Shiny Lendário (Apex)
     if (isShiny && isLeg) {
-      return 0.02;
+      return cr.shinyLegendary;
     }
-    // 2º Lendário Normal: 6% base (0.06)
+    // 2º Lendário Normal
     if (isLeg) {
-      return 0.06;
+      return cr.legendary;
     }
-    // 3º Shiny Comum: 10% base (0.10)
+    // 3º Shiny Comum
     if (isShiny) {
-      return 0.10;
+      return cr.shinyCommon;
     }
     // 4º a 6º Normais por estágio evolutivo:
     const stg = Number(stage) || (speciesId ? getMonStage(speciesId) : 1);
-    if (stg === 3 || stg >= 3) return 0.18; // 4º Normal Estágio 3: 18% base
-    if (stg === 2) return 0.28;             // 5º Normal Estágio 2: 28% base
-    return 0.38;                           // 6º Normal Estágio 1: 38% base (default)
+    if (stg === 3 || stg >= 3) return cr.stage3;
+    if (stg === 2) return cr.stage2;
+    return cr.stage1;
   }
 
   function isLegendaryOrMythical(speciesId) {

@@ -31,7 +31,10 @@
  * (systems/rift.js).
  */
 G.Enemies = (() => {
-  const TIERS = [
+  const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+  const eCfg = bCfg && bCfg.enemies;
+
+  const TIERS = (eCfg && eCfg.tiers) || [
     { from: 0,   bst: [180, 330], hp: 17,  spd: 56, dmg: 6,  xp: 3.5, cast: 7 },
     { from: 70,  bst: [300, 405], hp: 32,  spd: 62, dmg: 8.5, xp: 5,  cast: 7 },
     { from: 160, bst: [385, 465], hp: 52,  spd: 60, dmg: 11, xp: 8,  cast: 7 },
@@ -41,7 +44,7 @@ G.Enemies = (() => {
   ];
 
   // Franjas de jefe: minuto en que salen, PV base y franja de BST.
-  const BOSS_SLOTS = [
+  const BOSS_SLOTS = (eCfg && eCfg.bossSlots) || [
     { at: 180, hp: 1400,  dmg: 34, xp: 220,  bst: [490, 545] },
     { at: 360, hp: 3200,  dmg: 42, xp: 420,  bst: [520, 580] },
     { at: 540, hp: 5600,  dmg: 48, xp: 680,  bst: [540, 600] },
@@ -219,6 +222,7 @@ G.Enemies = (() => {
   // (El "tiempo extra" del minuto 60 se quitó al llegar la Sentencia de Arceus,
   //  que acaba todas las partidas en el minuto 30: ver systems/judgment.js.)
   function scale(t) {
+    if (eCfg && typeof eCfg.scale === 'function') return eCfg.scale(t);
     return { hp: 1 + t / 140, dmg: 1 + t / 600, spd: 1 + Math.min(0.35, t / 1400) };
   }
 
@@ -226,7 +230,10 @@ G.Enemies = (() => {
    * Los jefes ya traen su vida base creciente (1.400 ... 16.000), así que
    * escalan mucho más suave: con la curva normal el último llegaba a 168.000 PV.
    */
-  function bossScale(t) { return { hp: 1 + t / 600, dmg: 1 + t / 600, spd: 1 }; }
+  function bossScale(t) {
+    if (eCfg && typeof eCfg.bossScale === 'function') return eCfg.bossScale(t);
+    return { hp: 1 + t / 600, dmg: 1 + t / 600, spd: 1 };
+  }
 
   /** Tramo que toca en el segundo `t`. */
   function tierAt(t) { let ti = 0; TIERS.forEach((tr, i) => { if (t >= tr.from) ti = i; }); return ti; }

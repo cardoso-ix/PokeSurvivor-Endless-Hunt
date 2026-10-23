@@ -660,8 +660,12 @@ G.Rift = (() => {
       if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 16);
     }
 
-    // Recompensa de Rift: 100 a 150 tickets distribuídos em 5 orbes dourados
-    const totalRiftTickets = G.U.rand(100, 150);
+    // Recompensa de Rift: 100 a 150 tickets distribuídos em 5 orbes dourados (via BalanceConfig)
+    const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+    const rftCfg = bCfg && bCfg.rewards && bCfg.rewards.rift;
+    const minT = (rftCfg && rftCfg.guardianTicketsMin) || 100;
+    const maxT = (rftCfg && rftCfg.guardianTicketsMax) || 150;
+    const totalRiftTickets = G.U.rand(minT, maxT);
     const rParts = 5;
     const rBaseVal = Math.floor(totalRiftTickets / rParts);
     let rRem = totalRiftTickets % rParts;

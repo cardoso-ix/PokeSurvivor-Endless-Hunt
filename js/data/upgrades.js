@@ -2,7 +2,11 @@
  * Se compran con Pokémonedas en el menú. `per` es lo que da cada nivel.
  */
 G.Upgrades = (() => {
-  const LIST = [
+  const cfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
+  const upgCfg = cfg && cfg.upgrades;
+  const ascCfg = upgCfg && upgCfg.ascension;
+
+  const LIST = (upgCfg && upgCfg.list) || [
     { id: 'hp',     icon: 'heart', name: 'Vitalidade',      unit: '+8 PV Máximo',                                  max: 10, base: 60,  grow: 1.35 },
     { id: 'atk',    icon: 'fist',  name: 'Força',           unit: '+4% de dano',                                   max: 10, base: 80,  grow: 1.38 },
     { id: 'spd',    icon: 'boot',  name: 'Agilidade',       unit: '+3% de velocidade de movimento',                max: 8,  base: 70,  grow: 1.4 },
@@ -17,17 +21,18 @@ G.Upgrades = (() => {
     { id: 'reroll', icon: 'up',    name: 'Trocar Cartas',   unit: '+1 troca de cartas ao subir de nível',          max: 5, base: 150, grow: 1.6 },
     { id: 'ban',    icon: 'ban',   name: 'Banir',           unit: 'Bane 1 ataque da seleção (máx. 3 ataques vetados na partida)', max: 3, base: 300, grow: 1.9 }
   ];
-  const OVER_MAX = 10; // Até +10 de Ascensão além do nível base máximo
+  const OVER_MAX = (ascCfg && ascCfg.maxOverLevels) || 10; // Até +10 de Ascensão além do nível base máximo
 
   /**
    * Custos progressivos exponenciais para a Ascensão (+1 ao +10):
-   * +1: 15.000 | +2: 35.000 | +3: 70.000 | +4: 130.000 | +5: 220.000
-   * +6: 350.000 | +7: 550.000 | +8: 850.000 | +9: 1.300.000 | +10: 2.000.000
-   * Total acumulado para +10: 5.520.000 moedas.
+   * Centralizados no BalanceConfig.upgrades.ascension
    */
-  const ASCENSION_COSTS = [15000, 35000, 70000, 130000, 220000, 350000, 550000, 850000, 1300000, 2000000];
+  const ASCENSION_COSTS = (ascCfg && ascCfg.costs) || [15000, 35000, 70000, 130000, 220000, 350000, 550000, 850000, 1300000, 2000000];
 
   function getAscensionCost(overLvlNext) {
+    if (ascCfg && typeof ascCfg.getCost === 'function') {
+      return ascCfg.getCost(overLvlNext);
+    }
     const n = Math.max(1, Math.floor(overLvlNext || 1));
     const idx = Math.min(n - 1, ASCENSION_COSTS.length - 1);
     return ASCENSION_COSTS[idx] || ASCENSION_COSTS[ASCENSION_COSTS.length - 1];
@@ -149,35 +154,27 @@ G.Upgrades = (() => {
     const reroll = getL('reroll');
     const ban = getL('ban');
 
-    // Super Buffs de Ascensão (+1 a +10) Recalibrados:
-    // 1. Força: base +4% por nível + 10% por cada +1 (+100% extra no +10)
-    const atkBonus = (atk.baseLvl * 0.04) + (atk.overLvl * 0.10);
+    // Super Buffs de Ascensão (+1 a +10) Data-Driven via BalanceConfig:
+    const pCfg = (ascCfg && ascCfg.perks) || {};
+    const atkRate = pCfg.atkPerLevel != null ? pCfg.atkPerLevel : 0.10;
+    const hpRate = pCfg.hpPerLevel != null ? pCfg.hpPerLevel : 35;
+    const spdRate = pCfg.spdPerLevel != null ? pCfg.spdPerLevel : 0.025;
+    const cdRate = pCfg.cdPerLevel != null ? pCfg.cdPerLevel : 0.025;
+    const defRate = pCfg.defPerLevel != null ? pCfg.defPerLevel : 0.020;
+    const regenRate = pCfg.regenPerLevel != null ? pCfg.regenPerLevel : 1.0;
+    const magRate = pCfg.magnetPerLevel != null ? pCfg.magnetPerLevel : 0.15;
+    const xpRate = pCfg.xpPerLevel != null ? pCfg.xpPerLevel : 0.05;
+    const coinRate = pCfg.coinsPerLevel != null ? pCfg.coinsPerLevel : 0.08;
 
-    // 2. Vitalidade: base +8 PV + 35 PV por cada +1 (+350 PV extra no +10)
-    const hpBonus = (hp.baseLvl * 8) + (hp.overLvl * 35);
-
-    // 3. Velocidade: base +3% + 2.5% por cada +1 (+25% extra no +10)
-    const spdBonus = (spd.baseLvl * 0.03) + (spd.overLvl * 0.025);
-
-    // 4. Recarga (CDR): base -3% + -2.5% por cada +1 (cap global calibrado em 50% CDR)
-    const cdBonus = Math.min(0.50, (cd.baseLvl * 0.03) + (cd.overLvl * 0.025));
-
-    // 5. Defesa: base +2% + 2.0% por cada +1 (+20% extra no +10, cap seguro em 40%)
-    const defBonus = Math.min(0.40, (def.baseLvl * 0.02) + (def.overLvl * 0.020));
-
-    // 6. Regeneração: base +0.2 PV/s + 1.0 PV/s por cada +1 (+10 PV/s extra no +10)
-    const regenBonus = (regen.baseLvl * 0.2) + (regen.overLvl * 1.0);
-
-    // 7. Ímã: base +12% + 15% por cada +1 (+150% extra no +10)
-    const magnetBonus = (magnet.baseLvl * 0.12) + (magnet.overLvl * 0.15);
-
-    // 8. Sabedoria / Experiência: base +5% + 10% por cada +1 (+100% extra no +10)
-    const xpBonus = (xp.baseLvl * 0.05) + (xp.overLvl * 0.10);
-
-    // 9. Fortuna / Moedas: base +8% + 10% por cada +1 (+100% extra no +10, elimina hiperinflação)
-    const coinBonus = (coins.baseLvl * 0.08) + (coins.overLvl * 0.10);
-
-    // 10. Acerto Crítico: base +3% + 2.5% por cada +1 (+25% extra no +10)
+    const atkBonus = (atk.baseLvl * 0.04) + (atk.overLvl * atkRate);
+    const hpBonus = (hp.baseLvl * 8) + (hp.overLvl * hpRate);
+    const spdBonus = (spd.baseLvl * 0.03) + (spd.overLvl * spdRate);
+    const cdBonus = Math.min(0.50, (cd.baseLvl * 0.03) + (cd.overLvl * cdRate));
+    const defBonus = Math.min(0.40, (def.baseLvl * 0.02) + (def.overLvl * defRate));
+    const regenBonus = (regen.baseLvl * 0.2) + (regen.overLvl * regenRate);
+    const magnetBonus = (magnet.baseLvl * 0.12) + (magnet.overLvl * magRate);
+    const xpBonus = (xp.baseLvl * 0.05) + (xp.overLvl * (xpRate || 0.10));
+    const coinBonus = (coins.baseLvl * 0.08) + (coins.overLvl * (coinRate || 0.10));
     const critBonus = (crit.baseLvl * 0.03) + (crit.overLvl * 0.025);
 
     return {
