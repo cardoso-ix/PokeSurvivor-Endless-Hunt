@@ -32,7 +32,7 @@ G.Combat = (() => {
     m.t -= dt;
     if (m.t > 0) return;
     // Los ataques que necesitan blanco esperan a tenerlo (no gastes animación al aire).
-    if (needsTarget(m) && !(pl.target && G.U.dist(pl.x, pl.y, pl.target.x, pl.target.y) <= reach(m))) {
+    if (needsTarget(m) && !(pl.target && G.U.dist2(pl.x, pl.y, pl.target.x, pl.target.y) <= reach2(m))) {
       m.t = 0.04;
       return;
     }
@@ -78,6 +78,10 @@ G.Combat = (() => {
     if (m.kind === 'dash') return m.radius + 60;
     if (m.kind === 'cone') return m.speed * m.life + 30;
     return 520;
+  }
+  function reach2(m) {
+    const r = reach(m);
+    return r * r;
   }
 
   function payload(m) {
@@ -275,10 +279,10 @@ G.Combat = (() => {
   function meteors(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const n = Math.max(1, m.count | 0);
-    const near = G.EnemyMgr.queryCircle(pl.x, pl.y, reach(m)).filter(e => !e.dead);
-    G.U.shuffle ? G.U.shuffle(near) : near.sort(() => Math.random() - 0.5);
+    const pool = G.EnemyMgr.queryCircle(pl.x, pl.y, reach(m)).filter(e => !e.dead);
+    const targets = (G.U.pickN && typeof G.U.pickN === 'function') ? G.U.pickN(pool, n) : pool.slice(0, n);
     for (let i = 0; i < n; i++) {
-      const e = near[i];
+      const e = targets[i];
       const x = e ? e.x + G.U.rand(-8, 8) : pl.x + G.U.rand(-140, 140);
       const y = e ? e.y + G.U.rand(-6, 6) : pl.y + G.U.rand(-110, 110);
       fields.push({ kind: 'meteor', owner: pl, ghost, m, col, vis, x, y, t: -i * 0.09, fall: 0.5, r: m.radius, dmg: m.dmg * pl.atk });
@@ -680,12 +684,22 @@ G.Combat = (() => {
     for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, pl.r + 40)) {
       if (G.U.dist2(e.x, e.y, pl.x, pl.y) > (e.r + pl.r) * (e.r + pl.r)) continue;
       if (e.touchCd > 0 || e.behavior === 'thief') continue;
-      e.touchCd = 0.55;
+
+      const [nx, ny] = G.U.norm(e.x - pl.x, e.y - pl.y);
+
+      // Se o jogador estiver em i-frames (invulnerável), aplica repulsão física suave
+      // para impedir sobreposição em horda, sem consumir o ataque do monstro à toa
+      if (pl.invuln > 0) {
+        e.kx += nx * 60;
+        e.ky += ny * 60;
+        continue;
+      }
+
+      e.touchCd = 0.65;
       e.strike(pl);
       pl.hurt(e.dmg, e.atkType);
       if (pl.hasItem('rockyhelmet')) e.hurt(15 + pl.level * 4, '#9aa6b5', e.x - pl.x, e.y - pl.y, 80);
-      const [nx, ny] = G.U.norm(e.x - pl.x, e.y - pl.y);
-      e.kx += nx * 150; e.ky += ny * 150;
+      e.kx += nx * 180; e.ky += ny * 180;
     }
   }
 

@@ -138,6 +138,8 @@ G.Player = class Player {
     this.inRunModifiers = {
       hpFlat: 0,
       atkMul: 1,
+      atkBonusAdditive: 0,
+      atkMulIndependent: 1.0,
       spdMul: 1,
       cdMul: 1,
       dmgReduce: 0,
@@ -249,11 +251,15 @@ G.Player = class Player {
   set currentHp(v) { this.hp = v; }
 
   get atkMul() {
-    return this.inRunModifiers ? this.inRunModifiers.atkMul : (this._atkMul || 1);
+    if (!this.inRunModifiers) return this._atkMul || 1;
+    const add = this.inRunModifiers.atkBonusAdditive || 0;
+    const ind = this.inRunModifiers.atkMulIndependent !== undefined ? this.inRunModifiers.atkMulIndependent : 1;
+    return (1 + add) * ind;
   }
   set atkMul(v) {
     if (this.inRunModifiers) {
       this.inRunModifiers.atkMul = v;
+      this.inRunModifiers.atkBonusAdditive = Math.max(-0.9, v - 1);
     }
     this._atkMul = v;
   }
@@ -345,7 +351,7 @@ G.Player = class Player {
     }
     if (!this.inRunModifiers) {
       this.inRunModifiers = {
-        hpFlat: 0, atkMul: 1, spdMul: 1, cdMul: 1, dmgReduce: 0, regenFlat: 0, xpMul: 1
+        hpFlat: 0, atkMul: 1, atkBonusAdditive: 0, atkMulIndependent: 1.0, spdMul: 1, cdMul: 1, dmgReduce: 0, regenFlat: 0, xpMul: 1
       };
     }
 
@@ -430,12 +436,33 @@ G.Player = class Player {
     return this;
   }
 
+  addAtkBonus(pct, isIndependent = false) {
+    if (!this.inRunModifiers) {
+      this.inRunModifiers = {
+        hpFlat: 0, atkMul: 1, atkBonusAdditive: 0, atkMulIndependent: 1.0, spdMul: 1, cdMul: 1, dmgReduce: 0, regenFlat: 0, xpMul: 1
+      };
+    }
+    if (this.inRunModifiers.atkBonusAdditive === undefined) this.inRunModifiers.atkBonusAdditive = 0;
+    if (this.inRunModifiers.atkMulIndependent === undefined) this.inRunModifiers.atkMulIndependent = 1.0;
+
+    if (isIndependent) {
+      this.inRunModifiers.atkMulIndependent *= (1 + pct);
+    } else {
+      this.inRunModifiers.atkBonusAdditive += pct;
+    }
+    this.inRunModifiers.atkMul = (1 + this.inRunModifiers.atkBonusAdditive) * this.inRunModifiers.atkMulIndependent;
+    this._atkMul = this.inRunModifiers.atkMul;
+    return this;
+  }
+
   get atk() {
     const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive) || (this.megaDmgMul && this.megaDmgMul > 1);
     const megaMul = isMega ? (this.megaDmgMul || 5.0) : 1;
     let weatherAtk = (typeof G === 'object' && G.Weather && G.Weather.getAtkMul) ? G.Weather.getAtkMul(this) : 1;
     const bAtk = (this.buffs && this.buffs.atk) ? this.buffs.atk.n * this.buffs.atk.amount : 0;
-    return this.baseAtk * this.atkMul * (1 + bAtk) * megaMul * weatherAtk;
+    const inRunAdd = (this.inRunModifiers && this.inRunModifiers.atkBonusAdditive !== undefined) ? this.inRunModifiers.atkBonusAdditive : ((this.atkMul || 1) - 1);
+    const indepMul = (this.inRunModifiers && this.inRunModifiers.atkMulIndependent !== undefined) ? this.inRunModifiers.atkMulIndependent : 1.0;
+    return this.baseAtk * Math.max(0.1, 1 + inRunAdd + bAtk) * indepMul * megaMul * weatherAtk;
   }
   get spd() {
     const isMega = (this.megaMode && this.megaMode.active) || (typeof G === 'object' && G.Mega && G.Mega.isActive);
@@ -672,34 +699,52 @@ G.Player = class Player {
       }
     }
     let eff = null;
-    if (type) {
-      const k = G.Types.mult(type, this.mon.types);
+    if (type && typeof G === 'object' && G.Types && typeof G.Types.mult === 'function') {
+      const monTypes = (this.mon && this.mon.types) ? this.mon.types : (this.types || []);
+      const k = G.Types.mult(type, monTypes);
       eff = G.Types.label(k);
-      amount *= k * G.Weather.mult(type);
+      const wMult = (G.Weather && typeof G.Weather.mult === 'function') ? G.Weather.mult(type) : 1;
+      amount *= k * wMult;
     }
     // Con un ataque cuerpo a cuerpo activo se recibe un 25 % menos: hay que
     // estar encima de los enemigos para pegar (iban muy por detrás).
-    const close = this.activeGroup().some(m => m.kind === 'melee') ? 0.75 : 1;
+    const hasCloseMelee = typeof this.activeGroup === 'function' && this.activeGroup().some(m => m.kind === 'melee');
+    const close = hasCloseMelee ? 0.75 : 1;
     const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive) ? 0.70 : 1.0; // Redução justa calibrada (30% direta somada à defesa)
-    const d = pure ? Math.max(1, amount * megaProt) : Math.max(1, amount * (1 - this.reduction) * close * megaProt);
+    let d = pure ? Math.max(1, amount * megaProt) : Math.max(1, amount * (1 - this.reduction) * close * megaProt);
+
+    // Proteção Anti-One-Shot: monstro comum não pode arrancar mais de 35% de vida num único hit
+    if (!pure && this.maxHp > 0 && d > this.maxHp * 0.35) {
+      d = Math.max(1, Math.round(this.maxHp * 0.35));
+    }
+
     this.hp -= d;
-    this.invuln = 0.45;
-    this.flash = 0.14;
-    G.Audio.sfx('hurt');
-    G.Camera.kick(0.28);
-    G.FX.dmgText(this.x, this.y - this.bodyH - 4, '-' + Math.round(d), eff === 'super' ? '#ff3048' : eff === 'weak' ? '#c9a0a8' : '#ff6b7a', eff === 'super');
-    G.FX.burst(this.x, this.y - this.bodyH * 0.5, '#ff5f6d', 6, 90);
+    const isCrit = (this.hp / (this.maxHp || 1)) < 0.30;
+    this.invuln = isCrit ? 0.80 : 0.65;
+    this.flash = 0.18;
+    if (typeof G === 'object') {
+      if (G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('hurt');
+      if (G.Camera && typeof G.Camera.kick === 'function') G.Camera.kick(0.28);
+      if (G.FX && typeof G.FX.dmgText === 'function') {
+        G.FX.dmgText(this.x, this.y - this.bodyH - 4, '-' + Math.round(d), eff === 'super' ? '#ff3048' : eff === 'weak' ? '#c9a0a8' : '#ff6b7a', eff === 'super');
+      }
+      if (G.FX && typeof G.FX.burst === 'function') {
+        G.FX.burst(this.x, this.y - this.bodyH * 0.5, '#ff5f6d', 6, 90);
+      }
+    }
     // Banda Focus: aguanta el golpe con 1 de vida (una vez cada 60 s).
-    if (this.hp <= 0 && this.hasItem('focussash') && performance.now() - this.sashT > 60000) {
-      this.sashT = performance.now();
+    if (this.hp <= 0 && typeof this.hasItem === 'function' && this.hasItem('focussash') && (typeof performance !== 'undefined' ? performance.now() : Date.now()) - this.sashT > 60000) {
+      this.sashT = typeof performance !== 'undefined' ? performance.now() : Date.now();
       this.hp = 1; this.invuln = 1.2;
-      G.FX.dmgText(this.x, this.y - this.bodyH - 16, 'Faixa de Foco!', '#ff9a3d', true);
-      G.FX.ring(this.x, this.y, 6, 70, '#ff9a3d', 0.5, 4);
+      if (typeof G === 'object' && G.FX) {
+        if (typeof G.FX.dmgText === 'function') G.FX.dmgText(this.x, this.y - this.bodyH - 16, 'Faixa de Foco!', '#ff9a3d', true);
+        if (typeof G.FX.ring === 'function') G.FX.ring(this.x, this.y, 6, 70, '#ff9a3d', 0.5, 4);
+      }
     }
     if (this.hp <= 0) {
       this.hp = 0; this.dead = true;
-      this.anim.play('Faint', { hold: true });
-      G.Projectiles.clearOrbs(this);
+      if (this.anim && typeof this.anim.play === 'function') this.anim.play('Faint', { hold: true });
+      if (typeof G === 'object' && G.Projectiles && typeof G.Projectiles.clearOrbs === 'function') G.Projectiles.clearOrbs(this);
       this.reviveT = 0;
     }
   }
@@ -1055,7 +1100,7 @@ G.Player = class Player {
       if (le.dmg) {
         this.lavaTick -= dt;
         if (this.lavaTick <= 0) {
-          this.lavaTick = le.every; this.invuln = 0;
+          this.lavaTick = le.every;
           this.hurt(Math.max(le.flat, this.maxHp * le.dmg * 0.5));
           G.FX.burst(this.x, this.y - 4, le.color, 5, 70);
         }
@@ -1822,8 +1867,7 @@ G.Player = class Player {
     const isMega = MEGA_SPECIES.has(this.species.toLowerCase());
     this.isMegaAscended = true;
     this.megaAuraType = isMega ? 'gold' : 'rainbow';
-    this.damageBonus = (this.damageBonus || 1.0) * 1.5;
-    this.atkMul = (this.atkMul || 1.0) * 1.5;
+    this.addAtkBonus(0.50, true);
     const title = isMega ? `Mega ${this.mon.name}` : `Forma Ápice: ${this.mon.name}`;
     this.ascensionTitle = title;
 

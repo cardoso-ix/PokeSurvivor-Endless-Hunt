@@ -10,7 +10,7 @@ G.LevelUp = (() => {
     { id: 'hp',   icon: 'heart', title: 'Vigor',        desc: '+20 de PV máximo (e recupera vida).',
       apply: pl => pl.addMaxHp(20) },
     { id: 'atk',  icon: 'fist',  title: 'Potência',     desc: '+10% de dano em todos os ataques.',
-      apply: pl => pl.atkMul *= 1.10 },
+      apply: pl => (typeof pl.addAtkBonus === 'function' ? pl.addAtkBonus(0.10) : (pl.atkMul += 0.10)) },
     { id: 'spd',  icon: 'boot',  title: 'Agilidade',    desc: '+7% de velocidade de movimento.',
       apply: pl => pl.spdMul *= 1.07, max: 8 },
     { id: 'cd',   icon: 'clock', title: 'Reflexos',     desc: '-8% de tempo de recarga em todos os ataques.',

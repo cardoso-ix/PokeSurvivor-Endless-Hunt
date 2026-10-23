@@ -16,8 +16,9 @@
  * 4. PROGRESSÃO: 25 a 30 partidas completas para maximizar a árvore base (112k moedas)
  */
 
+const fs = require('fs');
 const path = require('path');
-const configPath = path.resolve(__dirname, __dirname.endsWith('tools') ? '../js/config/balanceConfig.js' : './js/config/balanceConfig.js');
+const configPath = path.resolve(__dirname, fs.existsSync(path.resolve(__dirname, './js/config/balanceConfig.js')) ? './js/config/balanceConfig.js' : '../js/config/balanceConfig.js');
 const BalanceConfig = require(configPath);
 
 console.log('='.repeat(80));
