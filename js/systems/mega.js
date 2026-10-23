@@ -68,6 +68,13 @@ const MegaSystem = {
         pl.megaMode.timer = 10.0;
         pl.megaMode.maxTimer = 10.0;
       }
+
+      // Dispara a Mega Skill Elemental Procedural correspondente ao tipo do Pokémon
+      const pType = (pl.mon && pl.mon.types && pl.mon.types[0]) ? pl.mon.types[0] : (pl.types && pl.types[0] ? pl.types[0] : 'normal');
+      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : ((typeof G === 'object') ? (G.MegaSkillVFXManager || G.UltimateVFX) : null);
+      if (vfx && typeof vfx.trigger === 'function') {
+        vfx.trigger(pType, pl);
+      }
     }
 
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {

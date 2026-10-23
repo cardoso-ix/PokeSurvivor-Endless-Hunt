@@ -144,6 +144,7 @@ G.Game = (() => {
     G.Events.reset();
     G.Weather.reset();
     if (G.Mega && typeof G.Mega.reset === 'function') G.Mega.reset();
+    if (typeof MegaSkillVFXManager !== 'undefined' && typeof MegaSkillVFXManager.clear === 'function') MegaSkillVFXManager.clear();
     G.Path.clear();
     G.Hazards.clear();
     G.World.reset(coop ? coop.seed : Math.floor(Math.random() * 1e6));
@@ -816,6 +817,11 @@ G.Game = (() => {
     G.Rift.update(dt, pl, time);
     if (G.Capture && G.Capture.update) G.Capture.update(dt);
     if (G.Mega && typeof G.Mega.update === 'function') G.Mega.update(dt);
+    if (typeof MegaSkillVFXManager !== 'undefined' && typeof MegaSkillVFXManager.update === 'function') {
+      MegaSkillVFXManager.update(dt, pl);
+    } else if (G.UltimateVFX && typeof G.UltimateVFX.update === 'function') {
+      G.UltimateVFX.update(dt, pl);
+    }
     G.Judgment.update(dt, pl, time);
     G.Events.update(dt, all, time);
     G.Weather.update(dt, time, pl);

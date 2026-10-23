@@ -294,6 +294,19 @@
       this.updateStatus();
     },
 
+    triggerMegaSkill(type) {
+      const p = getPlayer();
+      if (!p) { this.toast('Nenhuma partida em andamento!'); return; }
+      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : ((typeof G === 'object') ? (G.MegaSkillVFXManager || G.UltimateVFX) : null);
+      if (vfx && typeof vfx.trigger === 'function') {
+        vfx.trigger(type, p);
+        const cfg = vfx.getTypeConfig ? vfx.getTypeConfig(type) : null;
+        this.toast(`⚡ Mega Skill: [${(cfg && cfg.name) || type.toUpperCase()}]`);
+      } else {
+        this.toast('MegaSkillVFXManager não encontrado!');
+      }
+    },
+
     killAll() {
       if (typeof G !== 'object' || !G.EnemyMgr) return;
       const all = G.EnemyMgr.all ? G.EnemyMgr.all().slice() : [];
@@ -623,6 +636,30 @@
         <button id="admin-btn-god" class="admin-btn" title="[G] Invulnerabilidade">[ 🛡️ Modo Deus: OFF ] (G)</button>
         <button id="admin-btn-heal" class="admin-btn">[ 💖 Curar 100% HP ]</button>
         <button id="admin-btn-special" class="admin-btn" title="[M] Ativa o modo Mega Fúria estelar (Super Star Mario)">[ ⚡ Especial: Mega Fúria ] (M)</button>
+        <!-- TESTE DE MEGA SKILLS ELEMENTAIS -->
+        <div style="display:flex; gap:4px; margin-top:2px; align-items:center;">
+          <select id="admin-megaskill-type" style="flex:1; background:#111; border:1px solid #ff5f6d; color:#fff; padding:4px; border-radius:4px; font-size:11px;">
+            <option value="fire">🔥 Fogo (Chuva de Meteoros)</option>
+            <option value="water">💧 Água (Tsunami Abissal)</option>
+            <option value="grass">🌿 Planta (Tempestade da Floresta)</option>
+            <option value="electric">⚡ Elétrico (Julgamento Trovão)</option>
+            <option value="ice">❄️ Gelo (Zero Absoluto)</option>
+            <option value="fighting">🥊 Lutador (Barragem de Impacto)</option>
+            <option value="poison">☠️ Veneno (Nebulosa Tóxica)</option>
+            <option value="ground">🌍 Terra (Cataclismo Sísmico)</option>
+            <option value="flying">🌪️ Voador (Furacão Cortante)</option>
+            <option value="psychic">🔮 Psíquico (Singularidade Cósmica)</option>
+            <option value="bug">🦗 Inseto (Enxame Voraz)</option>
+            <option value="rock">🪨 Pedra (Avalanche Monólitos)</option>
+            <option value="ghost">👻 Fantasma (Eclipse das Sombras)</option>
+            <option value="dragon">🐉 Dragão (Fúria Dracônica)</option>
+            <option value="dark">🌑 Sombrio (Buraco Negro Abissal)</option>
+            <option value="steel">⚔️ Aço (Tempestade de Lâminas)</option>
+            <option value="fairy">✨ Fada (Chuva Estelar Lunar)</option>
+            <option value="normal">⚪ Normal (Hiper Raio Nova)</option>
+          </select>
+          <button id="admin-btn-trigger-megaskill" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#ffcb05; white-space:nowrap;">[Disparar Mega Skill]</button>
+        </div>
         <button id="admin-btn-killall" class="admin-btn" title="[K] Limpa a tela">[ 💥 Limpar Inimigos (Kill All) ] (K)</button>
         <button id="admin-btn-spawn" class="admin-btn">[ ⏱️ Spawn: ATIVO ]</button>
       </div>
@@ -801,6 +838,11 @@
     bind('admin-btn-god', () => adminTools.toggleGodMode());
     bind('admin-btn-heal', () => adminTools.healFull());
     bind('admin-btn-special', () => adminTools.fillSpecial());
+    bind('admin-btn-trigger-megaskill', () => {
+      const sel = document.getElementById('admin-megaskill-type') || panel.querySelector('#admin-megaskill-type');
+      const val = sel && sel.value ? sel.value : 'normal';
+      adminTools.triggerMegaSkill(val);
+    });
     bind('admin-btn-killall', () => adminTools.killAll());
     bind('admin-btn-spawn', () => adminTools.toggleSpawn());
 
