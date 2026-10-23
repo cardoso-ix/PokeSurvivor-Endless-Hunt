@@ -180,6 +180,17 @@
         for (let i = 0; i < 15; i++) G.Pickups.drop('coin', this.x + G.U.rand(-40, 40), this.y + G.U.rand(-30, 30), 20);
         // Los jefes siempre sueltan un objeto equipable.
         G.Pickups.drop('item', this.x - 26, this.y - 10, G.Items.roll());
+
+        // Recompensa Hardcore de Boss: 100 a 150 tickets distribuídos em 5 orbes dourados
+        const totalTickets = G.U.rand(100, 150);
+        const parts = 5;
+        const baseVal = Math.floor(totalTickets / parts);
+        let rem = totalTickets % parts;
+        for (let i = 0; i < parts; i++) {
+          const val = baseVal + (rem > 0 ? 1 : 0);
+          if (rem > 0) rem--;
+          G.Pickups.drop('ticket', this.x + G.U.rand(-36, 36), this.y + G.U.rand(-26, 26), val);
+        }
       }
       G.Pickups.dropXp(this.x, this.y, this.xp, this.boss, !!this.legend, !!this.judge);
       if (this.golden && Math.random() < 0.80) G.Pickups.drop('coin', this.x + 6, this.y - 4, 15);

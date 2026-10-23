@@ -70,7 +70,7 @@ G.GachaUI = (() => {
          radial-gradient(circle at 15% 80%, rgba(196,123,255,.38), transparent 50%),
          linear-gradient(135deg, #2d134d, #142852 55%, #0b3c56)`;
       $('banner-title').textContent = '🎰 Roleta da Sorte Pokémon';
-      $('banner-desc').textContent = 'Gire por 5.000 tickets para concorrer a TODOS os 966 Pokémon do jogo! Lendários e Shinies aguardam!';
+      $('banner-desc').textContent = 'Gire por 100 tickets para concorrer a TODOS os 966 Pokémon do jogo! Lendários e Shinies aguardam!';
       $('gacha-owned').innerHTML = `Coleção Global: <b>${owned}</b> de <b>${all.length}</b> Pokémon` +
         (shinies ? ` · ${G.Icons.html('shiny', 12)} <b>${shinies}</b> shiny` : '');
 
@@ -108,22 +108,26 @@ G.GachaUI = (() => {
       <h3 style="margin-top:0;font-size:18px;color:var(--gold);">Probabilidades da Roleta</h3>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(244,248,255,.15);">
         <span style="color:#ffd23f;font-weight:bold;">👑 Pokémon Lendário</span>
-        <b style="color:#ffd23f;">5.0%</b>
+        <b style="color:#ffd23f;">0.40%</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(244,248,255,.15);">
+        <span style="color:#ff7ae9;font-weight:bold;">🌟 Shiny Lendário (Apex)</span>
+        <b style="color:#ff7ae9;">0.02%</b>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(244,248,255,.15);">
         <span style="color:#9ae6ff;font-weight:bold;">✨ Pokémon Shiny</span>
-        <b style="color:#9ae6ff;">1.0%</b>
+        <b style="color:#9ae6ff;">0.50%</b>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(244,248,255,.15);">
         <span style="color:#c47bff;font-weight:bold;">⚪ Pokémon Normal</span>
-        <b style="color:#c47bff;">94.0%</b>
+        <b style="color:#c47bff;">99.08%</b>
       </div>
       <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(244,248,255,.15);">
         <span style="color:#5fe08a;font-weight:bold;">🎯 Pool Sorteado</span>
         <b style="color:#5fe08a;">Todos os 966 Pokémon</b>
       </div>
       <div class="gacha-rules-note">
-        <b style="color:#ffd23f;">🪙 Bônus de Repetido:</b> Se o Pokémon sorteado já estiver na sua Pokédex, você ganha <b>1.000 PokéMoedas</b> para gastar na aba de Melhorias!<br><br>
+        <b style="color:#ffd23f;">🪙 Bônus de Repetido:</b> Se o Pokémon sorteado já estiver na sua Pokédex, você ganha <b>250 PokéMoedas</b> para gastar na aba de Melhorias!<br><br>
         <b style="color:#9ae6ff;">✨ Novo na Pokédex:</b> Se for um Pokémon inédito, ele é desbloqueado e registrado imediatamente na sua coleção!
       </div>
     `;

@@ -529,13 +529,13 @@
             </div>
             <!-- Botões Rápidos de Tickets -->
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; margin-bottom:6px;">
-              <button id="admin-btn-t-5k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+5.000 tickets (1 giro de Roleta)">
+              <button id="admin-btn-t-5k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+100 tickets (1 giro de Roleta)">
                 +5k (1x)
               </button>
-              <button id="admin-btn-t-25k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+25.000 tickets (5 giros de Roleta)">
+              <button id="admin-btn-t-25k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+500 tickets (5 giros de Roleta)">
                 +25k (5x)
               </button>
-              <button id="admin-btn-t-50k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+50.000 tickets (10 giros de Roleta)">
+              <button id="admin-btn-t-50k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+1.000 tickets (10 giros de Roleta)">
                 +50k (10x)
               </button>
               <button id="admin-btn-t-zero" class="admin-action-btn" style="background:#450a0a; color:#fca5a5; border:1px solid #dc2626; font-size:10px; padding:4px 2px;" title="Zerar todos os tickets">
@@ -730,9 +730,9 @@
         const inp = document.getElementById('admin-tickets-input');
         if (inp && inp.value !== '') AdminPanel.addTickets(inp.value);
       });
-      bind('admin-btn-t-5k', () => AdminPanel.addTickets(5000));
-      bind('admin-btn-t-25k', () => AdminPanel.addTickets(25000));
-      bind('admin-btn-t-50k', () => AdminPanel.addTickets(50000));
+      bind('admin-btn-t-5k', () => AdminPanel.addTickets(100));
+      bind('admin-btn-t-25k', () => AdminPanel.addTickets(500));
+      bind('admin-btn-t-50k', () => AdminPanel.addTickets(1000));
       bind('admin-btn-t-zero', () => AdminPanel.setTickets(0));
 
       bind('admin-btn-spin-1', () => AdminPanel.spinRoulette(1));

@@ -660,6 +660,19 @@ G.Rift = (() => {
       if (G.FX.spark) G.FX.spark(bossX, bossY, '#fee2e2', 0, -1, 16);
     }
 
+    // Recompensa de Rift: 100 a 150 tickets distribuídos em 5 orbes dourados
+    const totalRiftTickets = G.U.rand(100, 150);
+    const rParts = 5;
+    const rBaseVal = Math.floor(totalRiftTickets / rParts);
+    let rRem = totalRiftTickets % rParts;
+    for (let i = 0; i < rParts; i++) {
+      const val = rBaseVal + (rRem > 0 ? 1 : 0);
+      if (rRem > 0) rRem--;
+      if (G.Pickups && typeof G.Pickups.drop === 'function') {
+        G.Pickups.drop('ticket', bossX + G.U.rand(-32, 32), bossY + G.U.rand(-24, 24), val);
+      }
+    }
+
     const monName = guardianMon ? guardianMon.name : 'Guardião';
     console.log("🌟 Guardião de Rift derrotado:", monName);
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
@@ -713,7 +726,7 @@ G.Rift = (() => {
     const mon = G.DEX_BY[arena.dex];
     const stage = arena.stage || (mon ? getMonStage(mon.dex || mon.name) : 1);
     const coinsReward = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
-    const ticketsReward = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
+    const ticketsReward = G.U.rand(100, 150);
 
     const msg = arena.championReward
       ? ('🏆 ' + mon.name + ' derrotado! Recompensas de Campeão resgatadas!')

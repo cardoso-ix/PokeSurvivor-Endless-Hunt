@@ -21,12 +21,12 @@ G.Gacha = (() => {
     if (n === 10 && use === 't10') return t.t10 >= 1 ? { t1: 0, t10: 1 } : null;
     return t.t1 >= n ? { t1: n, t10: 0 } : null;
   }
-  const RATES = [[1, 45], [2, 30], [3, 17], [4, 6.5], [5, 1.5]];
-  const PITY_5 = 70;
-  const SHINY_RATE = 1 / 100;
+  const RATES = [[1, 70], [2, 20], [3, 8], [4, 1.6], [5, 0.4]];
+  const PITY_5 = 250;
+  const SHINY_RATE = 1 / 250;
   const REFUND = { 1: 15, 2: 30, 3: 60, 4: 120, 5: 300 };
-  const ROULETTE_COST = 5000;
-  const ROULETTE_DUPLICATE_COINS = 1000;
+  const ROULETTE_COST = 100;
+  const ROULETTE_DUPLICATE_COINS = 250;
   let forceShiny = 0;           // para pruebas y vídeos: las N próximas salen shiny
   let forceLegendary = 0;       // para testes da roleta lendária
 
@@ -182,22 +182,22 @@ G.Gacha = (() => {
         forceLegendary--;
         mon = G.U.pick(allLegs.length ? allLegs : poolSource);
         rarity = 5;
-      } else if (roll < 0.2) {
-        // 0.2% Chance: Shiny Lendário Ultra-Raro
+      } else if (roll < 0.02) {
+        // 0.02% Chance: Shiny Lendário (Apex Jackpot - Quase Impossível, 1 em 5.000)
         isShiny = true;
         mon = G.U.pick(allLegs.length ? allLegs : allShinies);
         rarity = 5;
-      } else if (roll < 1.7) {
-        // 1.5% Chance: Shiny Comum
+      } else if (roll < 0.52) {
+        // 0.50% Chance: Shiny Comum (Raríssimo, 1 em 200)
         isShiny = true;
         mon = G.U.pick(allShinies.length ? allShinies : poolSource);
         rarity = mon.rarity || (mon.legendary ? 5 : 3);
-      } else if (roll < 8.2) {
-        // 6.5% Chance: Lendário Normal da Região Selecionada
+      } else if (roll < 0.92) {
+        // 0.40% Chance: Lendário Normal (Raríssimo, 1 em 250)
         mon = G.U.pick(allLegs.length ? allLegs : poolSource);
         rarity = mon.rarity || 5;
       } else {
-        // 91.8% Chance: Normal da Região Selecionada
+        // 99.08% Chance: Pokémon Normal (Foco esmagador em Comuns e Estágios Básicos)
         mon = G.U.pick(allNorms.length ? allNorms : poolSource);
         rarity = mon.rarity || 1;
       }

@@ -558,9 +558,9 @@
           🎟️ Tickets Roleta: 0
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
-          <button id="admin-btn-tickets-5k" class="admin-btn" style="color:#38bdf8;" title="+5.000 Tickets">[ +5.000 🎟️ (1x) ]</button>
-          <button id="admin-btn-tickets-25k" class="admin-btn" style="color:#60a5fa;" title="+25.000 Tickets">[ +25.000 🎟️ (5x) ]</button>
-          <button id="admin-btn-tickets-50k" class="admin-btn" style="color:#93c5fd;" title="+50.000 Tickets">[ +50.000 🎟️ (10x) ]</button>
+          <button id="admin-btn-tickets-5k" class="admin-btn" style="color:#38bdf8;" title="+5.000 Tickets">[ +100 🎟️ (1x) ]</button>
+          <button id="admin-btn-tickets-25k" class="admin-btn" style="color:#60a5fa;" title="+25.000 Tickets">[ +500 🎟️ (5x) ]</button>
+          <button id="admin-btn-tickets-50k" class="admin-btn" style="color:#93c5fd;" title="+50.000 Tickets">[ +1.000 🎟️ (10x) ]</button>
           <button id="admin-btn-tickets-zero" class="admin-btn" style="color:#fca5a5;" title="Zerar Tickets">[ Zerar 🎟️ ]</button>
         </div>
         <div style="display:flex; gap:4px; margin-top:2px;">
@@ -725,9 +725,9 @@
       };
     }
 
-    bind('admin-btn-tickets-5k', () => adminTools.addTickets(5000));
-    bind('admin-btn-tickets-25k', () => adminTools.addTickets(25000));
-    bind('admin-btn-tickets-50k', () => adminTools.addTickets(50000));
+    bind('admin-btn-tickets-5k', () => adminTools.addTickets(100));
+    bind('admin-btn-tickets-25k', () => adminTools.addTickets(500));
+    bind('admin-btn-tickets-50k', () => adminTools.addTickets(1000));
     bind('admin-btn-tickets-zero', () => adminTools.setTickets(0));
 
     const injectCustomTickets = (isAdd = false) => {

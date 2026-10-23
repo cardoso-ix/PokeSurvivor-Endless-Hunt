@@ -564,9 +564,11 @@ G.Game = (() => {
       return;
     }
     if (p.kind === 'ticket' || p.kind === 'ticket10') {
-      if (p.kind === 'ticket') pl.t1++; else pl.t10++;
+      const val = Math.max(1, p.value || 1);
+      if (p.kind === 'ticket') pl.t1 += val; else pl.t10 += val;
       bankTickets();
-      G.FX.dmgText(who.x, who.y - who.bodyH - 8, p.kind === 'ticket' ? '+1 Ticket' : 'Ticket ×10!', p.kind === 'ticket' ? '#ffd23f' : '#d9a6ff', true);
+      const txt = p.kind === 'ticket' ? (val > 1 ? ('+' + val + ' Tickets') : '+1 Ticket') : (val > 1 ? ('+' + val + ' Tickets ×10!') : 'Ticket ×10!');
+      G.FX.dmgText(who.x, who.y - who.bodyH - 8, txt, p.kind === 'ticket' ? '#ffd23f' : '#d9a6ff', true);
       G.FX.ring(who.x, who.y, 6, 50, p.kind === 'ticket' ? '#ffd23f' : '#c47bff', 0.4, 3);
       return;
     }
