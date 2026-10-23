@@ -4,6 +4,29 @@
  * Comandos rápidos no console (F12): adminUnlock, adminUnlockAll, adminResetDex, admin.*
  */
 (() => {
+  const ADMIN_EMAILS = ['eduardoocardosoo@gmail.com'];
+  const ADMIN_USERS = ['eduardo', 'cardoso', 'admin', 'eduardocardoso'];
+  const ADMIN_UIDS = ['rshaa5gKD3fXw6lE4PPXITbowaG2'];
+
+  function isUserAdmin() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('ps_admin_authenticated') === 'true') {
+      return true;
+    }
+    const db = (typeof G === 'object' && G.DB) || (typeof window !== 'undefined' && window.db);
+    if (!db) return false;
+    if (db.guest) return false;
+
+    const email = (typeof db.currentEmail === 'string' ? db.currentEmail : '').toLowerCase();
+    if (email && ADMIN_EMAILS.includes(email)) return true;
+
+    const username = (typeof db.user === 'string' ? db.user : '').toLowerCase().trim();
+    if (username && ADMIN_USERS.includes(username)) return true;
+
+    if (typeof db.fb === 'object' && db.fb && db.fb.uid && ADMIN_UIDS.includes(db.fb.uid)) return true;
+
+    return false;
+  }
+
   const getDB = () => {
     return (typeof G === 'object' && G.DB) ||
            (typeof window !== 'undefined' && window.db) ||
@@ -31,6 +54,7 @@
     isOpen: false,
 
     toggle() {
+      if (!isUserAdmin()) return false;
       const panel = document.getElementById('admin-debug-panel');
       if (!panel) {
         this.initDOM();
@@ -45,6 +69,7 @@
     },
 
     open() {
+      if (!isUserAdmin()) return false;
       let panel = document.getElementById('admin-debug-panel');
       if (!panel) {
         this.initDOM();
@@ -680,6 +705,7 @@
         pill = document.createElement('button');
         pill.id = 'admin-float-pill';
         pill.innerHTML = '🛠️ Admin <span style="opacity:0.8; font-size:10px;">[F2]</span>';
+        pill.style.display = isUserAdmin() ? 'block' : 'none';
         document.body.appendChild(pill);
       }
       pill.onclick = () => AdminPanel.toggle();

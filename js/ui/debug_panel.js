@@ -3,6 +3,46 @@
  * Acesso via interface (botão flutuante), atalhos de teclado (F1 ou `) e window.adminTools.
  */
 (() => {
+  const ADMIN_EMAILS = ['eduardoocardosoo@gmail.com'];
+  const ADMIN_USERS = ['eduardo', 'cardoso', 'admin', 'eduardocardoso'];
+  const ADMIN_UIDS = ['rshaa5gKD3fXw6lE4PPXITbowaG2'];
+  const ADMIN_SECRET = '04052001Erica+';
+
+  function isUserAdmin() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('ps_admin_authenticated') === 'true') {
+      return true;
+    }
+    const db = (typeof G === 'object' && G.DB) || (typeof window !== 'undefined' && window.db);
+    if (!db) return false;
+    if (db.guest) return false;
+
+    const email = (typeof db.currentEmail === 'string' ? db.currentEmail : '').toLowerCase();
+    if (email && ADMIN_EMAILS.includes(email)) return true;
+
+    const username = (typeof db.user === 'string' ? db.user : '').toLowerCase().trim();
+    if (username && ADMIN_USERS.includes(username)) return true;
+
+    if (typeof db.fb === 'object' && db.fb && db.fb.uid && ADMIN_UIDS.includes(db.fb.uid)) return true;
+
+    return false;
+  }
+
+  function updateAdminVisibility() {
+    const pill = document.getElementById('admin-float-pill');
+    if (!pill) return;
+    const canSee = isUserAdmin();
+    pill.style.display = canSee ? 'block' : 'none';
+    if (!canSee) {
+      const panel = document.getElementById('admin-debug-panel');
+      if (panel) panel.style.display = 'none';
+    }
+  }
+
+  // Verifica visibilidade a cada 1.5s
+  if (typeof setInterval === 'function') {
+    setInterval(updateAdminVisibility, 1500);
+  }
+
   const getPlayer = () => {
     return (typeof window !== 'undefined' && window.game && window.game.player) ||
            (typeof G === 'object' && G.Game && G.Game.player) ||
@@ -12,6 +52,7 @@
   // ---------------- Funções de Administração ----------------
   const adminTools = {
     toggle() {
+      if (!isUserAdmin()) return false;
       const panel = document.getElementById('admin-debug-panel');
       if (!panel) return false;
       const isOpen = panel.style.display !== 'none';
@@ -21,6 +62,7 @@
     },
 
     open() {
+      if (!isUserAdmin()) return false;
       const panel = document.getElementById('admin-debug-panel');
       if (panel) { panel.style.display = 'block'; this.updateStatus(); }
     },
@@ -667,6 +709,7 @@
     pill.id = 'admin-float-pill';
     pill.textContent = '🛠️ Admin [F2]';
     pill.style.cssText = `
+      display: none;
       position: fixed;
       bottom: 12px;
       right: 12px;
@@ -684,6 +727,7 @@
     `;
     pill.onclick = () => adminTools.toggle();
     document.body.appendChild(pill);
+    updateAdminVisibility();
 
     // 5. Vincular eventos dos botões com segurança
     const bind = (id, fn) => {
@@ -818,10 +862,36 @@
       const target = e.target;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
 
-      // F1, F2 ou Crase (`) / Aspas / Til abre/fecha o painel sempre
+      // F1, F2 ou Crase (`) / Aspas / Til abre/fecha o painel SOMENTE SE FOR ADMIN
       if (e.key === 'F1' || e.key === 'F2' || e.key === '`' || e.key === '~' || e.code === 'Backquote' || e.key === "'" || e.key === '"') {
+        if (!isUserAdmin()) {
+          // Permite ao admin autenticar digitando a senha mestra se apertar Ctrl + F2
+          if (e.ctrlKey && typeof prompt === 'function') {
+            const pass = prompt('Chave de Acesso do Administrador:');
+            if (pass === ADMIN_SECRET) {
+              localStorage.setItem('ps_admin_authenticated', 'true');
+              updateAdminVisibility();
+              adminTools.open();
+            }
+          }
+          return;
+        }
         e.preventDefault();
         adminTools.toggle();
+        return;
+      }
+
+      // Atalho mestre secreto para login de admin em qualquer dispositivo: Ctrl + Shift + Alt + A
+      if (e.ctrlKey && e.shiftKey && e.altKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        if (typeof prompt === 'function') {
+          const pass = prompt('Chave de Acesso do Administrador:');
+          if (pass === ADMIN_SECRET) {
+            localStorage.setItem('ps_admin_authenticated', 'true');
+            updateAdminVisibility();
+            adminTools.open();
+          }
+        }
         return;
       }
 
@@ -864,6 +934,24 @@
     window.debugTestCapture = (speciesId, isShiny) => adminTools.testCapture(speciesId, isShiny);
     window.debugAddCoins = (amount) => adminTools.addCoins(amount);
   }
+
+  // Comandos de autorização de admin no console
+  window.adminLogin = (pass) => {
+    if (pass === ADMIN_SECRET) {
+      localStorage.setItem('ps_admin_authenticated', 'true');
+      updateAdminVisibility();
+      console.log('✅ Modo Administrador ativado com sucesso!');
+      return true;
+    }
+    console.error('❌ Senha de administrador incorreta.');
+    return false;
+  };
+
+  window.adminLogout = () => {
+    localStorage.removeItem('ps_admin_authenticated');
+    updateAdminVisibility();
+    console.log('🔒 Modo Administrador desativado.');
+  };
 
   // Exportação no escopo global
   window.adminTools = adminTools;

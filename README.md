@@ -228,20 +228,34 @@ O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
 
 ---
 
-## 🛠️ Menu Admin & Painel de Testes (F2 / ~)
+## 🛠️ Menu Admin & Blindagem de Segurança (Exclusivo Administrador)
 
-O jogo possui um **Menu Admin e Painel de Testes completo**, acessível em qualquer tela (menus ou partida) através da tecla `F2`, aspas (`'`) ou pelo botão flutuante **`🛠️ Admin [F2]`** no canto inferior direito:
+> [!IMPORTANT]
+> **Privacidade & Segurança em Produção:**  
+> O botão flutuante **`🛠️ Admin [F2]`**, os atalhos de depuração (`F2`, `F1`, `'`) e os comandos de trapaça/injeção ficam **completamente ocultos e inativos para o público geral, amigos e visitantes**.  
+> Eles são carregados e exibidos **exclusivamente na conta autenticada do Administrador** (`eduardoocardosoo@gmail.com` ou usuário mestre).  
+> Para autenticação do administrador em novos dispositivos: utilize `Ctrl + Shift + Alt + A` ou `Ctrl + F2` com a chave mestra, ou o comando `adminLogin('senha')` no console.
 
-- **🎟️ Gestão de Tickets de Roleta:**
-  - Campo numérico para **Definir** ou **Somar (+)** qualquer quantidade customizada de tickets (ex: 5.000, 25.000, 100.000).
-  - Botões de atalho rápido: `+5k (1x)`, `+25k (5x)`, `+50k (10x)` e `Zerar`.
+O Painel de Administração oferece controle total sobre todos os subsistemas do jogo:
+- **🎟️ Gestão de Tickets de Roleta:** Adicionar, definir ou zerar tickets da Roleta (`+100`, `+500`, `+1.000` ou valores customizados).
 - **🎰 Roleta Gacha & Auditoria:**
-  - `Abrir Roleta`: Abre diretamente a tela oficial da Roleta Gacha.
-  - `Girar Roleta 1x / 5x`: Executa sorteios imediatos com consumo de tickets e feedback na tela.
-  - `Forçar Shiny (1%)` / `Forçar Lendário (5%)`: Garante que o próximo giro entregue a categoria desejada para testes.
-  - `Simulação Estatística em Lote`: Executa 50, 100 ou até 1.000 giros instantâneos gerando relatório de taxas reais vs teóricas e moedas de duplicatas acumuladas.
-- **📖 Desbloqueio da Pokédex:** Busca inteligente por espécie (nome ou número da Dex) para desbloqueio Normal ou Shiny, além de liberação em massa e reset de progresso.
+  - `Girar Roleta 1x / 5x`: Executa sorteios com as novas probabilidades hardcore (0.40% Lendário, 0.50% Shiny, 0.02% Apex).
+  - `Forçar Shiny` / `Forçar Lendário`: Testes pontuais de renderização e animações especiais.
+  - `Simulação Estatística em Lote`: Executa 50 a 50.000 giros em lote com relatório de variância.
+- **📖 Desbloqueio da Pokédex:** Busca por espécie (nome ou Dex) para desbloqueio Normal ou Shiny, liberação em massa e reset de progresso.
 - **🧬 Evoluções & Combate:** Forçar próxima evolução, de-evoluir, modo deus, cura total e injeção de PokéMoedas.
+
+---
+
+## ⚖️ Sistema de Balanceamento & Economia Hardcore
+
+O PokéSurvivor opera sob uma filosofia **Hardcore Roguelite** (desafiador, punitivo, balanceado e recompensador):
+- **Disparo Contínuo desde o Nv. 1:** Todos os golpes adquiridos disparam simultaneamente respeitando seus tempos de recarga individuais.
+- **Sobrecarga no Nível 20:** Concede bônus passivo global de **+20% de área** e **-15% de tempo de recarga**, liberando o 4º slot caso ainda esteja vazio.
+- **Poder Real de Prestígio:** Pokémons Shiny recebem **+25% Dano / +10% HP / +5% Velocidade**; Lendários recebem **+20% Dano / +15% HP / +5% Velocidade**; Shiny Lendários (Apex) recebem **+50% Dano / +25% HP / +10% Velocidade** com aura cósmica exclusiva.
+- **Captura Estratégica por Estágios:** Taxas base decrescentes (Estágio 1: 38%, Estágio 2: 28%, Estágio 3: 18%, Shiny: 10%, Lendário: 6%, Shiny Lendário: 2%) com teto rígido de 48% e altas recompensas de Gold Bounty.
+- **Ascensão Exponencial (+1 ao +10):** Custos que escalam de 15.000 até 2.000.000 de moedas nos 9 atributos globais.
+- **Economia Gacha Justa:** Cada Boss de mapa ou Guardião de Fenda derrotado dropa **100 a 150 Tickets**, financiando 1 giro completo da Roleta da Sorte (100 tickets por giro). As taxas de obtenção de Lendários e Shinies foram calibradas para raridade real de colecionador (0.40% Lendário, 0.50% Shiny Comum e 0.02% Shiny Lendário Apex).
 
 ---
 
