@@ -1074,6 +1074,8 @@ G.Game = (() => {
 
 if (typeof window !== 'undefined') {
   window.game = G.Game;
+  window.onShinyKilled = G.onShinyCaught;
+  window.G = G;
 }
 
 /* ============ Flow — transiciones entre pantallas ============ */
