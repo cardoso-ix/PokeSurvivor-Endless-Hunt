@@ -345,10 +345,11 @@ G.MenuUI = (() => {
     box.innerHTML = '';
     for (const u of G.Upgrades.LIST) {
       const lvl = levels[u.id] || 0;
+      const hasAscension = u.id !== 'ban' && u.id !== 'moves';
       const baseMaxed = lvl >= u.max;
-      const overLvl = Math.max(0, lvl - u.max); // 0 a 10
-      const nextOverLvl = overLvl + 1; // 1 a 10
-      const supremeMaxed = overLvl >= 10;
+      const overLvl = hasAscension ? Math.max(0, lvl - u.max) : 0; // 0 a 10
+      const nextOverLvl = hasAscension ? (overLvl + 1) : 0; // 1 a 10
+      const supremeMaxed = hasAscension ? overLvl >= 10 : baseMaxed;
       const cost = supremeMaxed ? 0 : G.Upgrades.cost(u.id, lvl, upgDex);
       const canAfford = s.coins >= cost;
       const rawName = window.i18n ? window.i18n.t(`upgrades.${u.id}`) : null;
@@ -357,7 +358,7 @@ G.MenuUI = (() => {
       let upgDesc = (rawDesc && rawDesc !== `upgrades.${u.id}Desc` && !rawDesc.startsWith('upgrades.')) ? rawDesc : u.unit;
 
       // Descrições de super buff quando em Ascensão (+1 a +10)
-      if (baseMaxed && !supremeMaxed) {
+      if (hasAscension && baseMaxed && !supremeMaxed) {
         const BUFF_TIPS = {
           atk: `+10% de Dano Supremo (+100% no +10)`,
           crit: `+2,5% de Chance Crítica (+25% no +10)`,
@@ -369,13 +370,11 @@ G.MenuUI = (() => {
           magnet: `+15% de Raio de Coleta de Ímã (+150% no +10)`,
           xp: `+10% de Experiência Obtida (+100% no +10)`,
           coins: `+10% de PokéMoedas Recebidas (+100% no +10)`,
-          reroll: `+1 Troca de Cartas por Nível`,
-          ban: `+1 Veto de Ataque por Nível`,
-          moves: `+10% de Dano das Habilidades Iniciais`
+          reroll: `+1 Troca de Cartas por Nível`
         };
         upgDesc = `Ascensão +${nextOverLvl}: ${BUFF_TIPS[u.id] || '+Super Bônus de Atributos'}`;
       } else if (supremeMaxed) {
-        upgDesc = 'Ascensão Suprema +10 Concluída (Poder Máximo)';
+        upgDesc = hasAscension ? 'Ascensão Suprema +10 Concluída (Poder Máximo)' : `${upgName} no Nível Máximo`;
       }
 
       const chooseText = (window.i18n ? window.i18n.t('upgrades.choose') : null) || 'Escolher';
@@ -383,7 +382,7 @@ G.MenuUI = (() => {
       el.className = 'panel upg-item';
 
       // Badge visual de Ascensão (+1..+10)
-      const plusBadge = overLvl > 0
+      const plusBadge = (hasAscension && overLvl > 0)
         ? `<span style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:bold;margin-left:4px;box-shadow:0 0 6px rgba(245,158,11,0.6);">+${overLvl}</span>`
         : '';
 
@@ -391,18 +390,21 @@ G.MenuUI = (() => {
       let pipsHtml = '';
       if (!baseMaxed) {
         pipsHtml = `<div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('')}</div>`;
-      } else {
+      } else if (hasAscension) {
         pipsHtml = `<div class="pips" style="margin-top:4px;" title="Níveis de Ascensão (+1 a +10)">
           <span style="font-size:10px;color:#fbbf24;font-weight:bold;margin-right:4px;">ASCENSÃO:</span>
           ${Array.from({ length: 10 }, (_, i) => `<i class="${i < overLvl ? 'on' : ''}" style="${i < overLvl ? 'background:#f59e0b;box-shadow:0 0 5px #fbbf24;border-color:#fbbf24;' : 'border-color:#78350f;background:rgba(0,0,0,0.5);'}"></i>`).join('')}
         </div>`;
+      } else {
+        pipsHtml = `<div class="pips">${Array.from({ length: u.max }, () => `<i class="on"></i>`).join('')}</div>`;
       }
 
       // Botão de compra
       let buyBtnHtml = '';
       if (supremeMaxed) {
-        buyBtnHtml = `<button class="btn small upg-max-btn" disabled style="background:#1e293b;color:#f59e0b;border:1px solid #d97706;font-weight:bold;letter-spacing:0.5px;">+10 MÁXIMO</button>`;
-      } else if (baseMaxed) {
+        const maxLabel = hasAscension ? '+10 MÁXIMO' : (u.id === 'moves' ? 'DESBLOQUEADO' : 'MÁXIMO');
+        buyBtnHtml = `<button class="btn small upg-max-btn" disabled style="background:#1e293b;color:#f59e0b;border:1px solid #d97706;font-weight:bold;letter-spacing:0.5px;">${maxLabel}</button>`;
+      } else if (baseMaxed && hasAscension) {
         buyBtnHtml = `<button class="btn small ${canAfford ? 'gold' : ''}" data-buy data-sfx="none"
           ${!canAfford ? 'disabled' : ''}
           style="${!canAfford ? 'background:#2a2a30;color:#ff7777;border:1px solid #772222;cursor:not-allowed;' : 'background:linear-gradient(180deg,#f59e0b,#b45309);color:#fff;font-weight:bold;border:1px solid #fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.5);'} white-space:nowrap; padding:4px 8px;"
@@ -428,7 +430,7 @@ G.MenuUI = (() => {
           ${pipsHtml}
         </div>
         <div class="upg-btns">
-          ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>${chooseText} (${banList().length}/${lvl})</button>` : ''}
+          ${u.id === 'ban' && lvl > 0 ? `<button class="btn small" data-ban>${chooseText} (${banList().length}/${Math.min(3, lvl)})</button>` : ''}
           ${buyBtnHtml}
         </div>`;
 
@@ -439,7 +441,7 @@ G.MenuUI = (() => {
       const buyBtn = el.querySelector('[data-buy]');
       if (buyBtn) buyBtn.onclick = () => {
         const sv = G.DB.save, lv = G.DB.upgradesOf(upgDex), now = lv[u.id] || 0;
-        const maxTot = u.max + 10;
+        const maxTot = hasAscension ? (u.max + 10) : u.max;
         if (now >= maxTot) { renderUpgrades(); return; }
         const price = G.Upgrades.cost(u.id, now, upgDex);
         if (sv.coins < price) {
@@ -452,16 +454,18 @@ G.MenuUI = (() => {
         G.DB.commit(true);
         G.Audio.sfx('buy');
         G.UI.refreshCoins();
-        if (now >= u.max) {
+        if (hasAscension && now >= u.max) {
           const nextPlus = (now - u.max) + 1;
           G.UI.toast(`🔥 ${mon.name} · ${upgName} ASCENSÃO +${nextPlus} DESBLOQUEADA!`, 4500);
+        } else if (u.id === 'moves') {
+          G.UI.toast(`✨ ${mon.name} · 2º Ataque Inicial Desbloqueado!`, 4500);
         } else {
           G.UI.toast(`${mon.name} · ${upgName}: nível ${now + 1}`);
         }
         renderUpgrades();
       };
       box.appendChild(el);
-      if (u.id === 'ban' && lvl > 0 && banOpen) box.appendChild(banPicker(lvl));
+      if (u.id === 'ban' && lvl > 0 && banOpen) box.appendChild(banPicker(Math.min(3, lvl)));
     }
     box.appendChild(startMovesPanel());
     box.appendChild(bindPanel());
@@ -477,11 +481,13 @@ G.MenuUI = (() => {
     const defaultStart = G.startMoveOf(upgDex);
     const custom = s.customStartMoves[upgDex] || [defaultStart];
     const mon = G.DEX_BY[upgDex];
+    const lv = G.DB.upgradesOf(upgDex);
+    const hasSecondSlot = (lv['moves'] || 0) >= 1;
     const allMoves = G.Moves.poolFor(mon).concat([defaultStart]).filter((v, i, a) => a.indexOf(v) === i)
       .sort((a, b) => G.Moves.BY_ID[a].name.localeCompare(G.Moves.BY_ID[b].name, 'pt-BR'));
 
     const move1 = custom[0] || defaultStart;
-    const move2 = custom[1] || '';
+    const move2 = hasSecondSlot ? (custom[1] || '') : '';
 
     const el = document.createElement('div');
     el.className = 'panel start-moves-panel';
@@ -491,10 +497,15 @@ G.MenuUI = (() => {
         <b style="color:#ffd23f;font-size:14px;display:flex;align-items:center;gap:6px">
           <span>🎯</span> ATAQUES INICIAIS DA PARTIDA
         </b>
-        <span style="font-size:11px;color:#00ffcc;font-weight:bold">${move2 ? '2 Ataques Selecionados' : '1 Ataque Selecionado'}</span>
+        <span style="font-size:11px;color:${hasSecondSlot ? '#00ffcc' : '#f59e0b'};font-weight:bold">
+          ${hasSecondSlot ? (move2 ? '2 Ataques Selecionados' : '1 Ataque Selecionado (Slot 2 Liberado)') : '🔒 Apenas 1 Ataque (Slot 2 Bloqueado)'}
+        </span>
       </div>
       <p class="sub" style="margin:0 0 10px;font-size:12px;color:#bbb">
-        Escolha até 2 ataques para <b>${mon.name}</b> iniciar a partida. Até o Nível 20 você escolhe mais poderes e, a partir do Nv. 20, todos os 4 ataques permanecem combando juntos sem interrupções!
+        ${hasSecondSlot
+          ? `Escolha os ataques para <b>${mon.name}</b> iniciar a partida. Até o Nível 20 você escolhe mais poderes e, a partir do Nv. 20, todos os 4 ataques disparam juntos!`
+          : `Escolha 1 ataque para <b>${mon.name}</b> iniciar a partida. O <b>2º Ataque Inicial</b> pode ser desbloqueado por 🪙 <b>50.000</b> moedas para começar com 2 golpes!`
+        }
       </p>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <label style="flex:1;min-width:200px">
@@ -503,24 +514,57 @@ G.MenuUI = (() => {
             ${allMoves.map(id => `<option value="${id}" ${id === move1 ? 'selected' : ''}>${G.Moves.BY_ID[id].name}</option>`).join('')}
           </select>
         </label>
+        ${hasSecondSlot ? `
         <label style="flex:1;min-width:200px">
-          <span style="display:block;font-size:11px;font-weight:bold;color:#ffd23f;margin-bottom:4px">2º Ataque Inicial (Opcional):</span>
+          <span style="display:block;font-size:11px;font-weight:bold;color:#00ffcc;margin-bottom:4px">2º Ataque Inicial (Desbloqueado):</span>
           <select id="start-move-2" class="field" style="width:100%;background:#1e2238;color:#fff;border:1px solid #4a5170;padding:6px;border-radius:4px">
             <option value="">Nenhum (Começar com apenas 1 ataque)</option>
             ${allMoves.filter(id => id !== move1).map(id => `<option value="${id}" ${id === move2 ? 'selected' : ''}>${G.Moves.BY_ID[id].name}</option>`).join('')}
           </select>
         </label>
+        ` : `
+        <div style="flex:1;min-width:200px;background:#1a1d2e;border:1px dashed #f59e0b;padding:8px 12px;border-radius:6px;display:flex;flex-direction:column;justify-content:center;gap:6px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:11px;font-weight:bold;color:#f59e0b;display:flex;align-items:center;gap:4px">
+              <span>🔒</span> 2º Ataque Inicial
+            </span>
+            <span style="font-size:10px;color:#888;background:#111;padding:1px 5px;border-radius:3px">Bloqueado</span>
+          </div>
+          <span style="font-size:11px;color:#aaa">Inicie a partida com 2 golpes simultâneos para ${mon.name}.</span>
+          <button id="btn-unlock-second-move" class="btn small gold" style="padding:4px 8px;font-size:11px;font-weight:bold;background:linear-gradient(180deg,#f59e0b,#b45309);border:1px solid #fbbf24;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            🔓 Desbloquear por <span class="coin"></span> 50.000
+          </button>
+        </div>
+        `}
       </div>
     `;
 
     const sel1 = el.querySelector('#start-move-1');
     const sel2 = el.querySelector('#start-move-2');
+    const unlockBtn = el.querySelector('#btn-unlock-second-move');
+
+    if (unlockBtn) {
+      unlockBtn.onclick = () => {
+        const cost = 50000;
+        if (s.coins < cost) {
+          if (G.UI && G.UI.toast) G.UI.toast('PokéMoedas insuficientes! Necessário 50.000 moedas.');
+          return;
+        }
+        s.coins -= cost;
+        lv['moves'] = 1;
+        G.DB.commit(true);
+        G.Audio.sfx('buy');
+        G.UI.refreshCoins();
+        G.UI.toast(`✨ 2º Ataque Inicial desbloqueado para ${mon.name}!`, 4500);
+        renderUpgrades();
+      };
+    }
 
     const saveChanges = () => {
-      const v1 = sel1.value;
-      const v2 = sel2.value;
+      const v1 = sel1 ? sel1.value : defaultStart;
+      const v2 = (hasSecondSlot && sel2) ? sel2.value : '';
       const chosen = [v1];
-      if (v2 && v2 !== v1) chosen.push(v2);
+      if (hasSecondSlot && v2 && v2 !== v1) chosen.push(v2);
       s.customStartMoves[upgDex] = chosen;
       G.DB.commit();
       G.Audio.sfx('select');
@@ -528,8 +572,8 @@ G.MenuUI = (() => {
       renderUpgrades();
     };
 
-    sel1.onchange = saveChanges;
-    sel2.onchange = saveChanges;
+    if (sel1) sel1.onchange = saveChanges;
+    if (sel2) sel2.onchange = saveChanges;
 
     return el;
   }
@@ -564,14 +608,17 @@ G.MenuUI = (() => {
     return el;
   }
 
-  // ---------------- veto / banimento: ataques bloqueados ----------------
+  // ---------------- veto / banimento: ataques bloqueados (máximo 3) ----------------
   let banOpen = false;
   function banList() {
     const s = G.DB.save;
     s.pban = s.pban || {};
-    return s.pban[upgDex] || (s.pban[upgDex] = []);
+    const l = s.pban[upgDex] || (s.pban[upgDex] = []);
+    if (l.length > 3) l.splice(3);
+    return l;
   }
   function banPicker(max) {
+    const actualMax = Math.min(3, max);
     const mon = G.DEX_BY[upgDex];
     const start = G.startMoveOf(upgDex);
     const ids = G.Moves.poolFor(mon).filter(id => id !== start)
@@ -579,14 +626,14 @@ G.MenuUI = (() => {
     const list = banList();
     const el = document.createElement('div');
     el.className = 'panel ban-picker';
-    el.innerHTML = `<p class="sub" style="margin:0 0 8px">Toque nos ataques que você não quer que apareçam nas cartas (${list.length}/${max}). O ataque inicial não pode ser banido.</p>
+    el.innerHTML = `<p class="sub" style="margin:0 0 8px">Toque nos ataques que você não quer que apareçam nas cartas (${list.length}/${actualMax}). O ataque inicial não pode ser banido (máx. 3 vetos).</p>
       <div class="ban-moves">${ids.map(id => { const d = G.Moves.BY_ID[id]; const on = list.includes(id);
         return `<button class="chip ${on ? 'on ban' : ''}" data-id="${id}">${G.Icons.html('move:' + id, 16)} ${d.name}${on ? ' ' + G.Icons.html('ban', 14) : ''}</button>`; }).join('')}</div>`;
     el.querySelectorAll('[data-id]').forEach(b => {
       b.onclick = () => {
         const l = banList(), id = b.dataset.id, i = l.indexOf(id);
         if (i >= 0) l.splice(i, 1);
-        else if (l.length >= max) { G.UI.toast(`Você já baniu ${max} ataques: remova um primeiro.`); return; }
+        else if (l.length >= actualMax) { G.UI.toast(`Você já baniu ${actualMax} ataques: remova um primeiro.`); return; }
         else l.push(id);
         G.DB.commit();
         G.Audio.sfx('select');

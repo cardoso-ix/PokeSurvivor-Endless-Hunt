@@ -408,10 +408,10 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 ### 12.6. Atributos Base Oficiais da Pokémon Company
 - A Pokédex (`showDetail`) exibe os **6 Base Stats oficiais** da franquia para todos os 1.025 Pokémon (HP, ATK, DEF, SP. ATK, SP. DEF, SPEED e BST) extraídos diretamente dos padrões da Pokémon Company, além dos parâmetros de Crítico (+5% base) e Aceleração de Recarga (CDA).
 
-### 12.7. Seleção de Ataques Iniciais na Aba de Melhorias
-- Na tela de Melhorias (`scr-upgrades`), o novo painel **"🎯 ATAQUES INICIAIS DA PARTIDA"** permite ao treinador configurar com quais 1 ou 2 ataques o Pokémon iniciará o combate.
-- O 1º ataque é obrigatório (padrão nativo da espécie).
-- O 2º ataque é opcional (pode ser "Nenhum" ou qualquer outro ataque que o Pokémon aprende), salvando as preferências diretamente no perfil do Pokémon (`s.customStartMoves`).
+### 12.7. Seleção de Ataques Iniciais e Veto (Banimento) de Ataques
+- **1º Ataque Inicial (Principal):** Escolha livre entre qualquer golpe aprendido pela espécie do Pokémon (com fallback para o padrão nativo).
+- **2º Ataque Inicial (Opcional):** Inicia bloqueado por padrão (o jogador começa com 1 ataque). O segundo slot é desbloqueado permanentemente para o Pokémon mediante a compra por **🪙 50.000 moedas**, permitindo iniciar a partida com 2 ataques ativos simultâneos. Não possui níveis de ascensão.
+- **Sistema de Banir Ataques (Veto):** Permite banir até **3 ataques indesejados** da seleção de cartas ao subir de nível. Não possui Ascensão (+1 a +10), sendo travado rigorosamente no teto máximo de 3 ataques banidos por partida.
 
 ### 12.8. Otimização Gráfica e Desempenho 60 FPS
 - Canvas com aceleração de hardware por GPU (`transform: translateZ(0); will-change: transform; backface-visibility: hidden;`).

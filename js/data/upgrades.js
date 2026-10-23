@@ -12,10 +12,10 @@ G.Upgrades = (() => {
     { id: 'magnet', icon: 'magnet', name: 'Ímã',            unit: '+12% de raio de coleta de itens e EXP',         max: 6,  base: 50,  grow: 1.4 },
     { id: 'xp',     icon: 'book',  name: 'Sabedoria',       unit: '+5% de experiência obtida',                     max: 8,  base: 100, grow: 1.42 },
     { id: 'coins',  icon: 'coin',  name: 'Fortuna',         unit: '+8% de PokéMoedas recebidas',                   max: 8,  base: 120, grow: 1.45 },
-    { id: 'moves',  icon: 'cards', name: 'Repertório',      unit: 'Comece a partida com 2 ataques ativos',          max: 1, base: 1500, grow: 1 },
+    { id: 'moves',  icon: 'cards', name: '2º Ataque Inicial', unit: 'Desbloqueia a escolha do 2º ataque inicial para começar a partida', max: 1, base: 50000, grow: 1 },
     { id: 'crit',   icon: 'star',  name: 'Acerto Crítico',  unit: '+3% de chance de acerto crítico (dano x1,5)',   max: 10, base: 90, grow: 1.4 },
     { id: 'reroll', icon: 'up',    name: 'Trocar Cartas',   unit: '+1 troca de cartas ao subir de nível',          max: 5, base: 150, grow: 1.6 },
-    { id: 'ban',    icon: 'ban',   name: 'Banir',           unit: 'Bane 1 ataque da seleção: ele não voltará a aparecer nesta partida', max: 3, base: 300, grow: 1.9 }
+    { id: 'ban',    icon: 'ban',   name: 'Banir',           unit: 'Bane 1 ataque da seleção (máx. 3 ataques vetados na partida)', max: 3, base: 300, grow: 1.9 }
   ];
   const OVER_MAX = 10; // Até +10 de Ascensão além do nível base máximo
 
@@ -38,7 +38,9 @@ G.Upgrades = (() => {
   /** Nível total absoluto suportado para uma melhoria (base + 10). */
   function maxOf(id) {
     const u = BY[id];
-    return u ? u.max + OVER_MAX : 20;
+    if (!u) return 20;
+    if (id === 'ban' || id === 'moves') return u.max; // ban (máx 3) e moves (máx 1) não têm ascensão
+    return u.max + OVER_MAX;
   }
 
   /**
@@ -50,8 +52,10 @@ G.Upgrades = (() => {
    * +10 custa 100.000 moedas
    */
   function baseCost(id, lvl) {
+    if (id === 'moves') return 50000; // Desbloqueio fixo de 50.000 moedas
     const u = BY[id] || LIST[0];
-    if (lvl >= u.max) {
+    if (id === 'ban' && lvl >= u.max) return 0;
+    if (id !== 'ban' && id !== 'moves' && lvl >= u.max) {
       const overLvlNext = (lvl - u.max) + 1; // 1 a 10
       return getAscensionCost(overLvlNext);
     }
@@ -60,7 +64,7 @@ G.Upgrades = (() => {
 
   /**
    * Calcula o custo final de ouro escalonado pelo estágio evolutivo da espécie.
-   * Para níveis de Ascensão (+1 a +10), a regra de custo é fixa: (overLvlNext * 10.000).
+   * Para níveis de Ascensão (+1 a +10), a regra de custo segue ASCENSION_COSTS.
    */
   function getUpgradeCost(pokemonId, currentLevel, upgradeId = 'hp') {
     let mon = pokemonId;
@@ -73,8 +77,10 @@ G.Upgrades = (() => {
       mon = upgradeId;
     }
 
+    if (upgId === 'moves') return 50000; // Custo fixo de 50.000 moedas
     const u = BY[upgId] || LIST[0];
-    if (lvl >= u.max) {
+    if (upgId === 'ban' && lvl >= u.max) return 0;
+    if (upgId !== 'ban' && upgId !== 'moves' && lvl >= u.max) {
       const overLvlNext = (lvl - u.max) + 1;
       return getAscensionCost(overLvlNext);
     }
@@ -100,8 +106,10 @@ G.Upgrades = (() => {
    * Custo para comprar o próximo nível de um upgrade.
    */
   function cost(id, lvl, pokemonId = null) {
+    if (id === 'moves') return 50000;
     const u = BY[id] || LIST[0];
-    if (lvl >= u.max) {
+    if (id === 'ban' && lvl >= u.max) return 0;
+    if (id !== 'ban' && id !== 'moves' && lvl >= u.max) {
       const overLvlNext = (lvl - u.max) + 1;
       return getAscensionCost(overLvlNext);
     }
@@ -119,10 +127,11 @@ G.Upgrades = (() => {
     const getL = id => {
       const u = BY[id];
       if (!u) return { total: 0, baseLvl: 0, overLvl: 0 };
-      const maxTot = u.max + OVER_MAX;
+      const maxOver = (id === 'ban' || id === 'moves') ? 0 : OVER_MAX;
+      const maxTot = u.max + maxOver;
       const total = Math.max(0, Math.min(maxTot, Math.floor(+levels[id] || 0)));
       const baseLvl = Math.min(u.max, total);
-      const overLvl = Math.max(0, total - u.max); // 0 a 10
+      const overLvl = (id === 'ban' || id === 'moves') ? 0 : Math.max(0, total - u.max); // 0 a 10
       return { total, baseLvl, overLvl };
     };
 
@@ -181,15 +190,15 @@ G.Upgrades = (() => {
       magnetMul: 1 + magnetBonus,
       xpMul: 1 + xpBonus,
       coinMul: 1 + coinBonus,
-      startMoves: 1 + moves.baseLvl,
+      startMoves: moves.baseLvl >= 1 ? 2 : 1,
       crit: critBonus,
       rerolls: reroll.baseLvl + reroll.overLvl,
-      bans: ban.baseLvl + ban.overLvl,
+      bans: Math.min(3, ban.baseLvl),
       overLevels: {
         hp: hp.overLvl, atk: atk.overLvl, spd: spd.overLvl, cd: cd.overLvl,
         def: def.overLvl, regen: regen.overLvl, magnet: magnet.overLvl,
-        xp: xp.overLvl, coins: coins.overLvl, moves: moves.overLvl,
-        crit: crit.overLvl, reroll: reroll.overLvl, ban: ban.overLvl
+        xp: xp.overLvl, coins: coins.overLvl, moves: 0,
+        crit: crit.overLvl, reroll: reroll.overLvl, ban: 0
       }
     };
   }

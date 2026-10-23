@@ -161,20 +161,23 @@ G.Game = (() => {
     
     // Suporte aos Ataques Iniciais Customizados escolhidos pelo jogador na Pokédex/Melhorias:
     const customStarts = (save.customStartMoves && save.customStartMoves[mon.dex]) || [];
+    const hasSecondMove = (perks.startMoves >= 2);
     if (customStarts.length > 0) {
-      for (const mId of customStarts.slice(0, 2)) {
+      const allowedCount = hasSecondMove ? 2 : 1;
+      for (const mId of customStarts.slice(0, allowedCount)) {
         if (G.Moves.BY_ID[mId] && !pl.hasMove(mId)) pl.addMove(mId);
       }
     } else {
       pl.addMove(G.startMoveOf(mon.dex));
-      if (perks.startMoves >= 2) {
+      if (hasSecondMove) {
         const pool = G.Moves.poolFor(mon).filter(id => !pl.hasMove(id) && !pl.banned.has(id) && G.Moves.BY_ID[id].kind !== 'buff');
         if (pool.length) pl.addMove(G.U.pick(pool));
       }
     }
     pl.setActive(0);
-    // Mejora "Veto": movimientos que no quieres que te salgan.
-    pl.banned = new Set((save.pban && save.pban[mon.dex] || []).slice(0, perks.bans));
+    // Mejora "Veto": movimientos que no quieres que te salgan (travado rigorosamente no máximo de 3).
+    const maxBans = Math.min(3, perks.bans || 0);
+    pl.banned = new Set((save.pban && save.pban[mon.dex] || []).slice(0, maxBans));
 
     if (coop) {
       G.Coop.begin(coop, pl, coopApi);

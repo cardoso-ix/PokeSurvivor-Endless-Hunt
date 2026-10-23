@@ -255,6 +255,8 @@ O PokéSurvivor opera sob uma filosofia **Hardcore Roguelite** (desafiador, puni
 - **Poder Real de Prestígio:** Pokémons Shiny recebem **+25% Dano / +10% HP / +5% Velocidade**; Lendários recebem **+20% Dano / +15% HP / +5% Velocidade**; Shiny Lendários (Apex) recebem **+50% Dano / +25% HP / +10% Velocidade** com aura cósmica exclusiva.
 - **Captura Estratégica por Estágios:** Taxas base decrescentes (Estágio 1: 38%, Estágio 2: 28%, Estágio 3: 18%, Shiny: 10%, Lendário: 6%, Shiny Lendário: 2%) com teto rígido de 48% e altas recompensas de Gold Bounty.
 - **Ascensão Exponencial (+1 ao +10):** Custos que escalam de 15.000 até 2.000.000 de moedas nos 9 atributos globais.
+- **Ataques Iniciais Customizados:** O jogador inicia com 1 ataque selecionável por padrão. O **2º Ataque Inicial** pode ser desbloqueado para o Pokémon por **🪙 50.000 moedas**, permitindo iniciar a partida com 2 ataques ativos simultâneos.
+- **Veto de Ataques (Banir):** Permite banir até **3 ataques indesejados** da seleção ao subir de nível, travado sem Ascensão para preservar a integridade tática da partida.
 - **Economia Gacha Justa:** Cada Boss de mapa ou Guardião de Fenda derrotado dropa **100 a 150 Tickets**, financiando 1 giro completo da Roleta da Sorte (100 tickets por giro). As taxas de obtenção de Lendários e Shinies foram calibradas para raridade real de colecionador (0.40% Lendário, 0.50% Shiny Comum e 0.02% Shiny Lendário Apex).
 
 ---
