@@ -1,16 +1,75 @@
 /* ============ balanceConfig.js — Configuração Central Data-Driven ============
  * Centraliza TODAS as constantes de balanceamento do PokéSurvivor:
+ * - 4 Arquétipos Oficiais (Tank, Glass Cannon, AoE, Speed) com DPS balanceado
  * - Status de unidades, prestígio (Shiny/Lendário) e caps do jogador
- * - Ondas de inimigos, densidade, limites (CAP=64) e tiers
+ * - Ondas de inimigos, densidade, limites (CAP=64) e 3 Picos de Tensão (Minutos 5, 10 e 15)
  * - Escalonamento de chefes e hordas (marés)
- * - Curva de XP e marcos de nível (Sobrecarga Nível 20+)
- * - Economia: Drops, Captura, Loja de Upgrades e Ascensão (+1 ao +10)
+ * - Curva de XP calibrada para atingir o ápice da build (Níveis 26-28) entre Min 12-14
+ * - Economia calibrada para 25-30 partidas para maximizar árvore base (112k moedas)
  * ==============================================================================
  */
 
 const BalanceConfig = {
   // ---------------------------------------------------------
-  // 1. STATUS DE UNIDADES & JOGADOR (Player & Combat Base)
+  // 1. ARQUÉTIPOS OFICIAIS & COMBATE (Archetypes & Units)
+  // ---------------------------------------------------------
+  archetypes: {
+    Tank: {
+      name: 'Tank / Resistente',
+      description: 'Alta sustentação, armadura pesada e controle defensivo com ampla sobrevivência.',
+      hpMultiplier: 1.50,
+      armorBonus: 0.20,          // +20% de redução de dano base
+      dmgMultiplier: 0.95,
+      cdMultiplier: 1.05,
+      targetsHit: 10.0,          // Área de cobertura ao redor
+      critChance: 0.05,
+      critMultiplier: 1.5,
+      speedMultiplier: 0.95,
+      ccBonus: 0.10              // Efeito de contenção da horda
+    },
+    GlassCannon: {
+      name: 'Glass Cannon / Burst',
+      description: 'Dano explosivo e alto índice de acertos críticos letais com alta vulnerabilidade.',
+      hpMultiplier: 0.90,
+      armorBonus: 0.05,          // Pouca defesa
+      dmgMultiplier: 1.30,
+      cdMultiplier: 0.88,
+      targetsHit: 5.6,           // Foco afunilado de alto impacto
+      critChance: 0.16,
+      critMultiplier: 1.75,
+      speedMultiplier: 1.15,
+      ccBonus: 0.05
+    },
+    AoE: {
+      name: 'AoE / Crowd Control',
+      description: 'Domínio total de hordas com expansão massiva de área e acertos em múltiplos alvos.',
+      hpMultiplier: 1.10,
+      armorBonus: 0.10,
+      dmgMultiplier: 0.85,
+      cdMultiplier: 1.00,
+      targetsHit: 10.6,          // Ampla dispersão simultânea
+      critChance: 0.06,
+      critMultiplier: 1.5,
+      speedMultiplier: 1.00,
+      ccBonus: 0.25              // Alto controle de grupo, desacelera hordas
+    },
+    Speed: {
+      name: 'Speed / Single Target',
+      description: 'Altíssima mobilidade e cadência extrema de disparos focados em alvos prioritários.',
+      hpMultiplier: 0.95,
+      armorBonus: 0.05,
+      dmgMultiplier: 1.00,
+      cdMultiplier: 0.60,        // Cadência de tiro muito rápida
+      targetsHit: 5.1,           // Foco prioritário
+      critChance: 0.14,
+      critMultiplier: 1.65,
+      speedMultiplier: 1.25,
+      ccBonus: 0.08
+    }
+  },
+
+  // ---------------------------------------------------------
+  // 2. STATUS BASE DO JOGADOR & CAPS (Player Defaults)
   // ---------------------------------------------------------
   player: {
     defaults: {
@@ -74,7 +133,7 @@ const BalanceConfig = {
   },
 
   // ---------------------------------------------------------
-  // 2. CURVA DE EXPERIÊNCIA & PROGRESSÃO (Level Up)
+  // 3. CURVA DE EXPERIÊNCIA & PROGRESSÃO (Level Up)
   // ---------------------------------------------------------
   xp: {
     // Fórmula oficial: Math.floor((8 + lvl * 6 + Math.pow(lvl, 1.75) * 1.6) * 4)
@@ -85,7 +144,7 @@ const BalanceConfig = {
   },
 
   // ---------------------------------------------------------
-  // 3. SPAWNER & ONDAS DE INIMIGOS
+  // 4. SPAWNER, ONDAS DE INIMIGOS & 3 PICOS DE TENSÃO
   // ---------------------------------------------------------
   spawner: {
     cap: 64,               // Teto de inimigos simultâneos na tela
@@ -97,31 +156,48 @@ const BalanceConfig = {
     },
     density: 0.24,
     dmgK: 2.4,
-    xpK: 3.4,
+    xpK: 1.25,             // Fator de escala calibrado de XP (Nível 27 no Min 14)
     shinyRate: 1 / 4096,
     surgeIntervalMin: 38,
     surgeIntervalMax: 56,
+    // Modificador dos 3 Picos de Tensão (Minuto 5, Minuto 10 e Minuto 15/Boss)
+    tensionMultiplier: function(t) {
+      // Pico 1 (Minuto 5 / 270s a 330s): +35% de pressão para testar Estágio 2
+      if (t >= 270 && t <= 330) return 1.35;
+      // Pico 2 (Minuto 10 / 570s a 630s): +50% de pressão para testar Estágio 3 e AoE
+      if (t >= 570 && t <= 630) return 1.50;
+      // Pico 3 (Minuto 15 / 870s a 900s): +75% de pressão no Boss Final
+      if (t >= 870 && t <= 900) return 1.75;
+      return 1.0;
+    },
     // Taxa de nascimento de monstros por segundo em função do tempo t (em segundos)
     rate: function(t, density = 0.24) {
-      return (3.2 + t * 0.025 + Math.pow(t / 60, 1.45) * 0.45) * density;
+      const base = (3.2 + t * 0.025 + Math.pow(t / 60, 1.45) * 0.45) * density;
+      const tension = (typeof this.tensionMultiplier === 'function') ? this.tensionMultiplier(t) : 1.0;
+      return base * tension;
     },
     // Fator de resistência composto dos monstros normais
     hpK: function(t) {
-      return 1.8 + Math.min(1.4, t / 300);
+      const base = 1.8 + Math.min(1.4, t / 300);
+      let tension = 1.0;
+      if (t >= 270 && t <= 330) tension = 1.15;
+      else if (t >= 570 && t <= 630) tension = 1.25;
+      else if (t >= 870 && t <= 900) tension = 1.35;
+      return base * tension;
     }
   },
 
   // ---------------------------------------------------------
-  // 4. TIERS DE INIMIGOS SELVAGENS & CHEFES (Enemies Data)
+  // 5. TIERS DE INIMIGOS SELVAGENS & CHEFES (Enemies Data)
   // ---------------------------------------------------------
   enemies: {
     tiers: [
-      { from: 0,   bst: [180, 330], hp: 17,  spd: 56, dmg: 6,   xp: 3.5, cast: 7 },
-      { from: 70,  bst: [300, 405], hp: 32,  spd: 62, dmg: 8.5, xp: 5,   cast: 7 },
-      { from: 160, bst: [385, 465], hp: 52,  spd: 60, dmg: 11,  xp: 8,   cast: 7 },
-      { from: 260, bst: [445, 515], hp: 88,  spd: 70, dmg: 14,  xp: 13,  cast: 7 },
-      { from: 380, bst: [495, 560], hp: 115, spd: 66, dmg: 17,  xp: 20,  cast: 7 },
-      { from: 500, bst: [530, 620], hp: 170, spd: 72, dmg: 21,  xp: 28,  cast: 7 }
+      { from: 0,   bst: [180, 330], hp: 17,  spd: 56, dmg: 6,   xp: 3.6, cast: 7 },
+      { from: 70,  bst: [300, 405], hp: 32,  spd: 62, dmg: 8.5, xp: 4.4, cast: 7 },
+      { from: 160, bst: [385, 465], hp: 52,  spd: 60, dmg: 11,  xp: 5.2, cast: 7 },
+      { from: 260, bst: [445, 515], hp: 88,  spd: 70, dmg: 14,  xp: 6.0, cast: 7 },
+      { from: 380, bst: [495, 560], hp: 115, spd: 66, dmg: 17,  xp: 6.8, cast: 7 },
+      { from: 500, bst: [530, 620], hp: 170, spd: 72, dmg: 21,  xp: 7.6, cast: 7 }
     ],
     // Escala progressiva de atributos com o tempo t (segundos)
     scale: function(t) {
@@ -141,11 +217,11 @@ const BalanceConfig = {
     },
     // Chefes de marco nos minutos 3, 6, 9, 12, 15
     bossSlots: [
-      { at: 180, hp: 1400,  dmg: 34, xp: 220,  bst: [490, 545] },
-      { at: 360, hp: 3200,  dmg: 42, xp: 420,  bst: [520, 580] },
-      { at: 540, hp: 5600,  dmg: 48, xp: 680,  bst: [540, 600] },
-      { at: 720, hp: 9000,  dmg: 56, xp: 1000, bst: [580, 700] },
-      { at: 900, hp: 16000, dmg: 68, xp: 1800, bst: [600, 700] }
+      { at: 180, hp: 1400,  dmg: 34, xp: 100, bst: [490, 545] },
+      { at: 360, hp: 3200,  dmg: 42, xp: 200, bst: [520, 580] },
+      { at: 540, hp: 5600,  dmg: 48, xp: 350, bst: [540, 600] },
+      { at: 720, hp: 9000,  dmg: 56, xp: 500, bst: [580, 700] },
+      { at: 900, hp: 16000, dmg: 68, xp: 900, bst: [600, 700] }
     ],
     // Carga de energia Mega concedida ao derrotar inimigos
     megaEnergyGains: {
@@ -158,10 +234,11 @@ const BalanceConfig = {
   },
 
   // ---------------------------------------------------------
-  // 5. ECONOMIA DE MOEDAS, LOJA & ASCENSÃO (Upgrades & Ascension)
+  // 6. ECONOMIA DE MOEDAS, LOJA & ASCENSÃO (Upgrades & Ascension)
   // ---------------------------------------------------------
   upgrades: {
-    // 13 Melhorias Permanentes da Loja
+    // 13 Melhorias Permanentes da Loja (progressão geométrica)
+    // Custo total da árvore base = ~112.000 moedas
     list: [
       { id: 'hp',     icon: 'heart',  name: 'Vitalidade',        unit: '+8 PV Máximo',                                  max: 10, base: 60,  grow: 1.35 },
       { id: 'atk',    icon: 'fist',   name: 'Força',             unit: '+4% de dano',                                   max: 10, base: 80,  grow: 1.38 },
@@ -209,7 +286,7 @@ const BalanceConfig = {
   },
 
   // ---------------------------------------------------------
-  // 6. RECOMPENSAS DE RECURSOS, CAPTURA & GACHA
+  // 7. RECOMPENSAS DE RECURSOS, CAPTURA & GACHA
   // ---------------------------------------------------------
   rewards: {
     // Recompensa em moedas e tickets na captura de Pokémon
@@ -220,7 +297,7 @@ const BalanceConfig = {
       legendary: { coins: 1000, tickets: 0 },
       shiny: { coins: 2500, tickets: 5000 },
       shinyLegendary: { coins: 10000, tickets: 5000 },
-      mapWildShinyKill: { tickets: 5000 } // Ao abater Shiny selvagem no mapa
+      mapWildShinyKill: { tickets: 5000 } // Ao abater Shiny selvagem no mapa (não capturável)
     },
     // Fendas Dimensionais (Rifts)
     rift: {

@@ -11,8 +11,13 @@ console.log('🧪 Iniciando Teste de Arquitetura Data-Driven (BalanceConfig)...\
 const BalanceConfig = require('../js/config/balanceConfig.js');
 const BalanceConfigSrc = require('../src/config/balanceConfig.js');
 
+const fs = require('fs');
 assert(BalanceConfig, 'BalanceConfig deve ser carregado via js/config/balanceConfig.js');
-assert.strictEqual(BalanceConfig, BalanceConfigSrc, 'src/config/balanceConfig.js deve ser idêntico a js/config/balanceConfig.js');
+assert.strictEqual(
+  fs.readFileSync(path.resolve(__dirname, '../js/config/balanceConfig.js'), 'utf8'),
+  fs.readFileSync(path.resolve(__dirname, '../src/config/balanceConfig.js'), 'utf8'),
+  'src/config/balanceConfig.js deve ser idêntico a js/config/balanceConfig.js'
+);
 console.log('✅ BalanceConfig carregado e validado em ambos os caminhos de importação.');
 
 // 2. Valida Seções Vitais do BalanceConfig
