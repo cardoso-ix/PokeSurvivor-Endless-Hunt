@@ -190,14 +190,14 @@ G.Rift = (() => {
    *    - Até Lv. 20: Apenas Pokémon Estágio 1 (Base / Baby / Inicial).
    *    - Lv. 21 até 41: Apenas Pokémon Estágio 2 (Primeira evolução / intermediário).
    *    - Lv. 42+: Apenas Pokémon Estágio 3 (Segunda evolução / forma final).
-   * 2. Rolagem de Raridade de 1 a 100:
-   *    - roll <= 75 (75%): Pokémon Comum/Regional Normal.
-   *    - roll > 75 && roll <= 90 (15%): Pokémon Comum/Regional Shiny.
-   *    - roll > 90 && roll <= 99 (9%): Pokémon Lendário Normal (Se rifts < 30, rebaixa para Comum Normal).
-   *    - roll > 99 (1%): Pokémon Lendário Shiny (Se rifts < 30, rebaixa para Comum Shiny).
-   * 3. Pity dos 500 Rifts: Múltiplo de 500 (total > 0 && total % 500 === 0) garante variante Shiny.
-   * 4. Deduplicação Pokedex: Prioriza espécies ainda NÃO capturadas no estágio alvo.
-   */
+    * 2. Rolagem de Raridade de 1 a 100 (taxas calibradas):
+    *    - roll <= 94.0 (94.0%): Pokémon Comum/Regional Normal.
+    *    - roll > 94.0 && roll <= 97.8 (3.8%): Pokémon Lendário Normal (Se rifts < 30, rebaixa para Comum Normal).
+    *    - roll > 97.8 && roll <= 99.8 (2.0%): Pokémon Comum/Regional Shiny.
+    *    - roll > 99.8 (0.2%): Pokémon Lendário Shiny (Se rifts < 30, rebaixa para Comum Shiny).
+    * 3. Pity dos 500 Rifts: Múltiplo de 500 (total > 0 && total % 500 === 0) garante variante Shiny.
+    * 4. Deduplicação Pokedex: Prioriza espécies ainda NÃO capturadas no estágio alvo.
+    */
   function selectRiftGuardian(forceType, forceLevel) {
     if (typeof forceType === 'number' && forceLevel === undefined) {
       forceLevel = forceType;
@@ -225,9 +225,15 @@ G.Rift = (() => {
     }
 
     let targetStage = 1;
-    if (playerLevel >= 42) {
+    const stageCfg = (() => {
+      const c = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+      return (c && c.rewards && c.rewards.rift && c.rewards.rift.stageByLevel) || {};
+    })();
+    const stage3Min = stageCfg.stage3MinLevel != null ? stageCfg.stage3MinLevel : 42;
+    const stage2Min = stageCfg.stage2MaxLevel != null ? stageCfg.stage2MaxLevel + 1 : 21;
+    if (playerLevel >= stage3Min) {
       targetStage = 3;
-    } else if (playerLevel >= 21) {
+    } else if (playerLevel >= stage2Min) {
       targetStage = 2;
     } else {
       targetStage = 1;
@@ -276,23 +282,31 @@ G.Rift = (() => {
       legendPool = basePool.filter(isRegionalLeg);
     }
 
-    // Rolagem Exata de Raridade (1 a 100)
+    // Rolagem Exata de Raridade (1 a 100) — faixas vêm de BalanceConfig.rewards.rift.rarity
     const roll = Math.random() * 100;
     let targetTier = 'common_normal';
 
+    const riftCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+    const rarityCfg = (riftCfg && riftCfg.rewards && riftCfg.rewards.rift && riftCfg.rewards.rift.rarity) || {};
+    const commonNormalMax = rarityCfg.commonNormalMax != null ? rarityCfg.commonNormalMax : 94.0;
+    const legendNormalMax = rarityCfg.legendNormalMax != null ? rarityCfg.legendNormalMax : 97.8;
+    const commonShinyMax = rarityCfg.commonShinyMax != null ? rarityCfg.commonShinyMax : 99.8;
+    const legendaryUnlock = rarityCfg.legendaryUnlockRifts != null ? rarityCfg.legendaryUnlockRifts : 30;
+    const shinyPity = rarityCfg.shinyPityRifts != null ? rarityCfg.shinyPityRifts : 500;
+
     // Taxas calibradas: Comum Normal (94.0%), Lendário Normal (3.8%), Comum Shiny (2.0%), Lendário Shiny (0.2%)
-    if (roll <= 94.0) {
+    if (roll <= commonNormalMax) {
       targetTier = 'common_normal';
-    } else if (roll <= 97.8) {
-      targetTier = (riftsCleared < 30) ? 'common_normal' : 'legend_normal';
-    } else if (roll <= 99.8) {
+    } else if (roll <= legendNormalMax) {
+      targetTier = (riftsCleared < legendaryUnlock) ? 'common_normal' : 'legend_normal';
+    } else if (roll <= commonShinyMax) {
       targetTier = 'common_shiny';
     } else {
-      targetTier = (riftsCleared < 30) ? 'common_shiny' : 'legend_shiny';
+      targetTier = (riftsCleared < legendaryUnlock) ? 'common_shiny' : 'legend_shiny';
     }
 
     // Pity de 500 Rifts garantido (marco de shiny a cada 500 se rifts > 0)
-    if (riftsCleared > 0 && riftsCleared % 500 === 0) {
+    if (riftsCleared > 0 && riftsCleared % shinyPity === 0) {
       if (targetTier === 'common_normal') targetTier = 'common_shiny';
       else if (targetTier === 'legend_normal') targetTier = 'legend_shiny';
     }
@@ -396,7 +410,10 @@ G.Rift = (() => {
         isShiny = !!forceShiny;
       } else {
         const totalClears = (typeof G === 'object' && G.DB && G.DB.getTotalRiftsCleared) ? G.DB.getTotalRiftsCleared() : 0;
-        isShiny = (totalClears > 0 && totalClears % 500 === 0) || Math.random() < 0.001;
+        const cfg2 = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+        const rc2 = (cfg2 && cfg2.rewards && cfg2.rewards.rift && cfg2.rewards.rift.rarity) || {};
+        const pity2 = rc2.shinyPityRifts != null ? rc2.shinyPityRifts : 500;
+        isShiny = (totalClears > 0 && totalClears % pity2 === 0) || Math.random() < 0.001;
       }
       detectedStage = mon ? getMonStage(mon.dex || mon.name) : 1;
     } else {

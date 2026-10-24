@@ -5,20 +5,24 @@
  * - Sucesso: Trava ao centro, emite faíscas estelares, toca SFX clássico de clique e sobe [+ MON CAPTURADO!].
  * - Falha: A bola se abre, emite nuvem de fumaça cinza, SFX de quebra e texto [ESCAPOU!].
  * - O combate NÃO é pausado e o jogador continua se movendo e atacando livremente.
- * - Tiers Dinâmicos: Poké Ball (+0%), Great Ball (+5%), Ultra Ball (+10%), Ultimate Ball (+15%).
- * - Evento Raro Gold Ball (Nv. 41+): 10% de chance de proc -> 100% Garantido + 1.000 Ouro.
- * - Taxas Base: Normal (50%), Lendário (20%), Shiny (15% prioridade máxima).
+ * - Tiers Dinâmicos: Poké Ball (+0%), Great Ball (+3%), Ultra Ball (+6%), Ultimate Ball (+10%).
+ * - Evento Raro Gold Ball (Nv 41+): 10% de chance de proc -> bônus de chance (+14% Normais,
+ *   +8% Shinies/Lendários, +4% Shiny Lendário) + 1.000 Ouro. NÃO garante a captura.
+ * - Taxas Base (vêm de BalanceConfig.rewards.captureRates): Shiny Lendário 2% · Lendário 6%
+ *   · Shiny Comum 10% · Normal Estágio 3 18% · Estágio 2 28% · Estágio 1 38%.
+ *   Cap absoluto de 48% (48% comuns, 22% Shiny, 16% Lendário, 8% Shiny Lendário).
  */
 
 const CaptureSystem = (() => {
-  // Configuração Rebalanceada da Gold Ball (Nv 41+, 10% chance de proc, bônus dinâmico e +1000 ouro)
+  // Configuração da Gold Ball (Nv 41+, 10% de chance de proc, bônus dinâmico e +1000 ouro)
+  // A Gold Ball NÃO garante a captura: ela concede um bônus de chance (menor para
+  // alvos mais raros, respeitando o cap de 48%) e uma recompensa em ouro.
   const GOLD_BALL_CONFIG = {
     id: 'gold_ball',
     name: 'Gold Ball',
     chance: 0.10,
-    isGuaranteed: false, // Removido 100% garantido para preservar mérito
+    isGuaranteed: false,   // A garantia foi removida para preservar o mérito da captura
     isGold: true,
-    catchRate: 0.49,
     bonus: 0.14,      // +14% para Normais
     bonusRare: 0.08,  // +8% para Shinies / Lendários
     bonusApex: 0.04,  // +4% para Shiny Lendário

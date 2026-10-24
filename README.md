@@ -86,17 +86,22 @@ A mecânica de captura foi reformulada para ocorrer diretamente no chão do Canv
   3. *Sucesso:* A trava central se fixa, emite faíscas estelares douradas, toca o som clássico de clique e sobe o texto flutuante verde: `✨ + [NOME] CAPTURADO COM SUCESSO! ✨`. A espécie é registrada na Pokédex e desbloqueada como jogável.
   4. *Falha:* A Pokébola se abre, emite nuvem de fumaça cinza expansiva e sobe o texto: `💨 O POKÉMON ESCAPOU!`.
 - **Combate Contínuo:** O jogador continua se movendo, atirando e recolhendo gemas livremente enquanto a Pokébola balança no solo.
-- **Balanceamento Rigoroso de Raridade de Spawn:**
-  - `roll <= 75%` ➔ Pokémon Comum/Regional Normal.
-  - `75% < roll <= 90%` ➔ Pokémon Comum/Regional **Shiny** (15% de chance).
-  - `90% < roll <= 99%` ➔ Pokémon **Lendário Normal** (9% de chance; requer 30+ Rifts concluídos).
-  - `roll > 99%` ➔ Pokémon **Lendário Shiny** (1% de chance; requer 30+ Rifts concluídos).
+- **Balanceamento Rigoroso de Raridade de Spawn (Rift):**
+  - `roll <= 94.0%` ➔ Pokémon Comum/Regional Normal.
+  - `94.0% < roll <= 97.8%` ➔ Pokémon **Lendário Normal** (3.8% de chance; requer 30+ Rifts concluídos, senão rebaixa para Comum Normal).
+  - `97.8% < roll <= 99.8%` ➔ Pokémon Comum/Regional **Shiny** (2.0% de chance).
+  - `roll > 99.8%` ➔ Pokémon **Lendário Shiny** (0.2% de chance; requer 30+ Rifts concluídos, senão rebaixa para Comum Shiny).
+  - **Pity:** a cada 500 Rifts concluídos, o próximo_guardião é garantidamente Shiny.
 - **Tiers Dinâmicos de Pokébola:**
-  - Nv. 1 a 10: **Poké Ball** (+0% bônus | Taxa Base: 50% Normal, 20% Lendário, 15% Shiny)
-  - Nv. 11 a 20: **Great Ball** (+5% bônus)
-  - Nv. 21 a 30: **Ultra Ball** (+10% bônus)
-  - Nv. 31+: **Ultimate Ball** (+15% bônus)
-  - Nv. 41+ (Evento Raro): **Gold Ball** (10% de chance de substituição, **100% de captura garantida** + 1.000 PokéMoedas de bônus).
+  - Nv. 1 a 10: **Poké Ball** (+0% bônus)
+  - Nv. 11 a 20: **Great Ball** (+3% bônus)
+  - Nv. 21 a 30: **Ultra Ball** (+6% bônus)
+  - Nv. 31+: **Ultimate Ball** (+10% bônus)
+  - Nv. 41+ (Evento Raro): **Gold Ball** (10% de chance de substituição, **+14% de chance** para Normais, +8% para Shinies/Lendários e +4% para Shiny Lendário, **+1.000 PokéMoedas**). A Gold Ball **não** garante a captura: o bônus respeita o teto rígido de 48%.
+- **Taxas Base de Captura (por estágio evolutivo e raridade):**
+  - Normal: Estágio 1 **38%** · Estágio 2 **28%** · Estágio 3 **18%**
+  - Shiny Comum **10%** · Lendário **6%** · Shiny Lendário **2%**
+  - **Teto rígido de 48%** em qualquer combinação (48% comuns, 22% Shiny, 16% Lendário, 8% Shiny Lendário).
 
 ---
 

@@ -314,7 +314,22 @@ const BalanceConfig = {
       guardianTicketsMin: 100,
       guardianTicketsMax: 150,
       championCoins: 5000,
-      championXp: 5000
+      championXp: 5000,
+      // Rolagem de raridade do Guardião (1 a 100). Faixas cumulativas.
+      // 94.0% Comum Normal · 3.8% Lendário Normal · 2.0% Comum Shiny · 0.2% Lendário Shiny
+      rarity: {
+        commonNormalMax: 94.0,
+        legendNormalMax: 97.8,
+        commonShinyMax: 99.8,
+        legendaryUnlockRifts: 30,
+        shinyPityRifts: 500
+      },
+      // Níveis do jogador que definem o estágio do Guardião do Rift.
+      stageByLevel: {
+        stage1MaxLevel: 20,
+        stage2MaxLevel: 41,
+        stage3MinLevel: 42
+      }
     },
     // Taxas Base de Captura
     captureRates: {
