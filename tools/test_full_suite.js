@@ -48,6 +48,7 @@ global.localStorage = {
 require('../js/data/pokedex.js');
 require('../js/data/evolutions.js');
 require('../js/data/mega_ultimates.js');
+require('../js/config/balanceConfig.js');
 require('../js/systems/ultimate_vfx.js');
 require('../js/systems/mega.js');
 require('../js/systems/capture.js');
@@ -98,7 +99,11 @@ test('Gold Ball ativada no Nv 41+ sob condição de sorteio', () => {
   const resGold = resolveBall(45);
   assert(resGold.id === 'goldball' || resGold.id === 'gold_ball');
   assert.strictEqual(resGold.isGold, true);
-  assert.strictEqual(resGold.catchRate, 1.0); // 100% de taxa!
+  // A Gold Ball NÃO garante captura: concede bônus de chance (config).
+  const cr = global.BalanceConfig.rewards.captureRates;
+  assert.strictEqual(resGold.bonus, 0.14, 'Gold Ball concede +14% de chance para Normais');
+  assert.strictEqual(resGold.isGuaranteed, false, 'Gold Ball não garante a captura');
+  assert(resGold.bonus > 0 && resGold.bonus < cr.maxCap, 'O bônus da Gold Ball respeita o teto de cap');
 
   // Nível 30 não deve gerar Gold Ball mesmo com random baixo
   const resLow = resolveBall(30);
@@ -106,11 +111,27 @@ test('Gold Ball ativada no Nv 41+ sob condição de sorteio', () => {
   Math.random = origRandom;
 });
 
-test('Taxas Base de Captura (Básico 50%, Lendário 20%, Shiny 15%)', () => {
+test('Taxas Base de Captura derivam de BalanceConfig (fonte única de verdade)', () => {
   const getRate = global.getBaseCatchRate;
-  assert.strictEqual(getRate(1, false), 0.50); // Básico normal (Bulbasaur)
-  assert.strictEqual(getRate(150, false), 0.20); // Lendário (Mewtwo)
-  assert.strictEqual(getRate(1, true), 0.15); // Shiny
+  const cr = global.BalanceConfig.rewards.captureRates;
+
+  // Estágio 1 normal (Bulbasaur)
+  assert.strictEqual(getRate(1, false), cr.stage1);
+  // Lendário (Mewtwo)
+  assert.strictEqual(getRate(150, false), cr.legendary);
+  // Shiny comum
+  assert.strictEqual(getRate(1, true), cr.shinyCommon);
+  // Shiny lendário tem prioridade máxima
+  assert.strictEqual(getRate(150, true), cr.shinyLegendary);
+
+  // Estágios evolutivos
+  assert.strictEqual(getRate(1, false, false, 2), cr.stage2);
+  assert.strictEqual(getRate(1, false, false, 3), cr.stage3);
+
+  // Nenhuma taxa base pode passar do teto rígido
+  for (const [name, rate] of Object.entries({ stage1: cr.stage1, stage2: cr.stage2, stage3: cr.stage3, legendary: cr.legendary, shinyCommon: cr.shinyCommon, shinyLegendary: cr.shinyLegendary })) {
+    assert(rate <= cr.maxCap, `Taxa base ${name} (${rate}) não pode exceder o cap de ${cr.maxCap}`);
+  }
 });
 
 // ---------------------------------------------------------------------------

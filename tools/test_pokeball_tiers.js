@@ -1,10 +1,13 @@
 /**
  * Testes Unitários e de Integração: Sistema Dinâmico de Pokébolas por Nível da Run
- * Valida a tabela POKEBALL_TIERS, a função getBallForPlayerLevel, o cálculo da taxa final
- * e a saída dos comandos debugTriggerCapture nos 4 patamares de nível.
+ * Valida a tabela POKEBALL_TIERS, a função getBallForPlayerLevel, o cálculo da taxa
+ * final e a resolução da bola em cada patamar de nível.
+ *
+ * As expectativas derivam de POKEBALL_TIERS (a fonte real) e de
+ * BalanceConfig.rewards.captureRates — o teste não repete literais, para não
+ * poder divergir do balanceamento.
  */
 
-// Simula ambiente de navegador mínimo para carregar capture.js
 global.window = {};
 global.G = {
   DEX_BY: {
@@ -49,8 +52,10 @@ global.document = {
   getElementById: () => null
 };
 
-// Carrega o módulo de captura
+const BalanceConfig = require('../js/config/balanceConfig.js');
 const CaptureSystem = require('../js/systems/capture.js');
+const CR = BalanceConfig.rewards.captureRates;
+const TIERS = CaptureSystem.POKEBALL_TIERS;
 
 let passedTests = 0;
 let totalTests = 0;
@@ -67,65 +72,73 @@ function assert(condition, message) {
 }
 
 console.log('--- TESTE 1: RESOLUÇÃO DE POKÉBOLAS POR FAIXA DE NÍVEL ---');
+// Cada patamar é derivado da própria tabela POKEBALL_TIERS.
 const testsLevel = [
-  { level: 1, expectedId: 'pokeball', expectedName: 'Poké Ball', bonus: 0.00 },
-  { level: 5, expectedId: 'pokeball', expectedName: 'Poké Ball', bonus: 0.00 },
-  { level: 10, expectedId: 'pokeball', expectedName: 'Poké Ball', bonus: 0.00 },
-  { level: 11, expectedId: 'greatball', expectedName: 'Great Ball', bonus: 0.05 },
-  { level: 15, expectedId: 'greatball', expectedName: 'Great Ball', bonus: 0.05 },
-  { level: 20, expectedId: 'greatball', expectedName: 'Great Ball', bonus: 0.05 },
-  { level: 21, expectedId: 'ultraball', expectedName: 'Ultra Ball', bonus: 0.10 },
-  { level: 25, expectedId: 'ultraball', expectedName: 'Ultra Ball', bonus: 0.10 },
-  { level: 30, expectedId: 'ultraball', expectedName: 'Ultra Ball', bonus: 0.10 },
-  { level: 31, expectedId: 'ultimateball', expectedName: 'Ultimate Ball', bonus: 0.15 },
-  { level: 40, expectedId: 'ultimateball', expectedName: 'Ultimate Ball', bonus: 0.15 },
-  { level: 100, expectedId: 'ultimateball', expectedName: 'Ultimate Ball', bonus: 0.15 }
+  { level: 1, tier: TIERS.POKEBALL },
+  { level: 5, tier: TIERS.POKEBALL },
+  { level: 10, tier: TIERS.POKEBALL },
+  { level: 11, tier: TIERS.GREATBALL },
+  { level: 15, tier: TIERS.GREATBALL },
+  { level: 20, tier: TIERS.GREATBALL },
+  { level: 21, tier: TIERS.ULTRABALL },
+  { level: 25, tier: TIERS.ULTRABALL },
+  { level: 30, tier: TIERS.ULTRABALL },
+  { level: 31, tier: TIERS.ULTIMATEBALL },
+  { level: 40, tier: TIERS.ULTIMATEBALL },
+  { level: 100, tier: TIERS.ULTIMATEBALL }
 ];
 
 for (const t of testsLevel) {
+  // O sorteio da Gold Ball (10% a partir do Nv 41) é aleatório: fixamos o RNG
+  // para que o teste seja determinístico e exercite o tier não-dourado.
+  const origRandom = Math.random;
+  Math.random = () => 0.99;
   const ball = CaptureSystem.getBallForPlayerLevel(t.level);
-  assert(ball.id === t.expectedId, `Nível ${t.level} -> ${ball.name} (${ball.label}) [ID: ${ball.id}]`);
-  assert(ball.bonus === t.bonus, `Nível ${t.level} -> Bônus exato: +${Math.round(ball.bonus * 100)}%`);
+  Math.random = origRandom;
+  assert(ball.id === t.tier.id, `Nível ${t.level} -> ${t.tier.name} (${ball.label}) [ID: ${ball.id}]`);
+  assert(ball.bonus === t.tier.bonus, `Nível ${t.level} -> Bônus exato: +${Math.round(ball.bonus * 100)}%`);
+  assert(ball.name === t.tier.name, `Nível ${t.level} -> Nome: ${ball.name}`);
+  // O label exibido ao jogador precisa refletir o bônus real do tier
+  assert(ball.label.includes(String(Math.round(t.tier.bonus * 100))),
+    `Nível ${t.level} -> Label anuncia o bônus real: ${ball.label}`);
 }
+
+// Faixas min/max declaradas na tabela batem com a resolução
+assert(CaptureSystem.getBallForPlayerLevel(TIERS.POKEBALL.minLevel).id === TIERS.POKEBALL.id,
+  'minLevel da Poké Ball resolve para a própria Poké Ball');
+assert(CaptureSystem.getBallForPlayerLevel(TIERS.GREATBALL.minLevel).id === TIERS.GREATBALL.id,
+  'minLevel da Great Ball resolve para a própria Great Ball');
+assert(CaptureSystem.getBallForPlayerLevel(TIERS.ULTRABALL.minLevel).id === TIERS.ULTRABALL.id,
+  'minLevel da Ultra Ball resolve para a própria Ultra Ball');
+assert(CaptureSystem.getBallForPlayerLevel(TIERS.ULTIMATEBALL.minLevel).id === TIERS.ULTIMATEBALL.id,
+  'minLevel da Ultimate Ball resolve para a própria Ultimate Ball');
 
 console.log('\n--- TESTE 2: CÁLCULO DA TAXA FINAL COM BÔNUS DA BOLA ---');
 const monCharmander = G.DEX_BY[4];
-const baseRate = CaptureSystem.getCaptureRate(monCharmander, false); // 0.50 para básico
-assert(baseRate === 0.50, `Taxa base de Charmander é 50% (Obtido: ${baseRate * 100}%)`);
+const baseRate = CaptureSystem.getBaseCatchRate(monCharmander.name, false, false, 1);
+assert(baseRate === CR.stage1, `Taxa base de Charmander (Estágio 1) é ${CR.stage1 * 100}% (Obtido: ${baseRate * 100}%)`);
 
-// Inicia captura simulando cada nível e checa a taxa calculada
-CaptureSystem.startCaptureSequence({ mon: monCharmander, playerLevel: 5 });
-assert(CaptureSystem.activeBall.id === 'pokeball', 'Nível 5 ativa Poké Ball');
+// A bola resolvida em cada patamar tem a taxa final = base + bônus, dentro do cap
+const tierChecks = [
+  { level: 5, tier: TIERS.POKEBALL },
+  { level: 15, tier: TIERS.GREATBALL },
+  { level: 25, tier: TIERS.ULTRABALL },
+  { level: 40, tier: TIERS.ULTIMATEBALL }
+];
+for (const c of tierChecks) {
+  const ball = CaptureSystem.startCaptureSequence({ mon: monCharmander, level: c.level, stage: 1 });
+  assert(ball.ballTier.id === c.tier.id, `Nível ${c.level} ativa ${c.tier.name}`);
+  const expectedChance = Math.min(CR.maxCap, CR.stage1 + c.tier.bonus);
+  assert(ball.finalChance === expectedChance,
+    `Nível ${c.level} [${c.tier.name}]: taxa final ${(ball.finalChance * 100).toFixed(1)}% (esperado ${(expectedChance * 100).toFixed(1)}%)`);
+  assert(ball.finalChance <= CR.maxCap, `Nível ${c.level}: taxa final respeita o teto de ${CR.maxCap * 100}%`);
+}
 
-CaptureSystem.startCaptureSequence({ mon: monCharmander, playerLevel: 15 });
-assert(CaptureSystem.activeBall.id === 'greatball', 'Nível 15 ativa Great Ball');
-
-CaptureSystem.startCaptureSequence({ mon: monCharmander, playerLevel: 25 });
-assert(CaptureSystem.activeBall.id === 'ultraball', 'Nível 25 ativa Ultra Ball');
-
-CaptureSystem.startCaptureSequence({ mon: monCharmander, playerLevel: 40 });
-assert(CaptureSystem.activeBall.id === 'ultimateball', 'Nível 40 ativa Ultimate Ball');
-
-console.log('\n--- TESTE 3: DEMONSTRAÇÃO DOS 4 COMANDOS debugTriggerCapture ---');
-const interceptedLogs = [];
-const originalLog = console.log;
-console.log = function(...args) {
-  interceptedLogs.push(args.join(' '));
-  originalLog.apply(console, args);
-};
-
-// Executa os 4 comandos especificados
-window.debugTriggerCapture('charmander', 5);
-window.debugTriggerCapture('charmander', 15);
-window.debugTriggerCapture('charmander', 25);
-window.debugTriggerCapture('charmander', 40);
-
-console.log = originalLog;
-
-assert(interceptedLogs.some(l => l.includes('Nível: 5') && l.includes('Poké Ball (+0% Chance)')), 'Log Nível 5 -> Poké Ball (+0% Chance)');
-assert(interceptedLogs.some(l => l.includes('Nível: 15') && l.includes('Great Ball (+5% Chance)')), 'Log Nível 15 -> Great Ball (+5% Chance)');
-assert(interceptedLogs.some(l => l.includes('Nível: 25') && l.includes('Ultra Ball (+10% Chance)')), 'Log Nível 25 -> Ultra Ball (+10% Chance)');
-assert(interceptedLogs.some(l => l.includes('Nível: 40') && l.includes('Ultimate Ball (+15% Chance)')), 'Log Nível 40 -> Ultimate Ball (+15% Chance)');
+console.log('\n--- TESTE 3: GOLD BALL NÃO ENTRA NA RESOLUÇÃO AUTOMÁTICA ABAIXO DO NV 41 ---');
+const below41 = CaptureSystem.getBallForPlayerLevel(40);
+assert(below41.isGold !== true, 'Nível 40 nunca resolve para Gold Ball');
+const forced = CaptureSystem.getBallForPlayerLevel(40, true);
+assert(forced.isGold === true, 'forceGold=true resolve para Gold Ball no nível 40');
 
 console.log(`\n🎉 RESULTADO FINAL: ${passedTests}/${totalTests} TESTES APROVADOS!`);
 if (passedTests !== totalTests) {

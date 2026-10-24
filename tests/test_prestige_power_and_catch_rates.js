@@ -102,15 +102,15 @@ if (ballGoldStg1.finalChance <= 0.48) {
 
 // 3. TESTE DA RECOMPENSA EM OURO (GOLD BOUNTY)
 console.log('\n--- 3. TESTE DE RECOMPENSAS TURBINADAS EM OURO (BOUNTY) ---');
+// Shiny NÃO é capturável (ao abater, concede Tickets de Roleta).
+// Portanto o Gold Bounty só se aplica a capturas normais.
+// Os valores vêm do código de produção via BalanceConfig quando disponível.
 
 const testCasesBounty = [
   { name: 'Normal Estágio 1', stage: 1, isShiny: false, isLeg: false, expected: 250 },
   { name: 'Normal Estágio 2', stage: 2, isShiny: false, isLeg: false, expected: 1200 },
   { name: 'Normal Estágio 3', stage: 3, isShiny: false, isLeg: false, expected: 3000 },
-  { name: 'Shiny Estágio 1', stage: 1, isShiny: true, isLeg: false, expected: 5250 },
-  { name: 'Shiny Estágio 3', stage: 3, isShiny: true, isLeg: false, expected: 8000 },
-  { name: 'Lendário Normal', stage: 3, isShiny: false, isLeg: true, expected: 8000 },
-  { name: 'Shiny Lendário Apex', stage: 3, isShiny: true, isLeg: true, expected: 20000 }
+  { name: 'Lendário Normal', stage: 3, isShiny: false, isLeg: true, expected: 8000 }
 ];
 
 let allBountiesOk = true;
@@ -137,6 +137,32 @@ if (allBountiesOk) {
 } else {
   console.error('❌ Falha nas recompensas de Gold Bounty!');
   process.exit(1);
+}
+
+// 4. SHINY NÃO É CAPTURÁVEL — deve conceder Tickets, não moedas
+console.log('\n--- 4. SHINY NÃO CAPTURÁVEL (Tickets em vez de captura) ---');
+{
+  const dummyShiny = {
+    isSuccess: true,
+    speciesId: 'test_mon',
+    stage: 1,
+    isShiny: true,
+    isLegendary: false,
+    isGoldBall: false
+  };
+  const coinsBeforeShiny = global.G.DB.save.coins;
+  const result = CaptureSystem.resolveAttempt(dummyShiny);
+  const coinsAfterShiny = global.G.DB.save.coins;
+
+  if (result.isSuccess !== false) {
+    console.error('❌ Shiny não deveria ser registrado como captura bem-sucedida!');
+    process.exit(1);
+  }
+  if (coinsAfterShiny !== coinsBeforeShiny) {
+    console.error(`❌ Shiny não deveria conceder Gold Bounty (veio +${coinsAfterShiny - coinsBeforeShiny})!`);
+    process.exit(1);
+  }
+  console.log('✅ Shiny não é capturável e não concede Gold Bounty (a recompensa é em Tickets).');
 }
 
 console.log('\n🎉 TODOS OS TESTES PASSARAM COM SUCESSO TOTAL!');

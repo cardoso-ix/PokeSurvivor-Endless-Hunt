@@ -54,6 +54,7 @@ global.localStorage = {
 // Carrega dependências
 require('../js/data/pokedex.js');
 require('../js/data/regions.js');
+require('../js/config/balanceConfig.js');
 require('../js/systems/capture.js');
 require('../js/systems/rift.js');
 
@@ -95,14 +96,19 @@ runTest('Trava de 30 Rifts bloqueia Lendários (0 a 29 rifts)', () => {
 
   assert.strictEqual(legendsCount, 0, `Nenhum lendário deveria spawnar antes de 30 rifts! Encontrados: ${legendsCount}`);
   assert.strictEqual(commonsCount, N, `Todos os spawns devem ser comuns antes dos 30 rifts`);
-  
-  // Taxa de shinies esperada: 15% + 1% rebaixado = ~16% (com tolerância estatística 13% a 19%)
+
+  // Taxa de shinies esperada (alvos vêm de BalanceConfig.rewards.rift.rarity):
+  // abaixo de 30 rifts, os tiers de Lendário são rebaixados para Comum.
+  // Logo: Comum Shiny = commonShinyMax - legendNormalMax = 2.0%
+  const RAR = global.BalanceConfig.rewards.rift.rarity;
+  const expectedShinyBelow30 = (RAR.commonShinyMax - RAR.legendNormalMax) / 100;
   const shinyRate = shiniesCount / N;
-  console.log(`     -> Rifts < 30: 0% Lendários (OK) | Shinies: ${(shinyRate * 100).toFixed(1)}%`);
-  assert(shinyRate >= 0.13 && shinyRate <= 0.19, `Taxa de shiny esperada ~16%, obtida: ${(shinyRate * 100).toFixed(1)}%`);
+  console.log(`     -> Rifts < 30: 0% Lendários (OK) | Shinies: ${(shinyRate * 100).toFixed(1)}% (Alvo: ${(expectedShinyBelow30 * 100).toFixed(1)}%)`);
+  assert(shinyRate >= expectedShinyBelow30 * 0.7 && shinyRate <= expectedShinyBelow30 * 1.3,
+    `Taxa de shiny fora da margem de ${(expectedShinyBelow30 * 100).toFixed(1)}%: ${(shinyRate * 100).toFixed(1)}%`);
 });
 
-runTest('Liberação de Lendários e Proporção 75 / 15 / 9 / 1 (30+ rifts)', () => {
+runTest('Liberação de Lendários e Proporção 94 / 3.8 / 2.0 / 0.2 (30+ rifts)', () => {
   // Configura rifts = 50 (>= 30)
   global.localStorage.setItem('poke_total_rifts', '50');
 
@@ -125,17 +131,25 @@ runTest('Liberação de Lendários e Proporção 75 / 15 / 9 / 1 (30+ rifts)', (
   const pLegendNormal = countLegendNormal / N;
   const pLegendShiny = countLegendShiny / N;
 
-  console.log(`     -> Proporção observada em ${N} rolagens:`);
-  console.log(`        Comum Normal:    ${(pCommonNormal * 100).toFixed(2)}% (Alvo: 75%)`);
-  console.log(`        Comum Shiny:     ${(pCommonShiny * 100).toFixed(2)}% (Alvo: 15%)`);
-  console.log(`        Lendário Normal: ${(pLegendNormal * 100).toFixed(2)}% (Alvo: 9%)`);
-  console.log(`        Lendário Shiny:  ${(pLegendShiny * 100).toFixed(2)}% (Alvo: 1%)`);
+  // Alvos derivados da configuração (fonte única de verdade)
+  const RAR = global.BalanceConfig.rewards.rift.rarity;
+  const targetCommonNormal = RAR.commonNormalMax / 100;
+  const targetLegendNormal = (RAR.legendNormalMax - RAR.commonNormalMax) / 100;
+  const targetCommonShiny = (RAR.commonShinyMax - RAR.legendNormalMax) / 100;
+  const targetLegendShiny = (100 - RAR.commonShinyMax) / 100;
 
-  // Verificações com margens de confiança estatística de 99.9%
-  assert(pCommonNormal >= 0.72 && pCommonNormal <= 0.78, `Comum Normal fora da margem de 75%: ${(pCommonNormal * 100).toFixed(2)}%`);
-  assert(pCommonShiny >= 0.13 && pCommonShiny <= 0.17, `Comum Shiny fora da margem de 15%: ${(pCommonShiny * 100).toFixed(2)}%`);
-  assert(pLegendNormal >= 0.075 && pLegendNormal <= 0.105, `Lendário Normal fora da margem de 9%: ${(pLegendNormal * 100).toFixed(2)}%`);
-  assert(pLegendShiny >= 0.005 && pLegendShiny <= 0.018, `Lendário Shiny fora da margem de 1%: ${(pLegendShiny * 100).toFixed(2)}%`);
+  console.log(`     -> Proporção observada em ${N} rolagens:`);
+  console.log(`        Comum Normal:    ${(pCommonNormal * 100).toFixed(2)}% (Alvo: ${(targetCommonNormal * 100).toFixed(2)}%)`);
+  console.log(`        Comum Shiny:     ${(pCommonShiny * 100).toFixed(2)}% (Alvo: ${(targetCommonShiny * 100).toFixed(2)}%)`);
+  console.log(`        Lendário Normal: ${(pLegendNormal * 100).toFixed(2)}% (Alvo: ${(targetLegendNormal * 100).toFixed(2)}%)`);
+  console.log(`        Lendário Shiny:  ${(pLegendShiny * 100).toFixed(2)}% (Alvo: ${(targetLegendShiny * 100).toFixed(2)}%)`);
+
+  // Margens de confiança estatística, centradas no alvo vindo da config
+  const within = (obs, target, tol) => obs >= target * (1 - tol) && obs <= target * (1 + tol);
+  assert(within(pCommonNormal, targetCommonNormal, 0.03), `Comum Normal fora da margem: ${(pCommonNormal * 100).toFixed(2)}%`);
+  assert(within(pCommonShiny, targetCommonShiny, 0.20), `Comum Shiny fora da margem: ${(pCommonShiny * 100).toFixed(2)}%`);
+  assert(within(pLegendNormal, targetLegendNormal, 0.15), `Lendário Normal fora da margem: ${(pLegendNormal * 100).toFixed(2)}%`);
+  assert(within(pLegendShiny, targetLegendShiny, 0.50), `Lendário Shiny fora da margem: ${(pLegendShiny * 100).toFixed(2)}%`);
 });
 
 runTest('Pity de 500 Rifts garante 100% de Guardião Shiny', () => {
@@ -221,9 +235,15 @@ runTest('Máquina de Estados de Animação Física e Resolução', () => {
   assert(typeof capturedResult === 'boolean', 'capturedResult deve ser booleano');
 });
 
-runTest('Gold Ball garante 100% de captura e concede bônus', () => {
+runTest('Gold Ball concede bônus de chance e não garante captura', () => {
   let completed = false;
   let won = false;
+
+  // A Gold Ball NÃO garante a captura: ela concede bônus de chance respeitando
+  // o teto de cap da raridade. Fixamos o RNG para 0 (sucesso) e depois testamos
+  // que a taxa final é menor que 100%.
+  const origRandom = Math.random;
+  Math.random = () => 0;
 
   const ball = global.CaptureSystem.startCaptureSequence({
     speciesId: 'mewtwo',
@@ -237,8 +257,10 @@ runTest('Gold Ball garante 100% de captura e concede bônus', () => {
     }
   });
 
-  assert.strictEqual(ball.isGoldBall, true);
-  assert.strictEqual(ball.isSuccess, true, 'Gold Ball deve garantir 100% de sucesso');
+  assert.strictEqual(ball.isGoldBall, true, 'forceGold ativou a Gold Ball');
+  assert.strictEqual(ball.isSuccess, true, 'Com o RNG em 0, a captura tem sucesso');
+  assert(ball.finalChance < 1.0, `A Gold Ball NÃO garante captura (chance final ${(ball.finalChance * 100).toFixed(1)}%)`);
+  assert(ball.ballBonus > 0, 'A Gold Ball concede bônus de chance');
 
   // Roda até a conclusão
   let elapsed = 0;
@@ -246,8 +268,41 @@ runTest('Gold Ball garante 100% de captura e concede bônus', () => {
     global.CaptureSystem.update(0.1);
     elapsed += 0.1;
   }
+  Math.random = origRandom;
 
-  assert.strictEqual(won, true, 'Gold ball deve resultar em captura garantida');
+  assert.strictEqual(won, true, 'A captura foi confirmada');
+});
+
+runTest('Gold Ball falha quando o RNG não atinge a chance final', () => {
+  let completed = false;
+  let won = null;
+
+  // RNG em 0.99: para um alvo comum (chance 48%) a captura deve falhar.
+  const origRandom = Math.random;
+  Math.random = () => 0.99;
+
+  const ball = global.CaptureSystem.startCaptureSequence({
+    speciesId: 'pikachu',
+    level: 45,
+    forceGold: true,
+    x: 100,
+    y: 100,
+    onComplete: (c) => {
+      completed = true;
+      won = c;
+    }
+  });
+
+  assert.strictEqual(ball.isSuccess, false, 'Com o RNG em 0.99 a captura deve falhar');
+
+  let elapsed = 0;
+  while (!completed && elapsed < 6.0) {
+    global.CaptureSystem.update(0.1);
+    elapsed += 0.1;
+  }
+  Math.random = origRandom;
+
+  assert.strictEqual(won, false, 'A Gold Ball pode falhar (não é garantia)');
 });
 
 console.log('\n====================================================');

@@ -94,7 +94,9 @@ const CaptureSystem = (() => {
 
   function resolveCaptureBall(level = 1, forceGold = false) {
     const lvl = Math.max(1, Math.floor(level || 1));
-    if (lvl >= 41 && (forceGold || Math.random() < 0.10)) {
+    // forceGold é um override explícito (admin/debug): ativa a Gold Ball em qualquer nível.
+    if (forceGold) return GOLD_BALL_CONFIG;
+    if (lvl >= 41 && Math.random() < 0.10) {
       return GOLD_BALL_CONFIG;
     }
     if (lvl >= 31) return POKEBALL_TIERS.ULTIMATEBALL;
@@ -311,23 +313,17 @@ const CaptureSystem = (() => {
         }
       }
 
-      // 2. CALCULAR RECOMPENSA DE CAÇADOR EM OURO (GOLD BOUNTY TURBINADO)
+      // 2. CALCULAR RECOMPENSA DE CAÇADOR EM OURO (GOLD BOUNTY)
+      // Shiny nunca chega aqui (não é capturável): a recompensa de Shiny é em Tickets.
       const stg = Number(data.stage) || (data.speciesId ? getMonStage(data.speciesId) : 1);
       const isLeg = !!(data.isLegendary || isLegendaryOrMythical(data.speciesId));
-      const isSh = !!data.isShiny;
 
-      let goldBounty = 0;
-      if (isSh && isLeg) {
-        goldBounty = 20000; // Shiny Lendário: +20.000 Ouro
-      } else if (isLeg) {
+      let goldBounty;
+      if (isLeg) {
         goldBounty = 8000;  // Lendário Normal: +8.000 Ouro
       } else {
-        let stageGold = 250;
-        if (stg === 3 || stg >= 3) stageGold = 3000;      // Normal Estágio 3: +3.000 Ouro
-        else if (stg === 2) stageGold = 1200;             // Normal Estágio 2: +1.200 Ouro
-        else stageGold = 250;                             // Normal Estágio 1: +250 Ouro
-
-        goldBounty = stageGold + (isSh ? 5000 : 0);       // Shiny Comum: +5.000 somado ao estágio
+        // Normal: +250 (Estágio 1) · +1.200 (Estágio 2) · +3.000 (Estágio 3)
+        goldBounty = (stg === 3 || stg >= 3) ? 3000 : (stg === 2 ? 1200 : 250);
       }
 
       data.goldBounty = goldBounty;
@@ -491,7 +487,9 @@ const CaptureSystem = (() => {
       else if (this.isLegendary) maxCap = 0.16;
       else if (this.isShiny) maxCap = 0.22;
 
-      this.finalChance = Math.min(maxCap, this.baseRate + this.ballBonus);
+      // Shiny NÃO é capturável: a chance final precisa permanecer 0 mesmo
+      // com bônus de bola (a soma base + bônus reescreveria o zero).
+      this.finalChance = this.isShiny ? 0 : Math.min(maxCap, this.baseRate + this.ballBonus);
 
       // RNG da Captura
       this.roll = Math.random();
