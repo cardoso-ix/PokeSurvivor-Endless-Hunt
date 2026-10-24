@@ -20,11 +20,14 @@ const MegaSystem = {
     this.isActive = false;
     this.gauge = 0;
     this.timeLeft = 0;
+    this.activeType = null;
+    this.currentElement = null;
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
     if (pl) {
       pl.megaDmgMul = 1.0;
       pl.dmgTakenMul = 1.0;
       pl.magnetMul = 1.0;
+      pl.megaAuraElement = null;
       if (pl.megaMode) pl.megaMode.active = false;
     }
   },
@@ -61,7 +64,7 @@ const MegaSystem = {
     if (pl) {
       pl.megaEnergy = this.maxGauge;
       pl.megaDmgMul = 2.5; // Dano 2.5x calibrado para burst hardcore!
-      pl.dmgTakenMul = 0.45; // Defesa sólida: sofre 45% de dano (55% de redução)
+      pl.dmgTakenMul = 0.20; // Super Sobrevivência: recebe 20% do dano (redução de 80%)
       pl.magnetMul = 2.0; // Raio de coleta 2x
       if (pl.megaMode) {
         pl.megaMode.active = true;
@@ -71,6 +74,10 @@ const MegaSystem = {
 
       // Dispara a Mega Skill Elemental Procedural correspondente ao tipo do Pokémon
       const pType = (pl.mon && pl.mon.types && pl.mon.types[0]) ? pl.mon.types[0] : (pl.types && pl.types[0] ? pl.types[0] : 'normal');
+      // Expõe o tipo ativo para que a aura do jogador (player.js) use a paleta elemental correta
+      this.activeType = pType;
+      this.currentElement = pType;
+      if (pl) pl.megaAuraElement = pType;
       const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : ((typeof G === 'object') ? (G.MegaSkillVFXManager || G.UltimateVFX) : null);
       if (vfx && typeof vfx.trigger === 'function') {
         vfx.trigger(pType, pl);
@@ -109,7 +116,7 @@ const MegaSystem = {
     // Mantém o super buff e o crescimento ativos durante todos os 20 segundos
     if (pl) {
       pl.megaDmgMul = 2.5;
-      pl.dmgTakenMul = 0.45;
+      pl.dmgTakenMul = 0.20;
       pl.magnetMul = 2.0;
       if (pl.megaMode) {
         pl.megaMode.active = true;
@@ -122,10 +129,13 @@ const MegaSystem = {
       this.isActive = false;
       this.gauge = 0;
       this.timeLeft = 0;
+      this.activeType = null;
+      this.currentElement = null;
       if (pl) {
         pl.megaDmgMul = 1.0;
         pl.dmgTakenMul = 1.0;
         pl.magnetMul = 1.0;
+        pl.megaAuraElement = null;
         if (pl.megaMode) pl.megaMode.active = false;
         if (typeof pl.deactivateMega === 'function') pl.deactivateMega();
       }
@@ -147,20 +157,23 @@ if (typeof window !== 'undefined') {
   window.megaSystem = MegaSystem;
 
   // Listener global infalível na fase de captura para ativação via Barra de Espaço
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') {
-      const g = (typeof G === 'object') ? G : null;
-      const mega = (g && g.Mega) ? g.Mega : (window.megaSystem || MegaSystem);
-      const pl = (g && g.Game) ? g.Game.player : ((window.game) ? window.game.player : null);
-      if (mega && pl) {
-        const isReady = (mega.gauge >= (mega.maxGauge - 0.8)) || (pl.megaEnergy >= ((pl.megaMaxEnergy || 100) - 0.8));
-        if (isReady && !mega.isActive) {
-          e.preventDefault();
-          mega.trigger();
+  // Em Node (testes) não existe addEventListener no global: registra só no navegador.
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') {
+        const g = (typeof G === 'object') ? G : null;
+        const mega = (g && g.Mega) ? g.Mega : (window.megaSystem || MegaSystem);
+        const pl = (g && g.Game) ? g.Game.player : ((window.game) ? window.game.player : null);
+        if (mega && pl) {
+          const isReady = (mega.gauge >= (mega.maxGauge - 0.8)) || (pl.megaEnergy >= ((pl.megaMaxEnergy || 100) - 0.8));
+          if (isReady && !mega.isActive) {
+            e.preventDefault();
+            mega.trigger();
+          }
         }
       }
-    }
-  }, true);
+    }, true);
+  }
 
   // Listener global para ativação via clique ou touch no botão #hud-mega-btn
   function handleMegaBtnGlobal(e) {
@@ -174,6 +187,8 @@ if (typeof window !== 'undefined') {
       mega.trigger();
     }
   }
-  document.addEventListener('click', handleMegaBtnGlobal, true);
-  document.addEventListener('touchend', handleMegaBtnGlobal, true);
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('click', handleMegaBtnGlobal, true);
+    document.addEventListener('touchend', handleMegaBtnGlobal, true);
+  }
 }

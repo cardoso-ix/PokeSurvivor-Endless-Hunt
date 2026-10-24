@@ -189,14 +189,17 @@
       <div class="tab" data-tab="register">Criar conta</div>
     </div>
     <form id="login-form" autocomplete="off">
-      <label for="f-user">Nome de Usuário</label>
-      <input id="f-user" class="field" maxlength="16" spellcheck="false">
+      <label for="f-user" id="lbl-user">Nome de Usuário ou E-mail</label>
+      <input id="f-user" class="field" maxlength="64" placeholder="Usuário ou seu@email.com" spellcheck="false">
       <label for="f-pass">Senha</label>
       <input id="f-pass" class="field" type="password" maxlength="64">
       <p id="login-err" class="err"></p>
       <p class="note"><a href="#" id="f-forgot">Esqueceu sua senha?</a></p>
-      <p id="forgot-note" class="note hidden">Se você vinculou seu Gmail, clique em <b>Entrar com Google</b> com esse Gmail: é a sua mesma conta.
-        Se não vinculou, não é possível recuperar: crie uma nova conta (e desta vez vincule seu Gmail pelo aviso que aparece ao entrar).</p>
+      <div id="forgot-box" class="note hidden" style="background:rgba(0,0,0,0.3);padding:8px 12px;border-radius:6px;margin:8px 0;">
+        <p style="margin:0 0 6px 0;">Digite seu e-mail no campo acima para redefinir sua senha:</p>
+        <button id="btn-reset-pass" class="btn small gold" type="button">Enviar e-mail de recuperação</button>
+        <p style="margin:8px 0 0 0;font-size:11px;opacity:0.8;">Se sua conta foi criada com Google, basta clicar em <b>Entrar com Google</b>.</p>
+      </div>
       <div class="row">
         <button id="btn-auth" class="btn gold grow" type="submit">Entrar</button>
       </div>
@@ -307,17 +310,28 @@
   </div>
 </section>
 
-<!-- ====== Vincular Gmail para recuperar a conta ====== -->
+<!-- ====== Vincular E-mail / Google para recuperar a conta ====== -->
 <section id="scr-recover" class="scr dim hidden">
   <div class="box" style="width:min(440px,100%)">
-    <h2>Deseja proteger sua conta?</h2>
-    <p>Vincule seu Google/Gmail: se um dia esquecer sua senha, você poderá recuperar seu progresso.</p>
-    <p class="err" id="rec-err"></p>
-    <div class="row" style="gap:8px;flex-wrap:wrap">
-      <button class="btn gold grow" id="rec-link" type="button">Vincular Google</button>
-      <button class="btn ghost" id="rec-later" type="button">Agora não</button>
+    <h2>Proteger Minha Conta</h2>
+    <p class="sub">Vincule um e-mail para nunca perder seu progresso e poder jogar em qualquer aparelho.</p>
+    
+    <form id="rec-form" autocomplete="off" style="margin-top:12px">
+      <label for="rec-email">E-mail Real</label>
+      <input id="rec-email" class="field" type="email" placeholder="exemplo@gmail.com" maxlength="64" spellcheck="false" required>
+      <label for="rec-pass">Senha de Acesso</label>
+      <input id="rec-pass" class="field" type="password" placeholder="Mínimo 6 caracteres" maxlength="64" required>
+      <p class="err" id="rec-err"></p>
+      <div class="row" style="margin-top:10px">
+        <button class="btn gold grow" id="rec-email-btn" type="submit">Vincular E-mail e Senha</button>
+      </div>
+    </form>
+
+    <div class="row" style="margin-top:12px;gap:8px">
+      <button class="btn google grow" id="rec-link" type="button">Vincular com Google</button>
+      <button class="btn ghost" id="rec-later" type="button">Depois</button>
     </div>
-    <p class="note center"><a href="#" id="rec-never">Não perguntar novamente</a></p>
+    <p class="note center" style="margin-top:10px"><a href="#" id="rec-never">Não perguntar novamente</a></p>
   </div>
 </section>
 
@@ -583,7 +597,7 @@
       <div>
         <div class="banner" id="banner">
           <h3 id="banner-title">Roleta da Sorte Pokémon</h3>
-          <p id="banner-desc" style="margin:4px 0 6px">Gire com 5.000 Tickets para concorrer a todos os 966 Pokémon do jogo!</p>
+          <p id="banner-desc" style="margin:4px 0 6px">Gire com 100 Tickets para concorrer a todos os 966 Pokémon do jogo!</p>
           <p class="sub" id="gacha-owned" style="margin:0"></p>
           <div class="feat" id="gacha-feat"></div>
         </div>
@@ -593,10 +607,10 @@
         </div>
         <div class="row" style="margin-top:12px;gap:10px;">
           <button id="pull-roulette-1" class="btn gold grow" style="font-size:15px;padding:12px 14px;font-weight:bold;letter-spacing:0.5px;" data-sfx="none">
-            🎰 GIRAR ROLETA · 5.000 TICKETS
+            🎰 GIRAR ROLETA · 100 TICKETS
           </button>
           <button id="pull-roulette-5" class="btn grow" style="font-size:14px;padding:12px 12px;" data-sfx="none">
-            🎰 GIRAR ×5 · 25.000
+            🎰 GIRAR ×5 · 500
           </button>
         </div>
         <div id="legacy-pulls" class="row hidden" style="display:none!important;">
@@ -695,6 +709,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=92aeb478df"></script>
+<script defer src="js/app.min.js?v=f7412638de"></script>
 </body>
 </html>

@@ -710,7 +710,10 @@ G.Player = class Player {
     // estar encima de los enemigos para pegar (iban muy por detrás).
     const hasCloseMelee = typeof this.activeGroup === 'function' && this.activeGroup().some(m => m.kind === 'melee');
     const close = hasCloseMelee ? 0.75 : 1;
-    const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive) ? 0.70 : 1.0; // Redução justa calibrada (30% direta somada à defesa)
+    // Super Sobrevivência do Mega: multiplicador único de dano recebido (20% = redução de 80%)
+    const megaProt = (typeof G === 'object' && G.Mega && G.Mega.isActive)
+      ? (this.dmgTakenMul != null ? this.dmgTakenMul : 0.20)
+      : 1.0;
     let d = pure ? Math.max(1, amount * megaProt) : Math.max(1, amount * (1 - this.reduction) * close * megaProt);
 
     // Proteção Anti-One-Shot: monstro comum não pode arrancar mais de 35% de vida num único hit
