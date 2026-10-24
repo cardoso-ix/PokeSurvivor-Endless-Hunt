@@ -131,8 +131,8 @@ const ARTIFACTS_DIR = 'C:/Users/eduar/.gemini/antigravity/brain/b914817b-8796-40
   });
   await new Promise(r => setTimeout(r, 500));
 
-  // 7. Testa Pokémon Repetido na Dex -> Deve conceder 1.000 PokéMoedas!
-  console.log('7. Testando regra de duplicata na Pokédex (Garante +1.000 PokéMoedas)...');
+  // 7. Testa Pokémon Repetido na Dex -> Deve conceder ROULETTE_DUPLICATE_COINS (250) PokéMoedas
+  console.log('7. Testando regra de duplicata na Pokédex (Garante o bônus de repetido)...');
   const duplicateTest = await page.evaluate(async () => {
     const s = window.G.DB.save;
     s.tickets.t1 = 5000;
@@ -157,21 +157,23 @@ const ARTIFACTS_DIR = 'C:/Users/eduar/.gemini/antigravity/brain/b914817b-8796-40
       coinsAfter: s.coins,
       refund: pullRes[0].refund,
       isNew: pullRes[0].isNew,
-      ticketsLeft: s.tickets.t1
+      ticketsLeft: s.tickets.t1,
+      // Valor real vem da constante: o teste não deve duplicar a verdade.
+      expectedRefund: window.G.Gacha.ROULETTE_DUPLICATE_COINS
     };
   });
   console.log('  Teste de Duplicata:', duplicateTest);
 
-  if (duplicateTest.coinsAfter !== duplicateTest.coinsBefore + 1000) {
-    throw new Error('Falha no bônus de duplicata: moedas não aumentaram em 1.000!');
+  if (duplicateTest.coinsAfter !== duplicateTest.coinsBefore + duplicateTest.expectedRefund) {
+    throw new Error(`Falha no bônus de duplicata: esperava +${duplicateTest.expectedRefund}, veio ${duplicateTest.coinsAfter - duplicateTest.coinsBefore}!`);
   }
-  if (duplicateTest.refund !== 1000) {
-    throw new Error('Refund não foi marcado como 1000!');
+  if (duplicateTest.refund !== duplicateTest.expectedRefund) {
+    throw new Error(`Refund não foi marcado como ${duplicateTest.expectedRefund}!`);
   }
   if (duplicateTest.isNew !== false) {
     throw new Error('isNew deveria ser false para Pokémon repetido!');
   }
-  console.log('  ✅ Regra de Duplicata aprovada: +1.000 PokéMoedas concedidas perfeitamente!');
+  console.log(`  ✅ Regra de Duplicata aprovada: +${duplicateTest.expectedRefund} PokéMoedas concedidas perfeitamente!`);
 
   // 8. Teste no index.html de produção
   console.log('8. Testando versão em produção compilada (http://127.0.0.1:8080/index.html)...');

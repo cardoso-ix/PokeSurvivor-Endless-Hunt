@@ -2,16 +2,17 @@
  * Lógica pura: no toca la interfaz. La pantalla está en ui/gacha-ui.js.
  *
  * 9 banners (Kanto ... Paldea). Cada uno con su propio pity.
- * Probabilidades por tirada:  1★ 45% · 2★ 30% · 3★ 17% · 4★ 6.5% · 5★ 1.5%
+ * Probabilidades por tirada (constante RATES):
+ *   1★ 70% · 2★ 20% · 3★ 8% · 4★ 1.6% · 5★ 0.4%
  * Garantías:
  *   - la tirada ×10 trae al menos un 4★ o superior
- *   - a las 70 tiradas sin 5★ en ese banner, el siguiente es 5★ seguro
- * Shiny: 1 de cada 100 tiradas sale en su versión shiny.
- * Repetidos: se convierten en Pokémonedas (los shiny repetidos, el triple).
+ *   - a las 250 tiradas sin 5★ en ese banner, el siguiente es 5★ seguro (PITY_5)
+ * Shiny: 1 de cada 250 tiradas sale en su versión shiny (SHINY_RATE).
+ * Repetidos: se convierten en PokéMoedas (ROULETTE_DUPLICATE_COINS = 250).
  *
  * Se tira con TICKETS (se consiguen jugando):
- *   ×1   1 ticket
- *   ×10  10 tickets normales, o 1 ticket ×10 (eliges con qué)
+ *   ×1   100 tickets (ROULETTE_COST)
+ *   ×10  1000 tickets, ou 1 ticket ×10 (eliges con qué)
  */
 G.Gacha = (() => {
   /** ¿Qué gasta una tirada de n? → { t1, t10 } o null si no te llega. */
@@ -133,14 +134,15 @@ G.Gacha = (() => {
   }
 
   /**
-   * Sorteio Especial da Roleta com 5.000 Tickets.
+   * Sorteio Especial da Roleta (custa ROULETTE_COST = 100 tickets por giro).
    * Pool: TODOS os Pokémon do jogo (G.DEX - 966 espécies).
    * Probabilidades:
-   *   - 1% Pokémon Shiny aleatório
-   *   - 5% Pokémon Lendário aleatório
-   *   - 94% Pokémon Normal aleatório (~90%)
+   *   - 0.40% Pokémon Shiny aleatório (1 em 250)
+   *   - 0.40% Pokémon Lendário aleatório (1 em 250)
+   *   - ~99.2% Pokémon Normal aleatório
    * Regra de Duplicata:
-   *   - Se o Pokémon já estiver na Pokédex do jogador: ganha 1.000 PokéMoedas para Melhorias!
+   *   - Se o Pokémon já estiver na Pokédex do jogador: ganha ROULETTE_DUPLICATE_COINS
+   *     (250) PokéMoedas para Melhorias!
    *   - Se for novo: registra e desbloqueia na Pokédex.
    */
   function pullRoulette(save, count = 1, gen = 0) {
@@ -201,13 +203,12 @@ G.Gacha = (() => {
         mon = G.U.pick(allNorms.length ? allNorms : poolSource);
         rarity = mon.rarity || 1;
       }
-
       let isNew = false;
       let refund = 0;
 
       // Verifica se já possui o Pokémon na Dex
       if (save.owned[mon.dex]) {
-        // Já possui na Dex -> Ganha 1.000 PokéMoedas para melhorias!
+        // Já possui na Dex -> Ganha ROULETTE_DUPLICATE_COINS (250) PokéMoedas para melhorias!
         save.coins += ROULETTE_DUPLICATE_COINS;
         refund = ROULETTE_DUPLICATE_COINS;
         isNew = false;

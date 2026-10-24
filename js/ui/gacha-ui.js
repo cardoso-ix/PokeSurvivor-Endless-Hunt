@@ -182,7 +182,10 @@ G.GachaUI = (() => {
       if (r.isNew) {
         tagHtml = `<span class="new">${r.shiny ? '✨ NOVO SHINY!' : '✨ NOVO NA POKÉDEX!'}</span>`;
       } else {
-        tagHtml = `<span class="refund" style="color:#ffd23f;font-weight:bold;font-size:12px;background:rgba(255,210,63,0.18);padding:3px 8px;border-radius:6px;border:1px solid #ffd23f;">🪙 REPETIDO · +1.000 MOEDAS</span>`;
+        // Deriva o valor da constante real: a UI não pode prometer mais do que é creditado.
+        const dupCoins = (G.Gacha && G.Gacha.ROULETTE_DUPLICATE_COINS != null)
+          ? G.Gacha.ROULETTE_DUPLICATE_COINS : 250;
+        tagHtml = `<span class="refund" style="color:#ffd23f;font-weight:bold;font-size:12px;background:rgba(255,210,63,0.18);padding:3px 8px;border-radius:6px;border:1px solid #ffd23f;">🪙 REPETIDO · +${dupCoins.toLocaleString('pt-BR')} MOEDAS</span>`;
       }
 
       let baseTag = r.baseUnlockedName ? `<div class="base-unlock-note" style="color:#4ade80;font-size:11px;font-weight:bold;margin-top:4px;">🐣 Estágio 1 Desbloqueado: ${r.baseUnlockedName} (Jogável!)</div>` : '';

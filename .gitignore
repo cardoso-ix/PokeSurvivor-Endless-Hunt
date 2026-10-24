@@ -16,6 +16,12 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
+# Capturas de tela geradas pelos testes de browser (não são assets do jogo).
+# Os PNGs de conteúdo do jogo ficam em assets/ e são versionados normalmente.
+/*.png
+!assets/*.png
+!assets/**/*.png
+
 # Contactos privados (emails de terceros): nunca al repositorio público
 docs/CONTACTOS_CREADORES.md
 
