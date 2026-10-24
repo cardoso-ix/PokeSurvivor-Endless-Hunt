@@ -108,7 +108,7 @@ function createMockDb(initialOwned = {}, initialCoins = 0, initialTickets = 0) {
 }
 
 // =========================================================================
-// TESTE 1: Captura de Pokémon INÉDITO (Não deve dar moedas/tickets de duplicata)
+// TESTE 1: Captura de Pokémon INÉDITO (recebe o Gold Bounty, sem bônus de duplicata)
 // =========================================================================
 console.log('\n--- Teste 1: Pokémon Inédito ---');
 const db1 = createMockDb({}, 1000, 200);
@@ -129,9 +129,10 @@ const resNew = CaptureSystem.resolveAttempt(attemptNew);
 assert.strictEqual(resNew, true, 'Tentativa deve retornar true');
 assert.strictEqual(attemptNew.isDuplicate, false, 'Pokémon inédito não pode ser duplicata');
 assert(db1.save.owned[4], 'Charmander deve ter sido registrado na Dex');
-assert.strictEqual(db1.save.coins, 1000, 'Moedas devem permanecer iguais');
-assert.strictEqual(db1.save.tickets.t1, 200, 'Tickets devem permanecer iguais');
-console.log('✅ Teste 1 passou com sucesso!');
+// Recompensa de Caçador (Gold Bounty) de um Normal Estágio 1: +250
+assert.strictEqual(db1.save.coins, 1250, 'Moedas devem receber o Gold Bounty (+250)');
+assert.strictEqual(db1.save.tickets.t1, 200, 'Tickets devem permanecer iguais (sem bônus de duplicata)');
+console.log('✅ Teste 1 passou com sucesso! (Gold Bounty +250, sem bônus de duplicata)');
 
 // =========================================================================
 // TESTE 2: Captura de Pokémon REPETIDO (Deve conceder +500 moedas e +500 tickets)
@@ -154,17 +155,18 @@ const attemptDup = {
 const resDup = CaptureSystem.resolveAttempt(attemptDup);
 assert.strictEqual(resDup, true, 'Tentativa deve retornar true');
 assert.strictEqual(attemptDup.isDuplicate, true, 'Deve ser marcado como duplicata');
-assert.strictEqual(db2.save.coins, 2000, 'Moedas no save devem ser 1500 + 500 = 2000');
+// Gold Bounty (250) + bônus de duplicata (500) = 750
+assert.strictEqual(db2.save.coins, 2250, 'Moedas no save devem ser 1500 + 250 (bounty) + 500 (duplicata) = 2250');
 assert.strictEqual(db2.save.tickets.t1, 800, 'Tickets no save devem ser 300 + 500 = 800');
-assert.strictEqual(global.G.Game.player.coins, 2000, 'Moedas do player ativo devem ser 2000');
+assert.strictEqual(global.G.Game.player.coins, 2250, 'Moedas do player ativo devem ser 2250');
 assert.strictEqual(global.G.Game.player.t1, 800, 'Tickets do player ativo devem ser 800');
 assert(db2.commits.includes('rift_duplicate'), 'Commit deve registrar motivo rift_duplicate');
-console.log('✅ Teste 2 passou com sucesso! (+500 Moedas e +500 Tickets confirmados)');
+console.log('✅ Teste 2 passou com sucesso! (bounty 250 + duplicata 500, tickets +500)');
 
 // =========================================================================
-// TESTE 3: Captura de Pokémon REPETIDO com versão SHINY
+// TESTE 3: Shiny NÃO é capturável (a recompensa é em Tickets de Roleta)
 // =========================================================================
-console.log('\n--- Teste 3: Pokémon Repetido SHINY ---');
+console.log('\n--- Teste 3: Shiny não é capturável ---');
 const db3 = createMockDb({ 25: { at: 123456 } }, 500, 100);
 global.G.DB = db3;
 global.window.db = db3;
@@ -180,12 +182,13 @@ const attemptShinyDup = {
 };
 
 const resShinyDup = CaptureSystem.resolveAttempt(attemptShinyDup);
-assert.strictEqual(resShinyDup, true, 'Tentativa deve retornar true');
-assert.strictEqual(attemptShinyDup.isDuplicate, true, 'Deve ser marcado como duplicata');
-assert.strictEqual(db3.save.coins, 1000, 'Moedas devem somar +500 (total 1000)');
-assert.strictEqual(db3.save.tickets.t1, 600, 'Tickets devem somar +500 (total 600)');
-assert(db3.save.shiny[25], 'Forma Shiny de Pikachu deve ser registrada no save.shiny');
-console.log('✅ Teste 3 passou com sucesso! (Shiny registrado + recompensas entregues)');
+// resolveAttempt devolve o próprio objeto de tentativa no caminho do Shiny
+// (que marca isSuccess = false e retorna sem creditar recompensas).
+assert.strictEqual(resShinyDup.isSuccess, false, 'Shiny não é capturável: a tentativa deve ser marcada como falha');
+assert.strictEqual(attemptShinyDup.isSuccess, false, 'A tentativa de Shiny deve ser marcada como falha');
+assert.strictEqual(db3.save.coins, 500, 'Shiny não concede moedas de captura');
+assert.strictEqual(db3.save.tickets.t1, 100, 'Shiny não concede tickets por aqui (a recompensa é de abate)');
+console.log('✅ Teste 3 passou com sucesso! (Shiny não é capturável)');
 
 // =========================================================================
 // TESTE 4: Captura de Pokémon REPETIDO com GOLD BALL (+500 + +1000 Moedas)
@@ -208,7 +211,8 @@ const attemptGoldDup = {
 const resGoldDup = CaptureSystem.resolveAttempt(attemptGoldDup);
 assert.strictEqual(resGoldDup, true, 'Tentativa deve retornar true');
 assert.strictEqual(attemptGoldDup.isDuplicate, true, 'Deve ser duplicata');
-assert.strictEqual(db4.save.coins, 1500, 'Moedas devem ser 500 (repetido) + 1000 (gold ball) = 1500');
+// Gold Bounty de Lendário (8.000) + bônus de duplicata (500) + Gold Ball (1.000) = 9.500
+assert.strictEqual(db4.save.coins, 9500, 'Moedas devem ser 8000 (bounty lendário) + 500 (repetido) + 1000 (gold ball) = 9500');
 assert.strictEqual(db4.save.tickets.t1, 500, 'Tickets devem ser 500');
 console.log('✅ Teste 4 passou com sucesso!');
 
@@ -240,7 +244,8 @@ ball.stateTimer = 0;
 // Executa update no estado RESOLVE
 ball.update(0.1);
 assert.strictEqual(ball.isDuplicate, true, 'ball.isDuplicate deve ser true após RESOLVE');
-assert.strictEqual(db5.save.coins, 600, 'Moedas devem somar +500');
+// Gold Bounty (250, Estágio 1) + bônus de duplicata (500) = 750
+assert.strictEqual(db5.save.coins, 850, 'Moedas devem somar bounty 250 + duplicata 500');
 assert.strictEqual(db5.save.tickets.t1, 550, 'Tickets devem somar +500');
 
 // Avança o tempo até conclusão (> 1.4s)

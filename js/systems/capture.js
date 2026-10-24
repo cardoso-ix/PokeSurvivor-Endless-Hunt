@@ -328,7 +328,9 @@ const CaptureSystem = (() => {
 
       data.goldBounty = goldBounty;
 
-      // Creditar Gold Bounty no saldo persistente
+      // Creditar o Gold Bounty (recompensa de Caçador) no saldo persistente.
+      // O bounty é a recompensa-base de uma captura bem-sucedida e SOMA com o
+      // bônus de duplicata quando o Pokémon já está na Pokédex.
       if (dbObj.save) {
         dbObj.save.coins = (dbObj.save.coins || 0) + goldBounty;
         if (dbObj.save.stats) {
@@ -350,7 +352,9 @@ const CaptureSystem = (() => {
       data.isDuplicate = !!isAlreadyCaptured;
 
       if (isAlreadyCaptured) {
-        // RECOMPENSA ADICIONAL DE DUPLICATA ESCALONADA:
+        // RECOMPENSA ADICIONAL DE DUPLICATA (escalonada por estágio):
+        // Estágio 1 +500 Moedas e +500 Tickets · Estágio 2 +750/+750 · Estágio 3 +1.000/+1.000
+        // Soma com o Gold Bounty já creditado acima.
         const stage = data.stage || 1;
         const duplicateCoins = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
         const duplicateTickets = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
@@ -383,7 +387,8 @@ const CaptureSystem = (() => {
           dbObj.commit('rift_duplicate');
         }
       } else {
-        // Pokémon Inédito: registra normalmente na Pokédex e desbloqueia o ancestral de Estágio 1
+        // Pokémon Inédito: registra normalmente na Pokédex e desbloqueia o ancestral
+        // de Estágio 1. O Gold Bounty já foi creditado acima.
         if (typeof dbObj.registerCaptured === 'function') {
           dbObj.registerCaptured(data.speciesId, data.isShiny);
         } else if (typeof dbObj.unlockPokemon === 'function') {
@@ -750,10 +755,9 @@ const CaptureSystem = (() => {
               if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {
                 G.Spawner.say(`💨 ${monName} escapou da Pokébola!`, 3.0, true);
               }
-              const dbObj = (typeof G === 'object' && G.DB) ? G.DB : ((typeof window !== 'undefined' && window.db) ? window.db : null);
-              if (dbObj && typeof dbObj.incrementRiftsCleared === 'function') {
-                dbObj.incrementRiftsCleared();
-              }
+              // NOTA: o contador de Rifts concluídos é incrementado em
+              // resolveAttempt() (uma única vez, para sucesso E falha).
+              // Não incrementar aqui para não contar a mesma falha duas vezes.
             }
           }
 

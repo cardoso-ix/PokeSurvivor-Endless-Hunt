@@ -201,8 +201,9 @@ As Fendas Dimensionais (Rifts) oferecem desafios épicos em arenas dimensionais 
 - **Captura Diegética no Mapa:** Ao derrotar o Guardião da Fenda, a Pokébola apropriada ao nível do jogador é arremessada no chão do mapa com física e animação de balanço em 3 estágios.
 - **Regra de Compensação por Pokémon Repetido:**
   - Se o jogador capturar um Pokémon que **já possui registrado na Pokédex**, recebe a bonificação escalonada de **Moedas** (para Melhorias permanentes) e **Tickets** (para a Roleta Gacha) conforme o estágio do monstro capturado.
+  - Toda captura bem-sucedida também concede a **Recompensa de Caçador (Gold Bounty)**, que SOMA com a bonificação de repetido: Normal `+250` (Estágio 1) · `+1.200` (Estágio 2) · `+3.000` (Estágio 3) · Lendário `+8.000`.
   - Se for um Pokémon **inédito**, registra a nova espécie na Pokédex permanente e desbloqueia seu ancestral de Estágio 1 na lista de iniciais jogáveis.
-  - Se for uma versão **Shiny**, registra na coleção Shiny permanente com brilho estelar.
+  - Se for uma versão **Shiny**, não é capturável: ao abater, concede **+5.000 Tickets de Roleta**.
 - **Transição Contínua & Retorno Seguro ao Mapa Principal:**
   - Ao concluir a batalha e a sequência diegética da Pokébola, a arena dimensional é encerrada de forma fluida (`World.setArena(null)`), restaurando com precisão o bioma original, reposicionando o Treinador em suas coordenadas anteriores e devolvendo a horda de monstros sem interrupção do loop de combate.
 

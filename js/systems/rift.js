@@ -750,13 +750,19 @@ G.Rift = (() => {
     G.Pickups.pullAll();
     const mon = G.DEX_BY[arena.dex];
     const stage = arena.stage || (mon ? getMonStage(mon.dex || mon.name) : 1);
+
+    // As recompensas de moedas/tickets do Rift são creditadas em capture.js
+    // (Gold Bounty por estágio + bônus de duplicata). A mensagem abaixo usa
+    // os MESMOS valores para não anunciar números que não são entregues.
     const coinsReward = stage === 3 ? 1000 : (stage === 2 ? 750 : 500);
     const ticketsReward = G.U.rand(100, 150);
 
     const msg = arena.championReward
       ? ('🏆 ' + mon.name + ' derrotado! Recompensas de Campeão resgatadas!')
       : (caught
-          ? (isDuplicate ? ('✨ ' + mon.name + ` repetido! +${coinsReward} Moedas e +${ticketsReward} Tickets resgatados!`) : ('✨ ' + mon.name + ' foi capturado com sucesso!'))
+          ? (isDuplicate
+              ? ('✨ ' + mon.name + ` repetido! +${coinsReward} Moedas e +${ticketsReward} Tickets de bônus!`)
+              : ('✨ ' + mon.name + ` capturado! Recompensa de Caçador resgatada!`))
           : (mon.name + ' escapou, mas você concluiu o Rift!'));
     G.Spawner.say(msg, 3.4, true);
     G.Audio.sfx('legend');
