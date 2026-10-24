@@ -24,6 +24,7 @@ docs/CONTACTOS_CREADORES.md
 .env.*
 run-claude.bat
 run-claude.ps1
+iniciar_claude_opus.bat
 tools/ask_claude.js
 
 # Caché local de wrangler (Cloudflare)
