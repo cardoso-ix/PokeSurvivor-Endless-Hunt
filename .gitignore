@@ -35,3 +35,7 @@ tools/ask_claude.js
 
 # Caché local de wrangler (Cloudflare)
 .wrangler/
+
+# Estado local do Agent Manager (worktrees, sessões, agent-manager.json).
+# É estado de execução da máquina, não faz parte do jogo.
+.kilo/

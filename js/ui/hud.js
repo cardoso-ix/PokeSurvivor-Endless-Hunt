@@ -1365,7 +1365,7 @@ G.HUD = (() => {
       const tray = document.getElementById('hud-skills-tray');
       if (tray && pl.slots) {
         const isOvercharge = pl.level >= 20;
-        const isCombo = true; // Todos os ataques disparam juntos desde o Nível 1
+        const isCombo = (pl.level >= 20 || pl.quadComboActive); // Super Combo: todos os slots disparam juntos
         const maxSlots = pl.maxMoves || 4;
 
         // Atualiza cabeçalho do combo
@@ -1378,12 +1378,12 @@ G.HUD = (() => {
         }
         if (comboTitle) {
           comboTitle.textContent = isOvercharge
-            ? '⚡ SOBRECARGA ATIVA · ÁREA +20% | RECARGA -15% ⚡'
-            : '⚔️ DISPARO SIMULTÂNEO · TODOS OS ATAQUES ATIVOS';
+            ? '⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡'
+            : '⚔️ ATAQUES PARA COMBAR · ESCOLHA O SLOT (1-4)';
         }
         if (comboBadge) {
           comboBadge.textContent = isOvercharge
-            ? '🔥 SOBRECARGA'
+            ? '🔥 COMBANDO JUNTOS · +20% ÁREA · -15% RECARGA'
             : `NV. ${pl.level}/20`;
         }
 
@@ -1409,7 +1409,9 @@ G.HUD = (() => {
 
             if (m) {
               const isMax = m.def && m.lvl >= m.def.maxLvl;
-              cardEl.className = `hud-skill-card ${i === pl.active || isCombo ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
+              // No Super Combo (Nv 20+) todos os cards ficam ativos; antes disso,
+              // só o slot selecionado fica ativo (a seleção é feita com 1-4/Q/E).
+              cardEl.className = `hud-skill-card ${(i === pl.active || isCombo) ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
               cardEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${m.name} (Nv. ${m.lvl})` : `${m.name} (Nv. ${m.lvl})`;
 
               // 1. Ícone

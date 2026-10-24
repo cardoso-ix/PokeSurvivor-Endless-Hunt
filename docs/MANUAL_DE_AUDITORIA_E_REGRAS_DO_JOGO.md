@@ -209,10 +209,23 @@ Assim que o jogador atinge o **Nível 20 na partida** (`pl.level >= 20`):
 - Todos os **4 ataques alocados nos slots da barra inferior disparam juntos e simultaneamente**!
 - Cada habilidade mantém seu próprio temporizador de cooldown (`m.cd * pl.cdMul`), disparando assim que estiver pronta de forma 100% paralela.
 
+### 6.1.1. Fonte dos ataques no Super Combo
+O Super Combo percorre os **slots** (`pl.slots`), não a lista de ataques aprendidos (`pl.moves`).
+A diferença importa: um ataque **fundido** (ver 6.3) sai do slot mas continua registrado em `moves`.
+Usar `moves` faria o ataque fundido disparar duas vezes — uma no grupo, outra avulsa.
+
 ### 6.2. Feedback Visual no HUD
 - O cabeçalho do deck muda para: `⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡`.
-- O badge de status exibe: `🔥 COMBANDO JUNTOS`.
+- O badge de status exibe: `🔥 COMBANDO JUNTOS · +20% ÁREA · -15% RECARGA`.
 - Todos os 4 cards de ataques ganham uma **borda dourada cintilante animada** com pulso de energia.
+
+### 6.3. Elo de Fusão (Bonds)
+- Cada **Rift concluído** concede **1 Elo de Fusão** ao jogador (`pl.bonds++` em `js/systems/rift.js`).
+- O Elo abre a tela `scr-bond`, onde o jogador escolhe:
+  - **Unir dois ataques soltos** (`mode: 'pair'`): os dois passam a ocupar **um único slot**, liberando espaço na barra.
+  - **Adicionar um ataque a um grupo já formado** (`mode: 'add'`): o grupo cresce até o limite de `Player.BOND_MAX` (4 ataques).
+- Se não houver dois ataques soltos disponíveis, o Elo fica guardado até o jogador aprender outro ataque.
+- Os ataques de um slot fundido **disparam juntos** quando aquele slot está ativo.
 
 ---
 
@@ -378,16 +391,19 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 
 ## 12. Atualizações Mestres: Gameplay Contínua, Ranking Duplo & Atributos Oficiais
 
-### 12.1. Trava de Escolhas no Nível 20 (Quad-Combo Infinito)
-- Ao atingir o **Nível 20**, a tela modal de escolhas de poderes (Level Up) é automaticamente desativada.
-- Os 4 primeiros poderes escolhidos pelo jogador até o Nv. 20 tornam-se os poderes permanentes da partida e passam a **combar simultaneamente de forma contínua** (`quadComboActive = true`), sem interrupções nem pausas de jogo.
+### 12.1. Super Combo Contínuo no Nível 20
+- Ao atingir o **Nível 20**, os 4 slots da barra passam a **combar simultaneamente de forma contínua** (`quadComboActive = true`), sem interrupções nem pausas de jogo.
+- A tela de Level Up **continua ativa** após o Nv 20: as cartas seguem sendo oferecidas e podem ocupar slots vazios, aplicar melhorias de atributos ou oferecer fusões de golpes.
+- O que muda no Nv 20 é apenas **quem dispara**: antes o jogador escolhe o slot; a partir daí, todos disparam juntos (ver seção 6).
 
 ### 12.2. Calibração Rara de Shinies e Lendários nos Rifts
-- **Comum Normal:** 96.0% das aparições de guardiões em fendas dimensionais.
-- **Lendário Normal:** 2.5% de probabilidade.
-- **Comum Shiny (Brilhante):** 1.3% de probabilidade (aparições eventuais e raras).
+- **Comum Normal:** 94.0% das aparições de guardiões em fendas dimensionais.
+- **Lendário Normal:** 3.8% de probabilidade.
+- **Comum Shiny (Brilhante):** 2.0% de probabilidade (aparições eventuais e raras).
 - **Lendário Shiny:** 0.2% de probabilidade (evento ultrarraro).
 - O fallback de dex completa para variantes shiny foi reduzido de 25% para 2%, garantindo a fidelidade às probabilidades da franquia.
+- **Fonte única:** `BalanceConfig.rewards.rift.rarity` (`js/config/balanceConfig.js`). O sorteio do guardião lê esses valores — não há números fixos duplicados no código.
+- **Trava de progressão:** o Lendário Shiny só passa a aparecer a partir de **30 Rifts** concluídos (`legendaryUnlockRifts`), e o pity de Shiny Comum dispara em **500 Rifts** (`shinyPityRifts`).
 
 ### 12.3. Roleta Gacha Regional e Regra de Desbloqueio do Estágio 1
 - **Filtro Rigoroso por Região:** A seleção de abas na Roleta (Kanto, Johto, Hoenn, etc.) restringe o sorteio exclusivamente à geração correspondente (`gen 1 = Kanto`, `gen 2 = Johto`, etc.).

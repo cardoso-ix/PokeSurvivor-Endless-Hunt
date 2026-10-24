@@ -642,10 +642,21 @@ G.Player = class Player {
     return target;
   }
 
-  /** Movimientos que se lanzan ahora (el grupo del hueco activo, o todos juntos a partir del nivel 20). */
+  /**
+   * Movimientos que se lanzan ahora.
+   *
+   * - Antes del Nv 20 (Super Combo): sólo el grupo del hueco activo. El jugador
+   *   elige con las teclas 1-4, con Q/E/Tab o tocando/clicando o card do HUD.
+   * - A partir do Nv 20: todos os grupos dos slots disparam em paralelo
+   *   (Super Combo dos 4 ataques). Usa `slots` e nao `moves` porque `moves`
+   *   guarda tambem os movimentos que foram fundidos num grupo (saiam dos
+   *   slots, mas continuam em `moves`).
+   */
   activeGroup() {
     if (this.level >= 20 || this.quadComboActive) {
-      return this.moves;
+      const all = [];
+      for (const g of this.slots) for (const m of g) all.push(m);
+      return all;
     }
     return this.slots[this.active] || [];
   }

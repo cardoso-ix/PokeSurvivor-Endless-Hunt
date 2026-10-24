@@ -142,8 +142,8 @@ Ao atingir 100% de energia de Mega e pressionar [ESPAÇO] ou o botão no HUD, o 
 - **Deck de Ataques do Super Combo (`.hud-combo-container`):**
   - **Exibição Contínua dos Ataques:** Mostra todos os ataques que o jogador pegou para combar, com **Ícone Pixel Art**, **Nome Completo** (ex: *Chicote de Vinha*, *Folha Navalha*, *Bomba de Lodo*) e **Nível Atual** em badge destacado (ex: `NV. 3`, `NV. 5 MAX`).
   - **Status de Combagem em Tempo Real:**
-    - Antes do Nível 20: exibe o cabeçalho `⚔️ ATAQUES PARA COMBAR` com badge dinâmico do nível atual (`NV. X/20`).
-    - A partir do Nível 20: desbloqueia o **Super Combo**, ativando o cabeçalho `⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡` e o badge `🔥 COMBANDO JUNTOS`, envolvendo todos os 4 cards com borda dourada cintilante e disparando todos os ataques simultaneamente!
+    - Antes do Nível 20: exibe o cabeçalho `⚔️ ATAQUES PARA COMBAR · ESCOLHA O SLOT (1-4)` com badge dinâmico do nível atual (`NV. X/20`).
+    - A partir do Nível 20: desbloqueia o **Super Combo**, ativando o cabeçalho `⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡` e o badge `🔥 COMBANDO JUNTOS · +20% ÁREA · -15% RECARGA`, envolvendo todos os 4 cards com borda dourada cintilante e disparando todos os ataques simultaneamente!
   - **Slots Vazios Informativos:** Slots ainda não preenchidos exibem `[SLOT X: Vazio]` para orientar o jogador sobre quantas vagas restam para fechar o combo.
 - **Botão Mega Físico (`#hud-mega-btn`):** 3 estados reativos (Carregando com porcentagem, Pronto com pulso dourado pulsante e Ativo com cronômetro regressivo).
 - **Painel de Atributos (`#stats-rpg-panel`):** Exibe no canto da tela os 8 status matemáticos da partida em tempo real:
@@ -258,8 +258,9 @@ O Painel de Administração oferece controle total sobre todos os subsistemas do
 ## ⚖️ Sistema de Balanceamento & Economia Hardcore
 
 O PokéSurvivor opera sob uma filosofia **Hardcore Roguelite** (desafiador, punitivo, balanceado e recompensador):
-- **Disparo Contínuo desde o Nv. 1:** Todos os golpes adquiridos disparam simultaneamente respeitando seus tempos de recarga individuais.
-- **Sobrecarga no Nível 20:** Concede bônus passivo global de **+20% de área** e **-15% de tempo de recarga**, liberando o 4º slot caso ainda esteja vazio.
+- **Seleção de Slot de Ataque:** Antes do Nível 20, apenas o grupo de ataques do slot ativo dispara. O jogador troca de slot com as teclas `1`–`4`, com `Q`/`E`/`Tab` ou tocando/clicando no card do HUD.
+- **Super Combo no Nível 20:** Desbloqueia o disparo simultâneo de **todos** os slots, cada golpe respeitando seu próprio tempo de recarga. Concede também **+20% de área** e **-15% de tempo de recarga**, liberando o 4º slot caso ainda esteja vazio.
+- **Elo de Fusão (Bonds):** Cada Rift concluído concede um Elo de Fusão. O jogador escolhe dois ataques soltos para uni-los num único slot (liberando espaço na barra) ou adiciona um ataque a um grupo já formado (até 4 ataques por slot). Os ataques fundidos disparam juntos quando o slot está ativo.
 - **Poder Real de Prestígio:** Pokémons Shiny recebem **+25% Dano / +10% HP / +5% Velocidade**; Lendários recebem **+20% Dano / +15% HP / +5% Velocidade**; Shiny Lendários (Apex) recebem **+50% Dano / +25% HP / +10% Velocidade** com aura cósmica exclusiva.
 - **Captura Estratégica por Estágios:** Taxas base decrescentes (Estágio 1: 38%, Estágio 2: 28%, Estágio 3: 18%, Shiny: 10%, Lendário: 6%, Shiny Lendário: 2%) com teto rígido de 48% e altas recompensas de Gold Bounty.
 - **Ascensão Exponencial (+1 ao +10):** Custos que escalam de 15.000 até 2.000.000 de moedas nos 9 atributos globais.

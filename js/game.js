@@ -491,9 +491,6 @@ G.Game = (() => {
    * @param quiet  no avisar si todavía no se puede
    */
   function offerBond(quiet = false) {
-    // Como os 4 ataques combam juntos automaticamente a partir do Nível 20,
-    // não há necessidade de pausar a partida com a tela de vínculo de ataques.
-    return;
     if (!pl || pl.bonds <= 0 || pl.dead || (state !== 'playing' && state !== 'held') || G.Rift.inArena) return;
     if (['scr-bond', 'scr-pause', 'scr-item', 'scr-levelup'].some(G.UI.isOpen)) return;
     const opt = pl.bondOptions();

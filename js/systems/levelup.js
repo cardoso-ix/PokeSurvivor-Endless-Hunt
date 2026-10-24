@@ -31,8 +31,8 @@ G.LevelUp = (() => {
   function candidates(pl) {
     const out = [];
 
-    // --- movimientos nuevos ---
-    // Não oferece mais ataques novos a partir do Nível 20 ou com 4 ataques preenchidos
+    // --- movimentos novos ---
+    // Não oferece mais ataques novos quando os 4 slots já estão preenchidos.
     if (pl.slots.length < pl.maxMoves) {
       // Con 2 potenciadores ya no se ofrecen más: los buff no hacen daño y
       // llenar los 4 huecos con ellos deja la run sin salida.

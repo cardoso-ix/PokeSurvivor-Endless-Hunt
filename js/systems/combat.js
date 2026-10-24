@@ -20,8 +20,10 @@ G.Combat = (() => {
 
   function tick(dt, pl, now) {
     if (pl.dead) return;
-    // Disparo Contínuo: todos os ataques aprendidos disparam juntos desde o Nível 1
-    const movesToTick = (pl.moves && pl.moves.length) ? pl.moves : pl.activeGroup();
+    // Só se executa o grupo de ataques ativo (o todos os slots no Super Combo Nv 20).
+    // Ver Player.activeGroup(): antes do Nv 20 o jogador escolhe o grupo com 1-4,
+    // Q/E/Tab ou clicando no card do HUD; a partir do Nv 20 todos disparam juntos.
+    const movesToTick = pl.activeGroup();
     for (const m of movesToTick) tickMove(dt, pl, m, now);
   }
 
