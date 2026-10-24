@@ -51,54 +51,11 @@ G.LevelUp = (() => {
       }
     }
 
-        // --- cartas de evolução de espécie do Pokémon (Prioridade Máxima) ---
-    const getEvo = (typeof getEvolutionData === 'function' ? getEvolutionData :
-                    (typeof G === 'object' && G.getEvolutionData) ? G.getEvolutionData :
-                    (typeof window !== 'undefined' && window.getEvolutionData) ? window.getEvolutionData : null);
-    if (getEvo) {
-      const currentSpecies = pl.species || (pl.mon && pl.mon.name ? pl.mon.name.toLowerCase() : '');
-      const evoRaw = getEvo(currentSpecies);
-      if (evoRaw) {
-        const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
-        const isSecondEvolution = (pl.currentEvolutionStage >= 2) || (pl.evolutionHistory && pl.evolutionHistory.length >= 2);
-        // Permite evolução a partir do Nível 5 (estágio 1->2) e Nível 12 (estágio 2->3)
-        const reqLevel = isSecondEvolution ? 12 : 5;
-
-        for (const evo of evoList) {
-          const alreadyReached = pl._milestonesReached && pl._milestonesReached.has('evo_' + evo.next.toLowerCase());
-          if (pl.level >= reqLevel && !alreadyReached) {
-            let nextMon = null;
-            if (typeof G === 'object' && Array.isArray(G.DEX)) {
-              nextMon = G.DEX.find(p => p.name.toLowerCase() === evo.next.toLowerCase());
-            }
-            if (!nextMon && typeof G === 'object' && G.DEX_BY && typeof evo.next === 'number') {
-              nextMon = G.DEX_BY[evo.next];
-            }
-            const name = nextMon ? nextMon.name : (evo.next.charAt(0).toUpperCase() + evo.next.slice(1));
-            const primaryType = nextMon && nextMon.types ? nextMon.types[0] : 'normal';
-            const color = (G.U && G.U.TYPE_COLOR) ? (G.U.TYPE_COLOR[primaryType] || '#ffd23f') : '#ffd23f';
-
-            out.push({
-              w: 300,
-              type: 'EVOLUTION',
-              key: 'evo_mon:' + evo.next.toLowerCase(),
-              targetSpeciesId: evo.next,
-              dex: nextMon ? nextMon.dex : null,
-              icon: 'type:' + primaryType,
-              color: '#ffd700',
-              tag: '🌟 EVOLUÇÃO',
-              title: 'Evolução: ' + name,
-              desc: 'Evolua para ' + name + '! Aumenta atributos base e adapta seus tipos elementais.',
-              apply: p => {
-                p._milestonesReached = p._milestonesReached || new Set();
-                p._milestonesReached.add('evo_' + evo.next.toLowerCase());
-                p.evolveTo(evo.next);
-              }
-            });
-          }
-        }
-      }
-    }
+    // A evolução de ESPÉCIE é AUTOMÁTICA (marcos dos Níveis 5, 12 e 21) e não é
+    // oferecida como carta: os cards de Level Up ficam dedicados a ataques,
+    // fusões de golpes e melhorias de atributos (README.md).
+    // O tipo 'EVOLUTION' continua suportado pela UI e pelo modo admin, mas não é
+    // sorteado aqui — a evolução acontece sozinha em player.checkEvolutionMilestones().
 
     // --- evoluciones: movimiento al máximo + su condición cumplida ---
     const waiting = {};                   // stat -> movimiento que la espera para evolucionar

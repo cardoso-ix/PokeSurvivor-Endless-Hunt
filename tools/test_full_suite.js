@@ -245,58 +245,45 @@ test('Arquivos css/hud.css e marcação em dev.html e index.html existem', () =>
 });
 
 test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
-  // Simula instância mock de Player com Bulbasaur
+  // Usa a implementação REAL de player.js (não uma cópia mock): o gate precisa
+  // proteger a lógica de produção, não uma reimplementação que possa divergir.
+  require('../js/entities/player.js');
+  const RealCheck = global.G.Player.prototype.checkEvolutionMilestones;
+  const RealMilestoneEvo = global.G.Player.prototype.triggerMilestoneEvolution;
+
+  // Instância mock só com o estado que o marco realmente lê.
   const mockPlayer = {
     level: 1,
     species: 'bulbasaur',
     mon: { name: 'Bulbasaur', dex: 1 },
     bodyH: 32,
     x: 100, y: 100,
+    currentEvolutionStage: 1,
+    evolutionHistory: [],
+    moves: [],
+    slots: [],
+    active: 0,
+    quadComboActive: false,
+    atkMul: 1.0,
+    isMegaAscended: false,
+    ascensionTitle: '',
     evolveTo(target) {
       this.species = target.toLowerCase();
       this.mon.name = target.charAt(0).toUpperCase() + target.slice(1);
+      this.currentEvolutionStage = (this.currentEvolutionStage || 1) + 1;
+      this.evolutionHistory = this.evolutionHistory || [];
+      this.evolutionHistory.push(target);
     },
-    checkEvolutionMilestones: null,
-    triggerMilestoneEvolution: null,
-    triggerMegaAscension: null
-  };
-
-  // Carrega métodos da classe Player
-  mockPlayer.checkEvolutionMilestones = function() {
-    this._milestonesReached = this._milestonesReached || new Set();
-
-    if (this.level >= 5 && !this._milestonesReached.has(5)) {
-      this._milestonesReached.add(5);
-      const evoRaw = global.getEvolutionData(this.species);
-      if (evoRaw) {
-        const next = Array.isArray(evoRaw) ? evoRaw[0].next : evoRaw.next;
-        this.evolveTo(next);
-      }
-    }
-
-    if (this.level >= 12 && !this._milestonesReached.has(12)) {
-      this._milestonesReached.add(12);
-      const evoRaw = global.getEvolutionData(this.species);
-      if (evoRaw) {
-        const next = Array.isArray(evoRaw) ? evoRaw[0].next : evoRaw.next;
-        this.evolveTo(next);
-      }
-    }
-
-    if (this.level >= 20 && !this._milestonesReached.has(20)) {
-      this._milestonesReached.add(20);
-      this.quadComboActive = true;
-    }
-
-    if (this.level >= 21 && !this._milestonesReached.has(21)) {
-      this._milestonesReached.add(21);
+    triggerQuadComboUnlock() { this.quadComboActive = true; },
+    triggerMegaAscension() {
       this.isMegaAscended = true;
       this.atkMul = (this.atkMul || 1.0) * 1.5;
       this.ascensionTitle = 'Mega ' + this.mon.name;
     }
   };
-
-  mockPlayer.activeGroup = function() {
+  mockPlayer.checkEvolutionMilestones = function () { return RealCheck.call(this); };
+  mockPlayer.triggerMilestoneEvolution = function (next, lvl) { return RealMilestoneEvo.call(this, next, lvl); };
+  mockPlayer.activeGroup = function () {
     if (this.level >= 20 || this.quadComboActive) return this.moves;
     return this.slots[this.active] || [];
   };

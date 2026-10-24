@@ -1765,13 +1765,16 @@ G.Player = class Player {
           // No jogo padrão oficial do PokéSurvivor:
           // 1º Salto (Estágio 1 -> 2): Nível 5 (ex: Bulbasaur -> Ivysaur, Pikachu -> Raichu, Gible -> Gabite)
           // 2º Salto (Estágio 2 -> 3): Nível 12 (ex: Ivysaur -> Venusaur, Gabite -> Garchomp)
+          // Os níveis vêm de BalanceConfig.player.evolution (fonte única de verdade).
+          const evoCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+          const evoLvl = (evoCfg && evoCfg.player && evoCfg.player.evolution) || {};
           const isSecondEvolution = (this.currentEvolutionStage >= 2) || (this.evolutionHistory && this.evolutionHistory.length >= 2);
           const lvl = adminEvoMode === 'instant' ? 1 :
                       (adminEvoMode === 'official' && evo.level) ? evo.level :
-                      (isSecondEvolution ? 12 : 5);
-          // Permite que a carta de evolução seja oferecida no LevelUp do nível exato (5 e 12),
-          // e se o jogador passar sem escolher, a evolução automática assume no nível seguinte.
-          const triggerLvl = adminEvoMode === 'instant' ? 1 : (lvl + 1);
+                      (isSecondEvolution ? (evoLvl.stage3Level || 12) : (evoLvl.stage2Level || 5));
+          // A evolução é AUTOMÁTICA e dispara exatamente no marco (5, 12 e 21).
+          // Não há carta de evolução: os cards de Level Up ficam para ataques e atributos.
+          const triggerLvl = adminEvoMode === 'instant' ? 1 : lvl;
 
           if (this.level >= triggerLvl && !this._milestonesReached.has('evo_' + evo.next.toLowerCase())) {
             targetEvo = evo;
@@ -1788,14 +1791,19 @@ G.Player = class Player {
     }
 
     // Marco Nível 20: Super Combo dos 4 Ataques Ativos juntos
-    if (this.level >= 20 && !this._milestonesReached.has(20)) {
-      this._milestonesReached.add(20);
+    const evoCfg2 = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+    const evoLvl2 = (evoCfg2 && evoCfg2.player && evoCfg2.player.evolution) || {};
+    const quadLvl = evoLvl2.quadComboLevel || 20;
+    const apexLvl = evoLvl2.apexLevel || 21;
+
+    if (this.level >= quadLvl && !this._milestonesReached.has(quadLvl)) {
+      this._milestonesReached.add(quadLvl);
       this.triggerQuadComboUnlock();
     }
 
     // Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
-    if (this.level >= 21 && !this._milestonesReached.has(21)) {
-      this._milestonesReached.add(21);
+    if (this.level >= apexLvl && !this._milestonesReached.has(apexLvl)) {
+      this._milestonesReached.add(apexLvl);
       this.triggerMegaAscension();
     }
   }

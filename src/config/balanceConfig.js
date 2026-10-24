@@ -114,8 +114,8 @@ const BalanceConfig = {
     megaMode: {
       duration: 10.0,
       dmgMul: 2.5,
-      dmgTakenMul: 0.45,
-      passiveProtMul: 0.70,
+      dmgTakenMul: 0.20,    // Recebe 20% do dano (redução de 80% — ver README.md)
+      passiveProtMul: 0.20,
       speedMul: 2.0,
       cdMul: 0.5,
       areaMul: 1.35,
@@ -123,6 +123,15 @@ const BalanceConfig = {
       critMultiplier: 2.0,
       minReduction: 0.80,
       maxReduction: 0.92
+    },
+    // Marcos de Evolução Automática (fonte única de verdade)
+    // README.md: "Marcos de Evolução Automática (Níveis 5, 12 e 21)".
+    // As cartas de Level Up NÃO oferecem evolução: os marcos disparam sozinhos.
+    evolution: {
+      stage2Level: 5,    // 1º salto (Estágio 1 -> 2)
+      stage3Level: 12,   // 2º salto (Estágio 2 -> 3)
+      quadComboLevel: 20,
+      apexLevel: 21
     },
     // Travas e limites máximos de segurança
     caps: {
