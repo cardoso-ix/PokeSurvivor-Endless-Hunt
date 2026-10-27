@@ -1,7 +1,15 @@
 # Publicar el juego gratis en GitHub Pages
 
 El juego es una web estática: GitHub Pages la sirve gratis en
-`https://jpter78.github.io/pokesurvivor/`.
+`https://pokesurvivor.com/`.
+
+> [!IMPORTANT]
+> **El repositorio que sirve el dominio es `JPTER78/pokesurvivor`, no este.**
+> Este repositorio (`cardoso-ix/PokeSurvivor-Endless-Hunt`) es la línea **pt-BR + inglés**:
+> tiene `js/config/balanceConfig.js` como fuente única del balanceamento y el sistema
+> Mega Overdrive. El de GitHub Pages es la línea **multilingue**, con Firebase, el evento
+> de Halloween y `js/data/changelog.js` con las noticias de la web. Los dos evolucionan
+> por separado y **no están sincronizados**.
 
 ## 1. Crear el repositorio (una vez)
 
@@ -64,6 +72,13 @@ git push
 ```
 
 GitHub Pages se actualiza solo en uno o dos minutos.
+
+### Publicar en la VPS (Coolify) — es otro camino
+
+Lo anterior es **GitHub Pages**. La versión que roda na **VPS com Docker + Coolify**
+é outra implantação, com o mesmo código mas outra build. Como o repositório **não tem
+webhook do GitHub registrado**, o `git push` **não** publica lá: é preciso acionar o
+deploy à mão. Ver [`DEPLOY_COOLIFY.md`](DEPLOY_COOLIFY.md).
 
 ## Recordatorios
 

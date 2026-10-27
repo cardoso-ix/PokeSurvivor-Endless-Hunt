@@ -6,7 +6,7 @@
 [![Docker Ready](https://img.shields.io/badge/Docker-Coolify%20Ready-2496ED.svg)](docs/DEPLOY_COOLIFY.md)
 [![Language](https://img.shields.io/badge/Language-Portugu%C3%AAs%20do%20Brasil%20(pt--BR)-green.svg)](#-localização-completa-em-português-do-brasil-pt-br)
 
-*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive Elemental dos 18 tipos, sistema de captura diegética em Rifts, evolução automática e salas cooperativas online.
+*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive Elemental dos 18 tipos, sistema de captura diegética em Rifts, evolução automática, criação de personagem com trio inicial em fila indiana e salas cooperativas online.
 
 Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FPS estáveis sem frameworks pesados de frontend.
 
@@ -22,10 +22,15 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 
 | Ambiente | URL | Descrição |
 | :--- | :--- | :--- |
-| **Produção Online (VPS Coolify)** | [http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/](http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/) | Versão oficial com deploy contínuo |
+| **Produção Online (VPS Coolify)** | [http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/](http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/) | Versão oficial na VPS. **O deploy é manual** (sem webhook do GitHub): ver [`docs/DEPLOY_COOLIFY.md`](docs/DEPLOY_COOLIFY.md) |
 | **Versão de Desenvolvimento (VPS)** | [http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/dev.html](http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/dev.html) | Acesso direto com scripts modulares |
-| **Ambiente Local (PC)** | [http://localhost:8080/index.html](http://localhost:8080/index.html) | Servidor local no computador de desenvolvimento |
-| **Rede Local Wi-Fi (Mobile/LAN)** | [http://192.168.0.107:8080/index.html](http://192.168.0.107:8080/index.html) | Acesso via smartphone ou tablet na mesma rede |
+| **Ambiente Local (PC)** | [http://localhost:8080/index.html](http://localhost:8080/index.html) | Servidor local no computador de desenvolvimento (`node tools/serve.js`) |
+| **Painel do Coolify** | [http://108.174.145.77:8000](http://108.174.145.77:8000) | Controle de deploy da VPS |
+
+> **Duas linhas de código, dois endereços.** Este repositório é a linha **pt-BR + inglês**.
+> O domínio [`pokesurvivor.com`](https://pokesurvivor.com/) é servido por **GitHub Pages**
+> a partir de um repositório **diferente** (`JPTER78/pokesurvivor`), que é a linha
+> multilingue com Firebase e eventos especiais. As duas **não** são sincronizadas.
 
 ---
 
@@ -221,12 +226,33 @@ As Fendas Dimensionais (Rifts) oferecem desafios épicos em arenas dimensionais 
 - **Transição Contínua & Retorno Seguro ao Mapa Principal:**
   - Ao concluir a batalha e a sequência diegética da Pokébola, a arena dimensional é encerrada de forma fluida (`World.setArena(null)`), restaurando com precisão o bioma original, reposicionando o Treinador em suas coordenadas anteriores e devolvendo a horda de monstros sem interrupção do loop de combate.
 
+---
+
+### 8. 🎮 Criação de Personagem & Fila Indiana do Trio (Gerações 1 a 9)
+O jogador deixa de começar a partida como um Pokémon solto: agora **cria o próprio Treinador** e escolhe um **trio inicial** que o acompanha durante toda a run.
+
+- **Tela de Criação (`js/ui/intro_creation.js`):**
+  - **Etapa 1 — Treinador:** abas **Menino** e **Menina** com os 8 protagonistas canônicos (Red, Ethan, Brendan, Lucas, Leaf, Lyra, May e Dawn), desenhados em pixel art no próprio canvas.
+  - **Etapa 2 — Draft dos 3 Iniciais:** escolha livre entre os **27 iniciais oficiais das 9 gerações** (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea), com filtro por geração, 3 slots visuais e contador `[ Selecionados: X / 3 ]`.
+  - O **1º escolhido vira o parceiro principal** (vanguarda) da partida.
+- **Fila Indiana Segura (`posHistory` em `js/entities/player.js`):**
+  - O Treinador é a entidade `game.player` — mantém 100% da física nativa, colisões de parede, magnetismo de EXP e os 60 FPS.
+  - Os 3 companheiros seguem em fila indiana por **histórico de posição** (atrasos de 12, 24 e 36 frames), sem molas nem cálculos instáveis.
+- **Ataques autônomos e evolução do trio:**
+  - Cada membro dispara sozinho contra o alvo mais próximo, com o projétil na cor do seu **tipo elementar**.
+  - Ao subir de nível podem sair cartas de **reforço** (`squad_up`: +25% dano, −10% recarga, +1 projétil a cada 2 níveis) e cartas de **evolução** (`squad_evo`: ex. Charmander ➔ Charmeleon, +35% dano e +30 de alcance).
+- **Persistência:** `trainer`, `trainerGender` e `squad` ficam gravados no save e podem ser alterados depois em **Equipe e Treinador**, no menu principal.
+- **Integrada ao fluxo existente:** aparece automaticamente após o primeiro login e convive com a tela de personalidade e a trava de Estágio 1 (o trio só aceita iniciais de Estágio 1).
+
 
 ---
 
 ## 🚀 Como Colocar Online na VPS com Coolify
 
-O projeto está configurado para deploy contínuo em VPS com **Coolify** ou **Docker Compose**:
+O projeto está configurado para deploy em VPS com **Coolify** ou **Docker Compose**.
+
+> [!IMPORTANT]
+> **O deploy desta aplicação é MANUAL.** O repositório **não** tem webhook do GitHub registrado (`gh api repos/cardoso-ix/PokeSurvivor-Endless-Hunt/hooks` devolve `[]`), então um `git push` para `main` **não** publica sozinho. É preciso acionar o deploy no painel do Coolify ou pelo webhook de deploy. Ver [docs/DEPLOY_COOLIFY.md](docs/DEPLOY_COOLIFY.md) para os três caminhos (painel, webhook e API).
 
 ### Opção 1: Deploy com 1 Clique no Coolify
 1. No painel do Coolify, crie um novo recurso: **+ New Resource** ➔ **Public Repository**.
@@ -247,6 +273,15 @@ cd PokeSurvivor-Endless-Hunt
 docker compose up -d --build
 ```
 O jogo estará ativo na porta `80` com Nginx otimizado e compressão Gzip.
+
+### Verificação do deploy
+```bash
+# 1. Confere a versão publicada (deve bater com o version.json local)
+node tools/wait_for_vps_deploy.js
+
+# 2. Valida a aplicação completa no navegador real
+node tools/verify_vps_deploy.js
+```
 
 ---
 
@@ -317,8 +352,12 @@ js/
   data/                 # evolutions (árvore genealógica das 9 gens), pokedex, moves, mega_ultimates
   entities/             # player, enemy, projectile, vfx, fx, pickup
   systems/              # capture, rift, mega, combat, spawner, levelup, weather, interact, judgment
-  ui/                   # hud, menu, test, run-ui, gacha-ui, settings-ui, goals-ui, social-ui
+  ui/                   # hud, menu, intro_creation, test, run-ui, gacha-ui, settings-ui, goals-ui, social-ui
 tools/                  # Bateria de testes automatizados e scripts de build
+  test_intro_and_squad_trail.js   # Lógica da fila indiana, trio, upgrades e evolução do esquadrão
+  test_intro_screen_browser.js     # Tela de criação de personagem no navegador real
+  test_index_flow.js               # Fluxo login -> criação -> menu no navegador real
+docs/                   # Guias de deploy, domínio, SEO, Firebase e auditoria das regras
 ```
 
 ---
