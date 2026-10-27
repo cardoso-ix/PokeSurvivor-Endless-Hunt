@@ -39,9 +39,23 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 | `Q` / `E` / `Tab` | Alternar entre ataques anterior / próximo |
 | `+` / `−` | Ajustar escala da câmera (zoom calibrado) |
 | `Esc` / `P` | Pausar / Continuar partida |
-| `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível |
+| `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível (inclui reforço e evolução do trio) |
 | `R` | Trocar opções de cartas de nível (Reroll) |
 | `F2` / `'` | Abrir Painel de Administração / Depuração |
+
+## 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)
+
+- **Estilo clássico Game Boy / DS (`js/ui/intro_creation.js`):**
+  - **Escolha do Treinador:** abas **Menino** e **Menina** com os 8 protagonistas canônicos (Red, Ethan, Brendan, Lucas, Leaf, Lyra, May e Dawn) em pixel art desenhada no canvas.
+  - **Draft livre dos 3 Iniciais (27 Pokémon):** escolha livre de 3 companheiros entre todos os iniciais das 9 gerações (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar e Paldea), com filtro por geração.
+  - O primeiro Pokémon escolhido vira o **parceiro principal** (vanguarda) da partida.
+- **Fila Indiana Segura (`posHistory` em `js/entities/player.js`):**
+  - O Treinador é a entidade `game.player`, preservando 100% da física nativa, colisões de paredes, magnetismo de EXP e movimentação a 60 FPS.
+  - Os 3 Pokémon escoltam em fila indiana fluida com atrasos seguros de histórico (12, 24 e 36 frames atrás), sem molas ou cálculos instáveis.
+- **Ataques autônomos e evolução do trio:**
+  - Cada membro dispara autonomamente contra o monstro mais próximo, com o projétil na cor do seu tipo elementar.
+  - Ao subir de nível, o jogador pode adquirir cartas de reforço (`squad_up`) e cartas de evolução de espécie (`squad_evo`), promovendo os companheiros (ex.: Charmander ➔ Charmeleon) ao longo da partida.
+  - As escolhas ficam gravadas no save (`trainer`, `trainerGender`, `squad`) e podem ser alteradas depois em **Equipe e Treinador**, no menu principal.
 
 **No Celular ou Tablet (Modo Paisagem/Horizontal):**  
 Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque no botão circular do Mega no canto inferior para acionar o poder supremo, use a bandeja inferior para alternar ataques e acesse a pausa pelo topo. O jogo pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").

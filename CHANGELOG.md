@@ -4,6 +4,17 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 
 ---
 
+## [Não Lançado] — 27/10/2026
+
+### 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)
+- **Tela de Criação (`js/ui/intro_creation.js`):** escolha do Treinador (8 protagonistas, abas Menino/Menina) e draft livre de 3 iniciais entre os 27 oficiais das 9 gerações, com filtro por geração e contador de seleção.
+- **Fila Indiana Segura:** o Treinador mantém toda a física nativa; os 3 companheiros escoltam em trilha com atrasos de histórico de 12, 24 e 36 frames.
+- **Ataques autônomos e evolução do trio:** projéteis na cor do tipo elementar de cada membro, cartas de reforço (`squad_up`) e de evolução de espécie (`squad_evo`) ao subir de nível.
+- **Persistência:** `trainer`, `trainerGender` e `squad` gravados no save, editáveis em **Equipe e Treinador** no menu principal.
+- **Correções de integração:** `hitKnock` → `knock` (o knockback era descartado), SFX `powerup`/`unselect` adicionados ao mapa de áudio, campos do trio incluídos em `newSave()` (migração de saves antigos) e tela de login escondida antes da criação de personagem.
+
+---
+
 ## [Versão Recente] — 19/10/2026
 
 ### 🇧🇷 Localização & Tradução Integral (pt-BR)

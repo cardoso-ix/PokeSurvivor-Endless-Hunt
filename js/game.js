@@ -154,6 +154,13 @@ G.Game = (() => {
     runReal = performance.now(); tampered = false;
 
     pl = new G.Player(mon, perks, !!save.partnerShiny && G.DB.ownsShiny(mon.dex));
+    if (save.trainer) pl.trainerId = save.trainer;
+    if (save.squad && Array.isArray(save.squad)) {
+      pl.initSquad(save.squad);
+      if (typeof G.Sprites === 'object' && typeof G.Sprites.preload === 'function') {
+        G.Sprites.preload(save.squad, 8000);
+      }
+    }
     banked = { t1: 0, t10: 0 };
     caught = [];
     // Atajos: movimientos con hueco fijo (save.pbind[dex] = [id del 1, id del 2, ...]),
@@ -1124,6 +1131,14 @@ G.Flow = {
   toLogin() { G.Audio.music('village'); G.LoginUI.open(); },
   afterLogin() {
     G.Audio.music('village');
+    if (!G.DB.save.squad || !Array.isArray(G.DB.save.squad) || G.DB.save.squad.length < 3) {
+      if (G.IntroCreationUI && G.IntroCreationUI.open) {
+        // Esconde a tela de login: a criação de personagem é o próximo passo.
+        if (G.UI && G.UI.hide) G.UI.hide('scr-login');
+        G.IntroCreationUI.open({ onComplete: () => this.goMenu() });
+        return;
+      }
+    }
     if (!G.DB.save.partner) G.TestUI.start();
     else this.goMenu();
   },

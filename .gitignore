@@ -21,6 +21,7 @@ desktop.ini
 /*.png
 !assets/*.png
 !assets/**/*.png
+/shots/
 
 # Contactos privados (emails de terceros): nunca al repositorio público
 docs/CONTACTOS_CREADORES.md

@@ -195,6 +195,8 @@
       menu: {
         play: "Jogar",
         playSub: "Entrar na masmorra",
+        team: "Equipe e Treinador",
+        teamSub: "Avatar e 3 Iniciais",
         pokemon: "Pokémon",
         pokemonSub: "Sua coleção",
         upgrades: "Melhorias",
@@ -398,6 +400,8 @@
       menu: {
         play: "Play",
         playSub: "Enter the dungeon",
+        team: "Team and Trainer",
+        teamSub: "Avatar and 3 Starters",
         pokemon: "Pokémon",
         pokemonSub: "Your collection",
         upgrades: "Upgrades",
