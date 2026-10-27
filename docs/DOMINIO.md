@@ -1,17 +1,26 @@
 # Poner pokesurvivor.com en marcha
 
-El dominio está comprado en **Cloudflare** y todavía no apunta a ningún sitio.
+El dominio está comprado en **Cloudflare** y ya apunta a **GitHub Pages**.
 Todo lo del código ya está preparado: sólo faltan los pasos marcados como **TÚ**
-(los que necesitan tu cuenta) y el paso final, que hago yo cuando me digas.
+(los que necesitan tu cuenta).
 
-Estado a 10-10-2026:
+> [!IMPORTANT]
+> **Ojo con el repositorio.** `pokesurvivor.com` lo sirve el repositorio
+> **`JPTER78/pokesurvivor`** (GitHub Pages), que es una línea de código **distinta** de
+> este repositorio (`cardoso-ix/PokeSurvivor-Endless-Hunt`, la línea pt-BR). Los dos
+> evolucionan por separado y **no están sincronizados**: este repositorio tiene
+> `js/config/balanceConfig.js` y el sistema Mega; el de GitHub Pages tiene el evento
+> de Halloween, Firebase y 7 idiomas. Para publicar en el dominio hay que subir los
+> cambios **al repositorio de GitHub Pages**, no a este.
+
+Estado a 27-10-2026:
 
 - [x] Dominio comprado en Cloudflare (servidores DNS de Cloudflare activos).
-- [x] `pokesurvivor.com` y `www.pokesurvivor.com` añadidos a Firebase → dominios
+- [x] `pokesurvivor.com` e `www.pokesurvivor.com` añadidos a Firebase → dominios
       autorizados (el inicio de sesión con Google funcionará desde el primer día).
 - [x] Páginas en español e inglés, sitemap, robots, 404 e imagen para compartir,
       generadas y probadas (Lighthouse: SEO 100, accesibilidad 100).
-- [x] Script del paso final ensayado: `tools/activar_dominio.sh`.
+- [x] DNS apuntando a las IP de GitHub Pages; HTTPS funcionando.
 - [x] Paso 1 · DNS en Cloudflare (**TÚ**)
 - [x] Paso 2 · Verificar el dominio en GitHub (**TÚ**, recomendado)
 - [x] Paso 3 · Paso final (**YO**): hecho el 10-10-2026, con HTTPS

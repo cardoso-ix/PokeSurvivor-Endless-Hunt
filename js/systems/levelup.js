@@ -57,6 +57,49 @@ G.LevelUp = (() => {
     // O tipo 'EVOLUTION' continua suportado pela UI e pelo modo admin, mas não é
     // sorteado aqui — a evolução acontece sozinha em player.checkEvolutionMilestones().
 
+    // --- Melhorias e Evolução Individual dos 3 Pokémon do Esquadrão ---
+    if (Array.isArray(pl.team) && pl.team.length > 0) {
+      pl.team.forEach((mem, idx) => {
+        // 1. Melhoria de dano e cadência do membro
+        if ((mem.upgrades || 0) < 5) {
+          out.push({
+            w: 12,
+            type: 'squad_up',
+            key: `squad_up:${mem.name}:${idx}`,
+            icon: 'type:' + mem.type,
+            color: G.U && G.U.TYPE_COLOR ? (G.U.TYPE_COLOR[mem.type] || '#38bdf8') : '#38bdf8',
+            tag: `EQUIPE [Nv.${(mem.upgrades || 0) + 1}]`,
+            title: `Reforço: ${mem.name}`,
+            desc: `Melhora o ataque de ${mem.name}: +25% de Dano e -10% de Recarga.`,
+            apply: p => p.upgradeSquadMember(idx)
+          });
+        }
+
+        // 2. Evolução de espécie do membro da equipe
+        const evoRaw = typeof getEvolutionData === 'function' ? getEvolutionData(mem.id || mem.name) : null;
+        if (evoRaw) {
+          const evoList = Array.isArray(evoRaw) ? evoRaw : [evoRaw];
+          for (const evo of evoList) {
+            const reqLvl = (mem.stage || 1) === 1 ? (evo.level || 16) : (evo.level || 32);
+            if (pl.level >= reqLvl) {
+              const nextName = evo.next.charAt(0).toUpperCase() + evo.next.slice(1);
+              out.push({
+                w: 85,
+                type: 'squad_evo',
+                key: `squad_evo:${mem.name}:${evo.next}`,
+                icon: 'type:' + mem.type,
+                color: '#facc15',
+                tag: 'EVOLUÇÃO EQUIPE',
+                title: `${mem.name} ➔ ${nextName}`,
+                desc: `Evolua ${mem.name} para ${nextName}! +35% de Dano e ataques avançados.`,
+                apply: p => p.evolveSquadMember(idx, evo.next)
+              });
+            }
+          }
+        }
+      });
+    }
+
     // --- evoluciones: movimiento al máximo + su condición cumplida ---
     const waiting = {};                   // stat -> movimiento que la espera para evolucionar
     for (const m of pl.moves) {

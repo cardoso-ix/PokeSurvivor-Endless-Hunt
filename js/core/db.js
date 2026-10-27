@@ -124,6 +124,9 @@ G.DB = (() => {
       partnerShiny: false,    // jugar con su versión shiny (si la tienes)
       starter: null,          // dex que te tocó en el test
       personality: null,      // { trait, scores }
+      trainer: null,          // id del entrenador elegido en la creación de personaje
+      trainerGender: null,    // 'male' | 'female'
+      squad: null,            // [dex, dex, dex]: trio inicial que escolta o jogador
       upgrades: {},           // (antiguo) mejoras de la cuenta; ahora van por Pokémon
       pupg: {},               // dex -> { id -> nivel }: mejoras de cada Pokémon
       tickets: { t1: 0, t10: 0 },   // tickets del gacha (x1 y x10)
