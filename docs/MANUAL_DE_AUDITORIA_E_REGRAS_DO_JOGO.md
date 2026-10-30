@@ -18,7 +18,6 @@ Este documento é a referência técnica oficial e absoluta para **auditoria, ba
 10. [Comandos de Auditoria e Depuração no Console (F12)](#10-comandos-de-auditoria-e-depuração-no-console-f12)
 11. [Menu Admin: Gestão de Tickets, Roleta Gacha & Pokédex](#11-menu-admin-gestão-de-tickets-roleta-gacha--pokédex)
 12. [Atualizações Mestres: Gameplay Contínua, Ranking Duplo & Atributos Oficiais](#12-atualizações-mestres-gameplay-contínua-ranking-duplo--atributos-oficiais)
-13. [Criação de Personagem, Trio Inicial & Fila Indiana](#13-criação-de-personagem-trio-inicial--fila-indiana)
 
 ---
 
@@ -441,88 +440,6 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 - **Valorização da Roleta Gacha:** A coleção de Shinies e Lendários é valorizada e centralizada na Roleta da Sorte, tornando os Shinies do mapa no maior evento de obtenção de tickets de todo o jogo.
 
 ---
-
-## 13. Criação de Personagem, Trio Inicial & Fila Indiana
-
-### 13.1. Fluxo de Entrada do Jogador
-- **Ordem:** login → **criação de personagem** (apenas na primeira vez) → menu.
-- O gate é `G.DB.save.squad`: se não houver trio de 3 membros válidos, `G.Flow.afterLogin()` abre a `IntroCreationUI` e esconde a tela de login (`G.UI.hide('scr-login')`).
-- **Sem sessão ativa** (`G.DB.save == null`), a criação chama `G.DB.playAsGuest()` para não perder a escolha.
-- Saves antigos sem os campos novos recebem `trainer`, `trainerGender` e `squad` por migração (incluídos em `newSave()`).
-
-### 13.2. Catálogo de Treinadores (8 Protagonistas Canônicos)
-| Aba | Treinadores | Gerações |
-|---|---|---|
-| **Menino** | Red, Ethan, Brendan, Lucas | 1–4 (Kanto, Johto, Hoenn, Sinnoh) |
-| **Menina** | Leaf, Lyra, May, Dawn | 1–4 (Kanto, Johto, Hoenn, Sinnoh) |
-
-O avatar é **pixel art desenhado em tempo de execução** no canvas (`drawTrainerPixelArt`), com paleta e chapéu característicos de cada personagem. O Treinador é renderizado **à frente** do Pokémon durante a partida.
-
-### 13.3. Draft dos 3 Iniciais (27 across as 9 Gerações)
-| Geração | Região | Iniciais (tipo) |
-|---|---|---|
-| 1 | Kanto | Bulbasaur (grass/poison), Charmander (fire), Squirtle (water) |
-| 2 | Johto | Chikorita (grass), Cyndaquil (fire), Totodile (water) |
-| 3 | Hoenn | Treecko (grass), Torchic (fire), Mudkip (water) |
-| 4 | Sinnoh | Turtwig (grass), Chimchar (fire), Piplup (water) |
-| 5 | Unova | Snivy (grass), Tepig (fire), Oshawott (water) |
-| 6 | Kalos | Chespin (grass), Fennekin (fire), Froakie (water) |
-| 7 | Alola | Rowlet (grass/flying), Litten (fire), Popplio (water) |
-| 8 | Galar | Grookey (grass), Scorbunny (fire), Sobble (water) |
-| 9 | Paldea | Sprigatito (grass), Fuecoco (fire), Quaxly (water) |
-
-- Seleção **livre**: o jogador escolhe 3 quaisquer entre os 27, sem restrição de tipo ou geração.
-- A ordem de escolha **não é fixa**: clicar num inicial já selecionado remove-o da equipe; com 3 já escolhidos, o próximo clique **substitui o slot 3**.
-- O **1º membro escolhido** vira o `partner` (parceiro principal / vanguarda) da partida.
-- Todos os 27 são **Estágio 1**, em conformidade com a trava estrutural da seção 12.3.
-
-### 13.4. Fila Indiana Segura (Trail Follow)
-- Mecanismo: o Treinador grava o próprio trajectory em `posHistory` (buffer circular, `maxHistory = 60` frames).
-- Cada membro do trio persegue uma posição **atrasada** desse histórico:
-
-| Slot | `trailDelay` | Distância equivalente |
-|---|---|---|
-| 1 (vanguarda) | 12 frames | ~0,2 s atrás |
-| 2 | 24 frames | ~0,4 s atrás |
-| 3 | 36 frames | ~0,6 s atrás |
-
-- A interpolação é linear com fator `min(1, 10.0 × dt)` — **sem molas**, sem física própria, sem colisões: o membro **não** empurra nem é empurrado por inimigos ou paredes.
-- O Treinador mantém **100% da física nativa** (`game.player`), incluindo magnetismo de EXP, colisões de parede e a Sentença de Arceus.
-- A orientação do sprite do membro espelha a do Treinador (`anim.dir === 6` ou `svx < -0.1`).
-
-### 13.5. Ataques Autônomos do Trio
-- Cada membro dispara sozinho contra o **monstro mais próximo dentro do seu alcance** (`range`, inicial `280`).
-- Parâmetros iniciais por membro: `damage = 15`, `cooldown = 1.2 s`, `projectiles = 1`, `pierce = 1`.
-- O dano do projétil escala com o multiplicador de ataque do jogador: `dmg = damage × atkMul`.
-- A cor do projétil segue o **tipo elemental primário** do membro.
-- Membros com `stage > 1` ganham `pierce = 2` (atravessam 2 alvos).
-- O knockback aplicado é `knock = 8` (campo `knock` do `G.Projectiles.spawn()` — é o nome correto no motor; `hitKnock` seria descartado em silêncio).
-
-### 13.6. Cartas de Reforço e Evolução do Trio
-| Carta | Peso | Tipo | Efeito |
-|---|---|---|---|
-| **Reforço** (`squad_up`) | 12 | `squad_up` | `damage × 1,25` · `cooldown × 0,90` (piso `0,55 s`) · `range + 20` · `+1` projétil a cada **2 reforços** (máx. 4) |
-| **Evolução** (`squad_evo`) | 85 | `squad_evo` | Avança o espécie 1 estágio · `damage × 1,35` · `range + 30` |
-
-- Limite de **5 reforços** por membro (depois disso a carta de reforço sai do pool).
-- A carta de evolução exige `pl.level ≥ evo.level` (padrão **16** para o Estágio 1, **32** para o Estágio 2).
-- Cada evolução recria o `Animator` de sprite do membro e dispara `shinyGet` + `powerup`.
-
-### 13.7. Pontos de Auditoria no Console (F12)
-```js
-game.player.team            // os 3 membros do esquadrão
-game.player.posHistory.length   // profundidade do buffer de trilha (máx. 60)
-game.player.team[0].upgrades // reforços aplicados
-game.player.team[0].stage    // estágio evolutivo do membro
-game.player.trainerId        // id do treinador escolhido
-G.DB.save.squad              // trio gravado na conta
-G.LevelUp.candidates(game.player)  // cartas de squad_up / squad_evo disponíveis
-```
-
-> **Nota de auditoria:** `js/systems/levelup.js` usa `type: 'squad_up'` / `'squad_evo'` em
-> minúsculas, enquanto as cartas do resto do motor usam `'EVOLUTION'` e `'stat'`.
-> A distinção é deliberada (as cartas do esquadrão são identify-only), mas convém
-> padronizar se o formato evoluir.
 
 ---
 *Manual homologado em conformidade com o código-fonte de produção do PokéSurvivor: Endless Hunt.*

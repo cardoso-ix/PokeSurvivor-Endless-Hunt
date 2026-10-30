@@ -4,12 +4,13 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 
 ---
 
-## [Não Lançado] — 30/10/2026 (correção do trio)
+## [Não Lançado] — 30/10/2026 (remoção do trio)
 
-### 🐛 Correção do Treinador e da Fila Indiana
-- **Buraco preto em volta do jogador:** `drawTrainerPixelArt` fazia `clearRect` direto no canvas do jogo e apagava mapa, sombras e inimigos num quadrado de 48×48 a cada frame. O treinador procedural deixou de ser desenhado em jogo; o líder volta a ser o Pokémon (estilo PMD, igual ao resto do jogo).
-- **Treinador com arte real (opcional):** se existir `assets/trainers/<id>.png`, o sprite é desenhado ancorado nos pés. Sem o arquivo, nada muda. Os PNGs precisam ter licença de uso compatível (o projeto é CC BY-NC com créditos).
-- **Trio sobreposto:** parado, os 3 companheiros colapsavam no mesmo ponto. Agora mantêm recuo fixo de 30 px atrás do líder, com leve zigue-zague em Y.
+### 🧹 Jogo volta a ter um único personagem
+- **Removidos:** criação de personagem, Treinador (8 avatares), draft de 3 iniciais, fila indiana, ataques e cartas do trio (`squad_up`/`squad_evo`) e o item "Equipe e Treinador" do menu. A tela `js/ui/intro_creation.js` e seus 3 testes foram excluídos.
+- **Fluxo:** login → teste de personalidade (primeira vez) → menu. Você joga com um Pokémon de Estágio 1 que evolui sozinho nos níveis 5, 12 e 21.
+- **Causa-raiz do bug de renderização:** o avatar chamava `clearRect` no canvas do jogo e apagava o mapa em volta do jogador.
+- **Saves:** campos `trainer`, `trainerGender` e `squad` deixam de ser criados; em saves que já os tenham, ficam inertes.
 
 ---
 
@@ -27,15 +28,6 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 ---
 
 ## [Não Lançado] — 27/10/2026
-
-### 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)
-- **Tela de Criação (`js/ui/intro_creation.js`):** escolha do Treinador (8 protagonistas, abas Menino/Menina) e draft livre de 3 iniciais entre os 27 oficiais das 9 gerações, com filtro por geração e contador de seleção.
-- **Fila Indiana Segura:** o Treinador mantém toda a física nativa; os 3 companheiros escoltam em trilha com atrasos de histórico de 12, 24 e 36 frames.
-- **Ataques autônomos e evolução do trio:** projéteis na cor do tipo elementar de cada membro, cartas de reforço (`squad_up`) e de evolução de espécie (`squad_evo`) ao subir de nível.
-- **Persistência:** `trainer`, `trainerGender` e `squad` gravados no save, editáveis em **Equipe e Treinador** no menu principal.
-- **Correções de integração:** `hitKnock` → `knock` (o knockback era descartado), SFX `powerup`/`unselect` adicionados ao mapa de áudio, campos do trio incluídos em `newSave()` (migração de saves antigos) e tela de login escondida antes da criação de personagem.
-
----
 
 ## [Versão Recente] — 19/10/2026
 

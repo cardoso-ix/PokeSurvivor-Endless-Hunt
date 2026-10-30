@@ -217,51 +217,6 @@ G.Player = class Player {
     this.bellHeal = 0;         // curación pendiente del Cascabel Concha
     this.statsTaken = {};      // mejoras de stat cogidas (condición de evolución)
 
-    // Fila Indiana Segura (Trail Follow) e Esquadrão dos 3 Pokémon
-    this.posHistory = [];
-    this.maxHistory = 60;
-    this.trainerId = (typeof G === 'object' && G.DB && G.DB.save && G.DB.save.trainer) || 'red';
-    this.team = [];
-
-    // Monta a equipe a partir da seleção da Intro ou do save
-    this.initSquad = function(starterIds) {
-      if (!Array.isArray(starterIds) || starterIds.length === 0) return;
-      this.team = starterIds.slice(0, 3).map((id, index) => {
-        const dex = (typeof G === 'object' && G.POKEDEX && G.POKEDEX[id])
-          || (typeof G === 'object' && G.DEX_BY && G.DEX_BY[id])
-          || {};
-        const pName = dex.name || (typeof id === 'string' ? id : `Pokémon #${id}`);
-        const pType = (dex.types && dex.types[0]) ? dex.types[0].toLowerCase() : 'normal';
-        const member = {
-          id: id,
-          dex: dex.dex || (typeof id === 'number' ? id : 1),
-          name: pName,
-          type: pType,
-          types: dex.types ? [...dex.types] : [pType],
-          trailDelay: (index + 1) * 12, // 12, 24 e 36 frames atrás
-          x: this.x,
-          y: this.y,
-          facingLeft: false,
-          upgrades: 0,
-          stage: 1,
-          attackTimer: index * 0.35,
-          cooldown: 1.2,
-          damage: 15,
-          projectiles: 1,
-          range: 280,
-          anim: (typeof G === 'object' && G.Sprites && typeof G.Sprites.Animator === 'function')
-            ? new G.Sprites.Animator(dex.dex || id, 1, false)
-            : null
-        };
-        return member;
-      });
-    };
-
-    const savedSquad = (typeof G === 'object' && G.DB && G.DB.save && G.DB.save.squad);
-    if (savedSquad && Array.isArray(savedSquad)) {
-      this.initSquad(savedSquad);
-    }
-
     // Modo Mega / Super Frenzy (estilo Super Mario Star)
     this.megaMode = {
       active: false,
@@ -281,23 +236,6 @@ G.Player = class Player {
   static get REVIVE_TIME() { return 3; }
 
   // Curva de XP delegada ao BalanceConfig
-  /** Sprite do Treinador: só usa arte real em assets/trainers/<id>.png (fornecida pelo projeto).
-   *  Sem o arquivo retorna null e o líder continua sendo o Pokémon, como no resto do jogo. */
-  static trainerSprite(trainerId) {
-    const cache = Player._trainerCache || (Player._trainerCache = {});
-    let e = cache[trainerId];
-    if (!e) {
-      e = cache[trainerId] = { img: null, ok: false };
-      if (typeof Image !== 'undefined') {
-        e.img = new Image();
-        e.img.onload = () => { e.ok = true; };
-        e.img.onerror = () => { e.ok = false; };
-        e.img.src = 'assets/trainers/' + encodeURIComponent(trainerId) + '.png';
-      }
-    }
-    return e.ok ? e.img : null;
-  }
-
   static xpFor(level) {
     const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
     if (bCfg && bCfg.xp && typeof bCfg.xp.forLevel === 'function') {
@@ -892,95 +830,6 @@ G.Player = class Player {
     if (this.item === 'shellbell') this.bellHeal = Math.min(4, this.bellHeal + dmg * 0.04);
   }
 
-  // ---------------- Ataque Autônomo e Upgrades do Esquadrão ----------------
-  performSquadMemberAttack(member) {
-    if (typeof G !== 'object' || !G.EnemyMgr || !G.Projectiles) return;
-    const all = G.EnemyMgr.all ? G.EnemyMgr.all() : [];
-    if (!all.length) return;
-
-    let closest = null;
-    let closestDistSq = (member.range || 280) * (member.range || 280);
-
-    for (const e of all) {
-      if (!e || e.dead) continue;
-      const d2 = (e.x - member.x) * (e.x - member.x) + (e.y - member.y) * (e.y - member.y);
-      if (d2 < closestDistSq) {
-        closestDistSq = d2;
-        closest = e;
-      }
-    }
-    if (!closest) return;
-
-    const angle = Math.atan2(closest.y - member.y, closest.x - member.x);
-    const speed = 330;
-    const dmg = Math.round((member.damage || 15) * (this.atkMul || 1));
-
-    const typeColors = {
-      fire: '#f97316', water: '#38bdf8', grass: '#22c55e', electric: '#eab308',
-      poison: '#a855f7', psychic: '#ec4899', ice: '#06b6d4', ground: '#ca8a04',
-      rock: '#a16207', steel: '#94a3b8', normal: '#e2e8f0'
-    };
-    const pColor = typeColors[member.type] || '#facc15';
-
-    if (typeof G.Projectiles.spawn === 'function') {
-      G.Projectiles.spawn({
-        x: member.x,
-        y: member.y - 8,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        r: 6,
-        dmg: dmg,
-        color: pColor,
-        life: 0.9,
-        source: 'squad',
-        pierce: (member.stage || 1) > 1 ? 2 : 1,
-        knock: 8
-      });
-    }
-  }
-
-  upgradeSquadMember(slotIndex) {
-    if (!this.team || !this.team[slotIndex]) return;
-    const mem = this.team[slotIndex];
-    mem.upgrades = (mem.upgrades || 0) + 1;
-    mem.damage = Math.round((mem.damage || 15) * 1.25);
-    mem.cooldown = Math.max(0.55, (mem.cooldown || 1.2) * 0.90);
-    mem.range = (mem.range || 280) + 20;
-    if (mem.upgrades === 2 || mem.upgrades === 4) {
-      mem.projectiles = Math.min(4, (mem.projectiles || 1) + 1);
-    }
-    if (typeof G === 'object' && G.UI && typeof G.UI.toast === 'function') {
-      G.UI.toast(`[${mem.name}] Melhorado para Nível ${mem.upgrades + 1}! (+25% Dano)`, 2000);
-    }
-    if (typeof G === 'object' && G.Audio && G.Audio.sfx) G.Audio.sfx('powerup');
-  }
-
-  evolveSquadMember(slotIndex, nextDexOrName) {
-    if (!this.team || !this.team[slotIndex]) return;
-    const mem = this.team[slotIndex];
-    const dexData = (typeof G === 'object' && G.POKEDEX && G.POKEDEX[nextDexOrName])
-      || (typeof G === 'object' && G.DEX_BY && G.DEX_BY[nextDexOrName])
-      || {};
-
-    const oldName = mem.name;
-    mem.id = dexData.dex || nextDexOrName;
-    mem.dex = dexData.dex || mem.dex;
-    mem.name = dexData.name || String(nextDexOrName);
-    mem.stage = (mem.stage || 1) + 1;
-    mem.damage = Math.round((mem.damage || 15) * 1.35);
-    mem.range = (mem.range || 280) + 30;
-
-    if (typeof G === 'object' && G.Sprites && typeof G.Sprites.Animator === 'function') {
-      mem.anim = new G.Sprites.Animator(mem.dex, 1, false);
-    }
-
-    if (typeof G === 'object') {
-      if (G.FX && G.FX.dmgText) G.FX.dmgText(mem.x, mem.y - 28, `★ EVOLUIU: ${mem.name}!`, '#ffd700', true);
-      if (G.Audio && G.Audio.sfx) { G.Audio.sfx('shinyGet'); G.Audio.sfx('powerup'); }
-      if (G.UI && G.UI.toast) G.UI.toast(`✨ ${oldName} evoluiu para ${mem.name}! (+35% Dano)`, 2500);
-    }
-  }
-
   /** Poder de un altar (ver systems/interact.js): se aplica y se quita solo. */
   addPower(def, dur) {
     if (this.power) this.power.def.off(this);
@@ -1257,47 +1106,6 @@ G.Player = class Player {
     this.y += this.svy * dt;
     G.World.collide(this);
     if (this.walking) this.moveAngle = Math.atan2(ay, ax);
-
-    // --- Fila Indiana Segura (Trail Follow) dos 3 Pokémon ---
-    this.posHistory.unshift({
-      x: this.x,
-      y: this.y,
-      facingLeft: this.anim.dir === 6 || (this.svx < -0.1),
-      walking: this.walking
-    });
-    if (this.posHistory.length > this.maxHistory) {
-      this.posHistory.pop();
-    }
-
-    if (Array.isArray(this.team)) {
-      for (let mi = 0; mi < this.team.length; mi++) {
-        const member = this.team[mi];
-        const targetIdx = Math.min(member.trailDelay, this.posHistory.length - 1);
-        const targetPos = this.posHistory[targetIdx] || { x: this.x, y: this.y, facingLeft: false, walking: false };
-
-        // Formação: parado, o histórico colapsa num ponto e os 3 se sobrepõem.
-        // Um recuo fixo atrás do líder (e um leve zigue-zague em Y) mantém o trio legível.
-        const back = this.posHistory[0] && this.posHistory[0].facingLeft ? 1 : -1;
-        const dx = targetPos.x + back * 30 * (mi + 1) - member.x;
-        const dy = targetPos.y + (mi % 2 ? 9 : -9) - member.y;
-        member.x += dx * Math.min(1, 10.0 * dt);
-        member.y += dy * Math.min(1, 10.0 * dt);
-        member.facingLeft = targetPos.facingLeft;
-
-        if (member.anim) {
-          member.anim.dir = member.facingLeft ? 6 : 2;
-          member.anim.loop(targetPos.walking ? 'Walk' : 'Idle');
-          if (typeof member.anim.update === 'function') member.anim.update(dt);
-        }
-
-        // Combate autônomo individual
-        member.attackTimer -= dt;
-        if (member.attackTimer <= 0) {
-          member.attackTimer = member.cooldown;
-          this.performSquadMemberAttack(member);
-        }
-      }
-    }
 
     // --- terreno líquido ---
     this.inLiquid = G.World.isLiquid(this.x, this.y);
@@ -1593,57 +1401,11 @@ G.Player = class Player {
       ctx.restore();
     }
 
-    // Renderização do Treinador (Menino / Menina) na vanguarda.
-    // Nunca chamar drawTrainerPixelArt aqui: ele faz clearRect e apaga o mapa em volta do jogador.
-    const trainerSprite = this.trainerId ? Player.trainerSprite(this.trainerId) : null;
-    if (trainerSprite) {
-      ctx.save();
-      const cx = Math.round(this.x);
-      const cy = Math.round(this.y);
-      ctx.imageSmoothingEnabled = false;
-      if (alpha < 1) ctx.globalAlpha = alpha;
-      const tw = trainerSprite.naturalWidth, th = trainerSprite.naturalHeight;
-      if (this.anim.dir === 6 || (this.svx < -0.1)) {
-        ctx.translate(cx, cy);
-        ctx.scale(-1, 1);
-        ctx.drawImage(trainerSprite, -tw / 2, -th + 4);
-      } else {
-        ctx.drawImage(trainerSprite, cx - tw / 2, cy - th + 4);
-      }
-      ctx.restore();
+    // Sprite do Pokémon com Brilho do Tipo Elemental quando em Mega Supremo
+    if (isMega) {
+      this.anim.draw(ctx, this.x, this.y, { flash: true, softFlash: true, alpha: 1, color: pal.color });
     } else {
-      // Sprite do Pokémon com Brilho do Tipo Elemental quando em Mega Supremo
-      if (isMega) {
-        this.anim.draw(ctx, this.x, this.y, { flash: true, softFlash: true, alpha: 1, color: pal.color });
-      } else {
-        this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
-      }
-    }
-
-    // Renderização dos 3 Pokémon do Esquadrão em Fila Indiana
-    if (Array.isArray(this.team)) {
-      for (const member of this.team) {
-        const mx = Math.round(member.x);
-        const my = Math.round(member.y);
-
-        ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-        ctx.beginPath();
-        ctx.ellipse(mx, my, 10, 4.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (member.anim && typeof member.anim.draw === 'function') {
-          member.anim.draw(ctx, mx, my, { alpha });
-        }
-
-        if (member.stage > 1) {
-          ctx.fillStyle = '#facc15';
-          ctx.font = 'bold 9px monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(`★${member.stage}`, mx, my - 26);
-        }
-        ctx.restore();
-      }
+      this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
     }
 
     // 3. Partículas de Brilho Pixel Art e Ícone de Fúria Bravo 💢

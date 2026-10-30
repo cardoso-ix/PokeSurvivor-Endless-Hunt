@@ -60,9 +60,6 @@ Antes de publicar, rode a suíte principal e os testes da feature que tocou:
 
 ```bash
 node tools/test_full_suite.js              # 12/12 — captura, rifts, mega, evolução, HUD
-node tools/test_intro_and_squad_trail.js  # lógica da fila indiana e do trio
-node tools/test_intro_screen_browser.js   # tela de criação (requer Chrome + tools/serve.js)
-node tools/test_index_flow.js             # fluxo login -> criação -> menu
 ```
 
 > `node tools/test_upgrade_costs.js` falha nos lendários Mewtwo e Rayquaza desde antes

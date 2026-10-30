@@ -11,33 +11,27 @@
  */
 G.CHANGELOG = [
   {
-    d: '2026-10-27',
+    d: '2026-10-30',
     title: [
-      'Criação de personagem e trio em fila indiana',
-      'Character creation and your trio in a follow line'
-    ],
-    new: [
-      [
-        'Criação de personagem: escolha o Treinador (8 protagonistas, abas Menino e Menina) e monte o trio inicial entre os 27 iniciais das 9 gerações, com filtro por geração.',
-        'Character creation: pick your trainer (8 protagonists, boy and girl tabs) and draft your trio from the 27 starters across 9 generations, with a generation filter.'
-      ],
-      [
-        'Fila indiana: os 3 companheiros seguem o Treinador em trilha, com atrasos seguros de 12, 24 e 36 frames.',
-        'Follow line: your 3 companions trail the trainer with safe 12, 24 and 36 frame delays.'
-      ],
-      [
-        'Ataques autônomos do trio: cada companheiro atira sozinho, com o projétil na cor do seu tipo elementar.',
-        'Autonomous squad attacks: each companion fires on its own, with its projectile in its elemental type colour.'
-      ]
+      'Mais difícil e mais estratégico',
+      'Harder and more strategic'
     ],
     chg: [
       [
-        'Cartas de nível do trio: reforço (+25% de dano, −10% de recarga) e evolução de espécie (Charmander ➔ Charmeleon, +35% de dano).',
-        'Squad level-up cards: upgrades (+25% damage, −10% cooldown) and species evolution (Charmander ➔ Charmeleon, +35% damage).'
+        'Dificuldade: inimigos e chefes ficam mais fortes e mais rápidos com o tempo, e as hordas são mais densas.',
+        'Difficulty: enemies and bosses get stronger and faster over time, and hordes are denser.'
       ],
       [
-        'O Treinador, o trio e o gênero escolhido ficam guardados na conta e podem ser trocados em Equipe e Treinador, no menu.',
-        'Your trainer, trio and gender are saved to your account and can be changed later under Team and Trainer in the menu.'
+        'Economia: menos moedas por partida e upgrades mais caros. Gacha com taxas mais raras e menos moedas por repetido.',
+        'Economy: fewer coins per run and pricier upgrades. Gacha has rarer rates and fewer coins per duplicate.'
+      ],
+      [
+        'Captura: chances menores. Capturar com pouca vida dá um bônus de até +6%.',
+        'Capture: lower odds. Capturing at low health gives a bonus of up to +6%.'
+      ],
+      [
+        'Experiência: a partir do nível 12 cada nível exige mais XP.',
+        'Experience: from level 12 on, each level needs more XP.'
       ]
     ]
   }

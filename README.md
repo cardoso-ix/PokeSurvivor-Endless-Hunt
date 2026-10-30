@@ -6,7 +6,7 @@
 [![Docker Ready](https://img.shields.io/badge/Docker-Coolify%20Ready-2496ED.svg)](docs/DEPLOY_COOLIFY.md)
 [![Language](https://img.shields.io/badge/Language-Portugu%C3%AAs%20do%20Brasil%20(pt--BR)-green.svg)](#-localização-completa-em-português-do-brasil-pt-br)
 
-*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive Elemental dos 18 tipos, sistema de captura diegética em Rifts, evolução automática, criação de personagem com trio inicial em fila indiana e salas cooperativas online.
+*Bullet-heaven* de ação e sobrevivência com Pokémon ao estilo de *Survivor.io* e *Vampire Survivors*, com estética retrô autêntica de RPG portátil (estilo Nintendo DS / Game Boy Advance), **todos os 966 Pokémon das 9 Gerações**, sprites de *Pokémon Mundo Misterioso*, Mega Overdrive Elemental dos 18 tipos, sistema de captura diegética em Rifts, evolução automática, salas cooperativas online.
 
 Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FPS estáveis sem frameworks pesados de frontend.
 
@@ -38,29 +38,15 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 
 | Tecla / Controle | Ação |
 | :--- | :--- |
-| `W` `A` `S` `D` / Setas | Mover o Treinador e seu Pokémon parceiro |
+| `W` `A` `S` `D` / Setas | Mover o seu Pokémon |
 | `Espaço` / `Space` | Ativar **Mega Overdrive Elemental** (ao atingir 100% da barra) |
 | `1` `2` `3` `4` / Clique no slot | Selecionar ataque ativo |
 | `Q` / `E` / `Tab` | Alternar entre ataques anterior / próximo |
 | `+` / `−` | Ajustar escala da câmera (zoom calibrado) |
 | `Esc` / `P` | Pausar / Continuar partida |
-| `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível (inclui reforço e evolução do trio) |
+| `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível |
 | `R` | Trocar opções de cartas de nível (Reroll) |
 | `F2` / `'` | Abrir Painel de Administração / Depuração |
-
-## 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)
-
-- **Estilo clássico Game Boy / DS (`js/ui/intro_creation.js`):**
-  - **Escolha do Treinador:** abas **Menino** e **Menina** com os 8 protagonistas canônicos (Red, Ethan, Brendan, Lucas, Leaf, Lyra, May e Dawn) em pixel art desenhada no canvas.
-  - **Draft livre dos 3 Iniciais (27 Pokémon):** escolha livre de 3 companheiros entre todos os iniciais das 9 gerações (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar e Paldea), com filtro por geração.
-  - O primeiro Pokémon escolhido vira o **parceiro principal** (vanguarda) da partida.
-- **Fila Indiana Segura (`posHistory` em `js/entities/player.js`):**
-  - O Treinador é a entidade `game.player`, preservando 100% da física nativa, colisões de paredes, magnetismo de EXP e movimentação a 60 FPS.
-  - Os 3 Pokémon escoltam em fila indiana fluida com atrasos seguros de histórico (12, 24 e 36 frames atrás), sem molas ou cálculos instáveis.
-- **Ataques autônomos e evolução do trio:**
-  - Cada membro dispara autonomamente contra o monstro mais próximo, com o projétil na cor do seu tipo elementar.
-  - Ao subir de nível, o jogador pode adquirir cartas de reforço (`squad_up`) e cartas de evolução de espécie (`squad_evo`), promovendo os companheiros (ex.: Charmander ➔ Charmeleon) ao longo da partida.
-  - As escolhas ficam gravadas no save (`trainer`, `trainerGender`, `squad`) e podem ser alteradas depois em **Equipe e Treinador**, no menu principal.
 
 **No Celular ou Tablet (Modo Paisagem/Horizontal):**  
 Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque no botão circular do Mega no canto inferior para acionar o poder supremo, use a bandeja inferior para alternar ataques e acesse a pausa pelo topo. O jogo pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").
@@ -229,23 +215,6 @@ As Fendas Dimensionais (Rifts) oferecem desafios épicos em arenas dimensionais 
 
 ---
 
-### 8. 🎮 Criação de Personagem & Fila Indiana do Trio (Gerações 1 a 9)
-O jogador deixa de começar a partida como um Pokémon solto: agora **cria o próprio Treinador** e escolhe um **trio inicial** que o acompanha durante toda a run.
-
-- **Tela de Criação (`js/ui/intro_creation.js`):**
-  - **Etapa 1 — Treinador:** abas **Menino** e **Menina** com os 8 protagonistas canônicos (Red, Ethan, Brendan, Lucas, Leaf, Lyra, May e Dawn), desenhados em pixel art no próprio canvas.
-  - **Etapa 2 — Draft dos 3 Iniciais:** escolha livre entre os **27 iniciais oficiais das 9 gerações** (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea), com filtro por geração, 3 slots visuais e contador `[ Selecionados: X / 3 ]`.
-  - O **1º escolhido vira o parceiro principal** (vanguarda) da partida.
-- **Fila Indiana Segura (`posHistory` em `js/entities/player.js`):**
-  - O Treinador é a entidade `game.player` — mantém 100% da física nativa, colisões de parede, magnetismo de EXP e os 60 FPS.
-  - Os 3 companheiros seguem em fila indiana por **histórico de posição** (atrasos de 12, 24 e 36 frames), sem molas nem cálculos instáveis.
-- **Ataques autônomos e evolução do trio:**
-  - Cada membro dispara sozinho contra o alvo mais próximo, com o projétil na cor do seu **tipo elementar**.
-  - Ao subir de nível podem sair cartas de **reforço** (`squad_up`: +25% dano, −10% recarga, +1 projétil a cada 2 níveis) e cartas de **evolução** (`squad_evo`: ex. Charmander ➔ Charmeleon, +35% dano e +30 de alcance).
-- **Persistência:** `trainer`, `trainerGender` e `squad` ficam gravados no save e podem ser alterados depois em **Equipe e Treinador**, no menu principal.
-- **Integrada ao fluxo existente:** aparece automaticamente após o primeiro login e convive com a tela de personalidade e a trava de Estágio 1 (o trio só aceita iniciais de Estágio 1).
-
-
 ---
 
 ## 🚀 Como Colocar Online na VPS com Coolify
@@ -353,11 +322,8 @@ js/
   data/                 # evolutions (árvore genealógica das 9 gens), pokedex, moves, mega_ultimates
   entities/             # player, enemy, projectile, vfx, fx, pickup
   systems/              # capture, rift, mega, combat, spawner, levelup, weather, interact, judgment
-  ui/                   # hud, menu, intro_creation, test, run-ui, gacha-ui, settings-ui, goals-ui, social-ui
+  ui/                   # hud, menu, test, run-ui, gacha-ui, settings-ui, goals-ui, social-ui
 tools/                  # Bateria de testes automatizados e scripts de build
-  test_intro_and_squad_trail.js   # Lógica da fila indiana, trio, upgrades e evolução do esquadrão
-  test_intro_screen_browser.js     # Tela de criação de personagem no navegador real
-  test_index_flow.js               # Fluxo login -> criação -> menu no navegador real
 docs/                   # Guias de deploy, domínio, SEO, Firebase e auditoria das regras
 ```
 

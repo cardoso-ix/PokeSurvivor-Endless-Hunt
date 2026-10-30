@@ -429,8 +429,6 @@ G.Audio = (() => {
     back:    () => tone('square', 880, 520, 0.07, 0.05),
     confirm: () => arp('triangle', [784, 988, 1319], 0.05, 0.12, 0.09),
     select:  () => tone('square', 990, 1180, 0.04, 0.045),
-    unselect: () => tone('square', 1180, 990, 0.04, 0.045),
-    powerup: () => arp('square', [523, 659, 784, 1047], 0.06, 0.16, 0.05),
     error:   () => arp('square', [330, 262], 0.08, 0.09, 0.05),
     shot(o) {
       const f = SHOT_PITCH[o.type] || 600;
