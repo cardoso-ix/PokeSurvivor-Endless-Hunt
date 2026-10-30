@@ -281,6 +281,23 @@ G.Player = class Player {
   static get REVIVE_TIME() { return 3; }
 
   // Curva de XP delegada ao BalanceConfig
+  /** Sprite do Treinador: só usa arte real em assets/trainers/<id>.png (fornecida pelo projeto).
+   *  Sem o arquivo retorna null e o líder continua sendo o Pokémon, como no resto do jogo. */
+  static trainerSprite(trainerId) {
+    const cache = Player._trainerCache || (Player._trainerCache = {});
+    let e = cache[trainerId];
+    if (!e) {
+      e = cache[trainerId] = { img: null, ok: false };
+      if (typeof Image !== 'undefined') {
+        e.img = new Image();
+        e.img.onload = () => { e.ok = true; };
+        e.img.onerror = () => { e.ok = false; };
+        e.img.src = 'assets/trainers/' + encodeURIComponent(trainerId) + '.png';
+      }
+    }
+    return e.ok ? e.img : null;
+  }
+
   static xpFor(level) {
     const bCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : ((typeof G === 'object' && G.BalanceConfig) ? G.BalanceConfig : null));
     if (bCfg && bCfg.xp && typeof bCfg.xp.forLevel === 'function') {
@@ -1253,12 +1270,16 @@ G.Player = class Player {
     }
 
     if (Array.isArray(this.team)) {
-      for (const member of this.team) {
+      for (let mi = 0; mi < this.team.length; mi++) {
+        const member = this.team[mi];
         const targetIdx = Math.min(member.trailDelay, this.posHistory.length - 1);
         const targetPos = this.posHistory[targetIdx] || { x: this.x, y: this.y, facingLeft: false, walking: false };
 
-        const dx = targetPos.x - member.x;
-        const dy = targetPos.y - member.y;
+        // Formação: parado, o histórico colapsa num ponto e os 3 se sobrepõem.
+        // Um recuo fixo atrás do líder (e um leve zigue-zague em Y) mantém o trio legível.
+        const back = this.posHistory[0] && this.posHistory[0].facingLeft ? 1 : -1;
+        const dx = targetPos.x + back * 30 * (mi + 1) - member.x;
+        const dy = targetPos.y + (mi % 2 ? 9 : -9) - member.y;
         member.x += dx * Math.min(1, 10.0 * dt);
         member.y += dy * Math.min(1, 10.0 * dt);
         member.facingLeft = targetPos.facingLeft;
@@ -1572,18 +1593,22 @@ G.Player = class Player {
       ctx.restore();
     }
 
-    // Renderização do Treinador (Menino / Menina) na vanguarda
-    if (this.trainerId && typeof G === 'object' && G.IntroCreationUI && typeof G.IntroCreationUI.drawTrainerPixelArt === 'function') {
+    // Renderização do Treinador (Menino / Menina) na vanguarda.
+    // Nunca chamar drawTrainerPixelArt aqui: ele faz clearRect e apaga o mapa em volta do jogador.
+    const trainerSprite = this.trainerId ? Player.trainerSprite(this.trainerId) : null;
+    if (trainerSprite) {
       ctx.save();
       const cx = Math.round(this.x);
       const cy = Math.round(this.y);
+      ctx.imageSmoothingEnabled = false;
+      if (alpha < 1) ctx.globalAlpha = alpha;
+      const tw = trainerSprite.naturalWidth, th = trainerSprite.naturalHeight;
       if (this.anim.dir === 6 || (this.svx < -0.1)) {
         ctx.translate(cx, cy);
         ctx.scale(-1, 1);
-        G.IntroCreationUI.drawTrainerPixelArt(ctx, this.trainerId, 48, 48);
+        ctx.drawImage(trainerSprite, -tw / 2, -th + 4);
       } else {
-        ctx.translate(cx - 24, cy - 38);
-        G.IntroCreationUI.drawTrainerPixelArt(ctx, this.trainerId, 48, 48);
+        ctx.drawImage(trainerSprite, cx - tw / 2, cy - th + 4);
       }
       ctx.restore();
     } else {

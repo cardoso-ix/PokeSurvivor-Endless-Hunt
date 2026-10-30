@@ -4,6 +4,15 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 
 ---
 
+## [Não Lançado] — 30/10/2026 (correção do trio)
+
+### 🐛 Correção do Treinador e da Fila Indiana
+- **Buraco preto em volta do jogador:** `drawTrainerPixelArt` fazia `clearRect` direto no canvas do jogo e apagava mapa, sombras e inimigos num quadrado de 48×48 a cada frame. O treinador procedural deixou de ser desenhado em jogo; o líder volta a ser o Pokémon (estilo PMD, igual ao resto do jogo).
+- **Treinador com arte real (opcional):** se existir `assets/trainers/<id>.png`, o sprite é desenhado ancorado nos pés. Sem o arquivo, nada muda. Os PNGs precisam ter licença de uso compatível (o projeto é CC BY-NC com créditos).
+- **Trio sobreposto:** parado, os 3 companheiros colapsavam no mesmo ponto. Agora mantêm recuo fixo de 30 px atrás do líder, com leve zigue-zague em Y.
+
+---
+
 ## [Não Lançado] — 30/10/2026
 
 ### ⚖️ Rebalanceamento Médio → Difícil (Fase 2 da preparação de lançamento)
