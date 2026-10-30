@@ -391,9 +391,9 @@ G.Game = (() => {
     const save = G.DB.save;
     const mul = pl.coinMul;
     const parts = {
-      tiempo: Math.floor(time * 3),              // 180 moedas por minuto de sobrevivência (antes time/5)
-      derrotados: Math.floor(pl.kills * 2.5),    // 2.5 moedas por monstro derrotado (antes 0.25)
-      jefes: pl.bosses * 800,                    // 800 moedas por chefe derrotado (antes 80)
+      tiempo: Math.floor(time * 2),              // 120 moedas por minuto de sobrevivência
+      derrotados: Math.floor(pl.kills * 1.6),    // 1.6 moeda por monstro derrotado
+      jefes: pl.bosses * 550,                    // 550 moedas por chefe derrotado (risco maior, recompensa maior)
       recogidas: pl.coins
     };
     const coins = Math.round((parts.tiempo + parts.derrotados + parts.jefes + parts.recogidas) * mul);

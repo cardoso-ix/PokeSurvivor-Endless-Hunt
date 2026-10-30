@@ -22,12 +22,12 @@ G.Gacha = (() => {
     if (n === 10 && use === 't10') return t.t10 >= 1 ? { t1: 0, t10: 1 } : null;
     return t.t1 >= n ? { t1: n, t10: 0 } : null;
   }
-  const RATES = [[1, 70], [2, 20], [3, 8], [4, 1.6], [5, 0.4]];
+  const RATES = [[1, 71], [2, 20], [3, 7.2], [4, 1.4], [5, 0.4]];
   const PITY_5 = 250;
   const SHINY_RATE = 1 / 250;
-  const REFUND = { 1: 15, 2: 30, 3: 60, 4: 120, 5: 300 };
+  const REFUND = { 1: 9, 2: 18, 3: 36, 4: 72, 5: 180 };
   const ROULETTE_COST = 100;
-  const ROULETTE_DUPLICATE_COINS = 250;
+  const ROULETTE_DUPLICATE_COINS = 150;
   let forceShiny = 0;           // para pruebas y vídeos: las N próximas salen shiny
   let forceLegendary = 0;       // para testes da roleta lendária
 

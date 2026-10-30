@@ -4,6 +4,19 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 
 ---
 
+## [Não Lançado] — 30/10/2026
+
+### ⚖️ Rebalanceamento Médio → Difícil (Fase 2 da preparação de lançamento)
+- **Economia:** fim de partida paga 2 moedas/s (era 3), 1,6 por abate (era 2,5) e 550 por chefe (era 800). Run de 15 min ≈ 7 mil moedas (antes ≈ 10 mil+).
+- **Upgrades:** crescimento de custo +0,03 em todos os níveis da loja (exceto Segundo Ataque e Banir). Árvore base fica mais lenta, sem mexer em níveis já comprados.
+- **Gacha:** taxas dos tickets 71/20/7,2/1,4/0,4 (Comum→Lendário); reembolso de repetidos reduzido em 40% (9/18/36/72/180) e roleta paga 150 por repetido (era 250). Pity e custos intactos.
+- **XP:** a partir do nível 12 o custo por nível sobe +3,5% por nível (teto ×1,7). Nv 20: 1.722 → 2.204 XP.
+- **Inimigos:** HP `1+t/110` (era `/140`), dano `1+t/480` (era `/600`), velocidade até +45% (era +35%), densidade 0,24 → 0,28, elites com dano ×1,4 (era ×1,25). Chefes: HP `1+t/450`, dano `1+t/420` e +~18% de dano base.
+- **Captura:** taxas base 34/24/15% (estágios 1/2/3) e 5% lendário; teto 42% (era 48%) e 14% lendário (era 16%). Novo **bônus de risco** de até +6% quando o jogador captura com pouca vida.
+- `src/config/balanceConfig.js` sincronizado com `js/config/balanceConfig.js`; teste de XP atualizado.
+
+---
+
 ## [Não Lançado] — 27/10/2026
 
 ### 🎮 Criação de Personagem & Fila Indiana dos 3 Iniciais (Gerações 1 a 9)

@@ -487,14 +487,25 @@ const CaptureSystem = (() => {
       // - Shiny Comum: máximo de 0.22 (22%)
       // - Lendário Normal: máximo de 0.16 (16%)
       // - Shiny Lendário: máximo de 0.08 (8%)
-      let maxCap = 0.48;
+      const crCfg = (typeof BalanceConfig !== 'undefined' && BalanceConfig.rewards && BalanceConfig.rewards.captureRates) || {};
+      let maxCap = crCfg.maxCap || 0.42;
       if (this.isShinyLegend) maxCap = 0.08;
-      else if (this.isLegendary) maxCap = 0.16;
+      else if (this.isLegendary) maxCap = 0.14;
       else if (this.isShiny) maxCap = 0.22;
+
+      // Decisão tática: quanto menos vida o jogador tem ao capturar, maior o bônus
+      // de risco (0 com vida cheia, até riskBonusMax com vida abaixo de 25%).
+      const capPl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
+      let riskBonus = 0;
+      if (capPl && capPl.maxHp > 0 && !this.isShiny) {
+        const hpRatio = Math.max(0, Math.min(1, capPl.hp / capPl.maxHp));
+        riskBonus = (crCfg.riskBonusMax || 0.06) * Math.max(0, Math.min(1, (0.75 - hpRatio) / 0.5));
+      }
+      this.riskBonus = riskBonus;
 
       // Shiny NÃO é capturável: a chance final precisa permanecer 0 mesmo
       // com bônus de bola (a soma base + bônus reescreveria o zero).
-      this.finalChance = this.isShiny ? 0 : Math.min(maxCap, this.baseRate + this.ballBonus);
+      this.finalChance = this.isShiny ? 0 : Math.min(maxCap, this.baseRate + this.ballBonus + riskBonus);
 
       // RNG da Captura
       this.roll = Math.random();

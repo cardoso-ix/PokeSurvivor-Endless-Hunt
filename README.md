@@ -116,11 +116,12 @@ A mecânica de captura foi reformulada para ocorrer diretamente no chão do Canv
   - Nv. 11 a 20: **Great Ball** (+3% bônus)
   - Nv. 21 a 30: **Ultra Ball** (+6% bônus)
   - Nv. 31+: **Ultimate Ball** (+10% bônus)
-  - Nv. 41+ (Evento Raro): **Gold Ball** (10% de chance de substituição, **+14% de chance** para Normais, +8% para Shinies/Lendários e +4% para Shiny Lendário, **+1.000 PokéMoedas**). A Gold Ball **não** garante a captura: o bônus respeita o teto rígido de 48%.
+  - Nv. 41+ (Evento Raro): **Gold Ball** (10% de chance de substituição, **+14% de chance** para Normais, +8% para Shinies/Lendários e +4% para Shiny Lendário, **+1.000 PokéMoedas**). A Gold Ball **não** garante a captura: o bônus respeita o teto rígido de 42%.
 - **Taxas Base de Captura (por estágio evolutivo e raridade):**
-  - Normal: Estágio 1 **38%** · Estágio 2 **28%** · Estágio 3 **18%**
-  - Shiny Comum **10%** · Lendário **6%** · Shiny Lendário **2%**
-  - **Teto rígido de 48%** em qualquer combinação (48% comuns, 22% Shiny, 16% Lendário, 8% Shiny Lendário).
+  - Normal: Estágio 1 **34%** · Estágio 2 **24%** · Estágio 3 **15%**
+  - Shiny Comum **10%** · Lendário **5%** · Shiny Lendário **2%**
+  - **Teto rígido de 42%** em qualquer combinação (42% comuns, 22% Shiny, 14% Lendário, 8% Shiny Lendário).
+  - **Bônus de risco:** até **+6%** quando o jogador captura com pouca vida (0% acima de 75% de PV, máximo abaixo de 25%). Shiny não é capturável.
 
 ---
 
@@ -311,7 +312,7 @@ O PokéSurvivor opera sob uma filosofia **Hardcore Roguelite** (desafiador, puni
 - **Super Combo no Nível 20:** Desbloqueia o disparo simultâneo de **todos** os slots, cada golpe respeitando seu próprio tempo de recarga. Concede também **+20% de área** e **-15% de tempo de recarga**, liberando o 4º slot caso ainda esteja vazio.
 - **Elo de Fusão (Bonds):** Cada Rift concluído concede um Elo de Fusão. O jogador escolhe dois ataques soltos para uni-los num único slot (liberando espaço na barra) ou adiciona um ataque a um grupo já formado (até 4 ataques por slot). Os ataques fundidos disparam juntos quando o slot está ativo.
 - **Poder Real de Prestígio:** Pokémons Shiny recebem **+25% Dano / +10% HP / +5% Velocidade**; Lendários recebem **+20% Dano / +15% HP / +5% Velocidade**; Shiny Lendários (Apex) recebem **+50% Dano / +25% HP / +10% Velocidade** com aura cósmica exclusiva.
-- **Captura Estratégica por Estágios:** Taxas base decrescentes (Estágio 1: 38%, Estágio 2: 28%, Estágio 3: 18%, Shiny: 10%, Lendário: 6%, Shiny Lendário: 2%) com teto rígido de 48% e altas recompensas de Gold Bounty.
+- **Captura Estratégica por Estágios:** Taxas base decrescentes (Estágio 1: 34%, Estágio 2: 24%, Estágio 3: 15%, Shiny: 10%, Lendário: 5%, Shiny Lendário: 2%) com teto rígido de 42% e altas recompensas de Gold Bounty.
 - **Ascensão Exponencial (+1 ao +10):** Custos que escalam de 15.000 até 2.000.000 de moedas nos 9 atributos globais.
 - **Ataques Iniciais Customizados:** O jogador inicia com 1 ataque selecionável por padrão. O **2º Ataque Inicial** pode ser desbloqueado para o Pokémon por **🪙 50.000 moedas**, permitindo iniciar a partida com 2 ataques ativos simultâneos.
 - **Veto de Ataques (Banir):** Permite banir até **3 ataques indesejados** da seleção ao subir de nível, travado sem Ascensão para preservar a integridade tática da partida.

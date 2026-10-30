@@ -42,8 +42,8 @@ const xpLv10 = BalanceConfig.xp.forLevel(10);
 const xpLv20 = BalanceConfig.xp.forLevel(20);
 assert.strictEqual(xpLv1, 62, `XP Nível 1 esperado: 62, obtido: ${xpLv1}`);
 assert.strictEqual(xpLv10, 631, `XP Nível 10 esperado: 631, obtido: ${xpLv10}`);
-assert.strictEqual(xpLv20, 1722, `XP Nível 20 esperado: 1722, obtido: ${xpLv20}`);
-console.log('✅ Curva de XP: Nível 1 (62), Nível 10 (631), Nível 20 (1722) validados com precisão.');
+assert.strictEqual(xpLv20, 2204, `XP Nível 20 esperado: 2204, obtido: ${xpLv20}`);
+console.log('✅ Curva de XP: Nível 1 (62), Nível 10 (631), Nível 20 (2204, com rampa anti-snowball a partir do Nv 12) validados com precisão.');
 
 // 5. Integração com a Engine (G.Player & G.Upgrades)
 global.window = global;

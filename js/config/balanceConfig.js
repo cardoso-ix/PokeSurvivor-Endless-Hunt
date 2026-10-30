@@ -145,10 +145,13 @@ const BalanceConfig = {
   // 3. CURVA DE EXPERIÊNCIA & PROGRESSÃO (Level Up)
   // ---------------------------------------------------------
   xp: {
-    // Fórmula oficial: Math.floor((8 + lvl * 6 + Math.pow(lvl, 1.75) * 1.6) * 4)
+    // Fórmula oficial: floor((8 + lvl*6 + lvl^1.75*1.6) * 4 * late), late = min(1.7, 1 + max(0, lvl-12)*0.035)
     forLevel: function(level) {
       const lvl = Math.max(1, Math.floor(level || 1));
-      return Math.floor((8 + lvl * 6 + Math.pow(lvl, 1.75) * 1.6) * 4);
+      const base = (8 + lvl * 6 + Math.pow(lvl, 1.75) * 1.6) * 4;
+      // Anti-snowball: a partir do nível 12 o custo sobe +3,5% por nível (teto x1,7).
+      const late = Math.min(1.7, 1 + Math.max(0, lvl - 12) * 0.035);
+      return Math.floor(base * late);
     }
   },
 
@@ -160,10 +163,10 @@ const BalanceConfig = {
     eliteThreshold: 0.85,  // Quando count >= 64 * 0.85 (54+), viram Elites
     eliteMultiplier: {
       hp: 1.6,
-      dmg: 1.25,
+      dmg: 1.4,
       xp: 1.6
     },
-    density: 0.24,
+    density: 0.28,
     dmgK: 2.4,
     xpK: 1.25,             // Fator de escala calibrado de XP (Nível 27 no Min 14)
     shinyRate: 1 / 4096,
@@ -180,7 +183,7 @@ const BalanceConfig = {
       return 1.0;
     },
     // Taxa de nascimento de monstros por segundo em função do tempo t (em segundos)
-    rate: function(t, density = 0.24) {
+    rate: function(t, density = 0.28) {
       const base = (3.2 + t * 0.025 + Math.pow(t / 60, 1.45) * 0.45) * density;
       const tension = (typeof this.tensionMultiplier === 'function') ? this.tensionMultiplier(t) : 1.0;
       return base * tension;
@@ -211,26 +214,26 @@ const BalanceConfig = {
     // Escala progressiva de atributos com o tempo t (segundos)
     scale: function(t) {
       return {
-        hp: 1 + t / 140,
-        dmg: 1 + t / 600,
-        spd: 1 + Math.min(0.35, t / 1400)
+        hp: 1 + t / 110,
+        dmg: 1 + t / 480,
+        spd: 1 + Math.min(0.45, t / 1200)
       };
     },
     // Escala de chefes programados
     bossScale: function(t) {
       return {
-        hp: 1 + t / 600,
-        dmg: 1 + t / 600,
+        hp: 1 + t / 450,
+        dmg: 1 + t / 420,
         spd: 1
       };
     },
     // Chefes de marco nos minutos 3, 6, 9, 12, 15
     bossSlots: [
-      { at: 180, hp: 1400,  dmg: 34, xp: 100, bst: [490, 545] },
-      { at: 360, hp: 3200,  dmg: 42, xp: 200, bst: [520, 580] },
-      { at: 540, hp: 5600,  dmg: 48, xp: 350, bst: [540, 600] },
-      { at: 720, hp: 9000,  dmg: 56, xp: 500, bst: [580, 700] },
-      { at: 900, hp: 16000, dmg: 68, xp: 900, bst: [600, 700] }
+      { at: 180, hp: 1400,  dmg: 40, xp: 100, bst: [490, 545] },
+      { at: 360, hp: 3200,  dmg: 50, xp: 200, bst: [520, 580] },
+      { at: 540, hp: 5600,  dmg: 57, xp: 350, bst: [540, 600] },
+      { at: 720, hp: 9000,  dmg: 66, xp: 500, bst: [580, 700] },
+      { at: 900, hp: 16000, dmg: 80, xp: 900, bst: [600, 700] }
     ],
     // Carga de energia Mega concedida ao derrotar inimigos
     megaEnergyGains: {
@@ -249,17 +252,17 @@ const BalanceConfig = {
     // 13 Melhorias Permanentes da Loja (progressão geométrica)
     // Custo total da árvore base = ~112.000 moedas
     list: [
-      { id: 'hp',     icon: 'heart',  name: 'Vitalidade',        unit: '+8 PV Máximo',                                  max: 10, base: 60,  grow: 1.35 },
-      { id: 'atk',    icon: 'fist',   name: 'Força',             unit: '+4% de dano',                                   max: 10, base: 80,  grow: 1.38 },
-      { id: 'spd',    icon: 'boot',   name: 'Agilidade',         unit: '+3% de velocidade de movimento',                max: 8,  base: 70,  grow: 1.4 },
-      { id: 'cd',     icon: 'clock',  name: 'Recarga',           unit: '-3% de tempo de recarga das habilidades',       max: 8,  base: 90,  grow: 1.42 },
-      { id: 'def',    icon: 'shield', name: 'Armadura',          unit: '+2% de defesa (redução de dano)',               max: 8,  base: 80,  grow: 1.4 },
-      { id: 'regen',  icon: 'sprout', name: 'Síntese',           unit: '+0,2 PV por segundo',                           max: 5,  base: 120, grow: 1.5 },
-      { id: 'magnet', icon: 'magnet', name: 'Ímã',              unit: '+12% de raio de coleta de itens e EXP',         max: 6,  base: 50,  grow: 1.4 },
-      { id: 'xp',     icon: 'book',   name: 'Sabedoria',         unit: '+5% de experiência obtida',                     max: 8,  base: 100, grow: 1.42 },
-      { id: 'coins',  icon: 'coin',   name: 'Fortuna',           unit: '+8% de PokéMoedas recebidas',                   max: 8,  base: 120, grow: 1.45 },
+      { id: 'hp',     icon: 'heart',  name: 'Vitalidade',        unit: '+8 PV Máximo',                                  max: 10, base: 60,  grow: 1.38 },
+      { id: 'atk',    icon: 'fist',   name: 'Força',             unit: '+4% de dano',                                   max: 10, base: 80,  grow: 1.41 },
+      { id: 'spd',    icon: 'boot',   name: 'Agilidade',         unit: '+3% de velocidade de movimento',                max: 8,  base: 70,  grow: 1.43 },
+      { id: 'cd',     icon: 'clock',  name: 'Recarga',           unit: '-3% de tempo de recarga das habilidades',       max: 8,  base: 90,  grow: 1.45 },
+      { id: 'def',    icon: 'shield', name: 'Armadura',          unit: '+2% de defesa (redução de dano)',               max: 8,  base: 80,  grow: 1.43 },
+      { id: 'regen',  icon: 'sprout', name: 'Síntese',           unit: '+0,2 PV por segundo',                           max: 5,  base: 120, grow: 1.53 },
+      { id: 'magnet', icon: 'magnet', name: 'Ímã',              unit: '+12% de raio de coleta de itens e EXP',         max: 6,  base: 50,  grow: 1.43 },
+      { id: 'xp',     icon: 'book',   name: 'Sabedoria',         unit: '+5% de experiência obtida',                     max: 8,  base: 100, grow: 1.45 },
+      { id: 'coins',  icon: 'coin',   name: 'Fortuna',           unit: '+8% de PokéMoedas recebidas',                   max: 8,  base: 120, grow: 1.48 },
       { id: 'moves',  icon: 'cards',  name: '2º Ataque Inicial', unit: 'Desbloqueia a escolha do 2º ataque inicial para começar a partida', max: 1, base: 50000, grow: 1 },
-      { id: 'crit',   icon: 'star',   name: 'Acerto Crítico',    unit: '+3% de chance de acerto crítico (dano x1,5)',   max: 10, base: 90,  grow: 1.4 },
+      { id: 'crit',   icon: 'star',   name: 'Acerto Crítico',    unit: '+3% de chance de acerto crítico (dano x1,5)',   max: 10, base: 90,  grow: 1.43 },
       { id: 'reroll', icon: 'up',     name: 'Trocar Cartas',     unit: '+1 troca de cartas ao subir de nível',          max: 5,  base: 150, grow: 1.6 },
       { id: 'ban',    icon: 'ban',    name: 'Banir',             unit: 'Bane 1 ataque da seleção (máx. 3 ataques vetados na partida)', max: 3, base: 300, grow: 1.9 }
     ],
@@ -334,12 +337,13 @@ const BalanceConfig = {
     // Taxas Base de Captura
     captureRates: {
       shinyLegendary: 0.02, // 2%
-      legendary: 0.06,      // 6%
+      legendary: 0.05,      // 5%
       shinyCommon: 0.10,    // 10%
-      stage3: 0.18,         // 18%
-      stage2: 0.28,         // 28%
-      stage1: 0.38,         // 38%
-      maxCap: 0.48          // Trava máxima absoluta (nenhum Pokémon comum passa de 48%)
+      stage3: 0.15,         // 15%
+      stage2: 0.24,         // 24%
+      stage1: 0.34,         // 34%
+      maxCap: 0.42,         // Trava máxima absoluta (nenhum Pokémon comum passa de 42%)
+      riskBonusMax: 0.06    // Bônus tático: até +6% se o jogador estiver com pouca vida na captura
     },
     // Roleta Gacha Hardcore
     gacha: {
