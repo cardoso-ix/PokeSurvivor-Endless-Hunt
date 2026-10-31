@@ -25,6 +25,10 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 - 966 Pokémon com sprites e animações completos; evolução OK em 11 linhas.
 - Causa do FPS baixo/"bugado" do trio: `clearRect` do avatar no canvas do jogo (já removido).
 
+## Varredura de ataques (31/10/2026)
+- 64 ataques x níveis 1 e 5 (128 casos): todos acertam inimigos, 0 erros de JS. `scan_moves.js` agora conta chamadas reais de `Enemy.hurt` (a medição antiga por HP era inconclusiva) e fecha a tela de vínculo que travava a varredura.
+- Mega nos 18 tipos (`scan_mega.js`), vínculo, loja/gacha/pausa, Rifts/captura: 0 erros. Espaço no build de produção (`scan_space.js`) OK.
+
 ## Pendências conhecidas
 0. **Charizard HD:** testado e **revertido** a pedido do dono (sprite PMD original restaurado). Fonte e gerador seguem em `tools/hd_src/charizard/` e `tools/make_hd_sprites.py` caso queira retomar.
 1. **Armadilha do build:** em produção o bundle roda dentro de uma função e `G` é variável local, não `window.G`. Arquivos novos não devem recriar `G` (`window.G = window.G || {}`) nem ler `G.AlgumVFX` registrado via UMD: usar o global (`typeof X`) como em `game.js`. Sempre testar com `index.html` (`tools/scan/scan_space.js`).

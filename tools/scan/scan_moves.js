@@ -25,9 +25,9 @@ const errs = []; let ctx = 'boot';
       await p.evaluate(() => { const b = document.querySelector('#scr-bond:not(.hidden) button, #scr-item:not(.hidden) button, #scr-levelup:not(.hidden) .card'); if (b) b.click(); }); await sleep(300);
       const r = await p.evaluate(async (id, lvl) => {
         const sl = ms => new Promise(r => setTimeout(r, ms));
-        const pl = G.Game.player; if (G.Game.state !== 'playing') return { err: 'state=' + G.Game.state };
+        const pl = G.Game.player; if (G.Game.state === 'choice') { document.querySelectorAll('#scr-bond button').forEach(b => b.click()); await sl(300); } if (G.Game.state !== 'playing') return { err: 'state=' + G.Game.state };
         if (!pl) return { err: 'sem player' };
-        pl.hp = pl.maxHp = 1e7; pl.invuln = 1e9; pl.xpNext = 1e12;
+        pl.hp = pl.maxHp = 1e7; pl.invuln = 1e9; pl.xpNext = 1e12; pl.bonds = 0; pl.bondHold = true;
         pl.moves.length = 0; pl.slots.length = 0; pl.active = 0;
         const m = G.Moves.instance(id, lvl);
         pl.moves.push(m); pl.slots.push([m]); pl.setActive(0);
@@ -37,18 +37,20 @@ const errs = []; let ctx = 'boot';
         for (const e of all) { if (e.dead || e.boss) continue; const a = n++ * 0.9; e.x = pl.x + Math.cos(a) * (80 + (n % 5) * 40); e.y = pl.y + Math.sin(a) * (80 + (n % 5) * 40); e.hp = e.maxHp = 1e6; if (n > 14) break; }
         const before = all.reduce((s, e) => s + (e.maxHp - e.hp), 0);
         const pj0 = G.Projectiles && G.Projectiles.count ? G.Projectiles.count : 0;
+        if (!window.__hw) { window.__hw = 1; const o = G.Enemy.prototype.hurt; G.Enemy.prototype.hurt = function (...a) { window.__h = (window.__h || 0) + 1; return o.apply(this, a); }; }
+        window.__h = 0;
         let thrown = null;
         m.t = 0;
         const buff0 = JSON.stringify(Object.keys(pl).filter(k => /buff|mul/i.test(k)).map(k => pl[k]));
         await sl(1700);
         const buffMoved = JSON.stringify(Object.keys(pl).filter(k => /buff|mul/i.test(k)).map(k => pl[k])) !== buff0;
         const after = G.EnemyMgr.all().reduce((s, e) => s + (e.maxHp - e.hp), 0);
-        return { n, dmg: Math.round(after - before), thrown, fx: G.FX.count, kind: m.kind, buffMoved, state: G.Game.state };
+        return { n, hits: window.__h, dmg: Math.round(after - before), thrown, fx: G.FX.count, kind: m.kind, buffMoved, state: G.Game.state };
       }, id, lvl);
       results.push({ id, lvl, ...r });
     }
   }
-  const bad = results.filter(r => r.thrown || r.err || (r.dmg <= 0 && r.kind !== 'buff') || (r.kind === 'buff' && !r.buffMoved));
+  const bad = results.filter(r => r.thrown || r.err || (r.hits <= 0 && r.dmg <= 0 && r.kind !== 'buff') || (r.kind === 'buff' && !r.buffMoved));
   console.log('RESULTADOS:', results.length, ' suspeitos:', bad.length);
   bad.forEach(r => console.log(JSON.stringify(r)));
   console.log('=== ERROS JS (' + errs.length + ') ===');
