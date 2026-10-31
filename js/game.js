@@ -927,14 +927,7 @@ G.Game = (() => {
     G.World.drawVignette(ctx, w, h);
     if (G.MegaScene && G.MegaScene.active) G.MegaScene.drawScreen(ctx, w, h);
     // Niebla: la viñeta se cierra un poco (sin tapar el centro).
-    const fog = G.Weather.vignette;
-    if (fog > 0) {
-      const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.32, w / 2, h / 2, Math.max(w, h) * 0.62);
-      g.addColorStop(0, 'rgba(200,205,220,0)');
-      g.addColorStop(1, `rgba(200,205,220,${0.45 * fog})`);
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
-    }
+    G.World.drawFog(ctx, w, h, G.Weather.vignette);
     if (G.Capture && G.Capture.drawScreen) G.Capture.drawScreen(ctx, w, h);
     if (G.MegaCutscene && G.MegaCutscene.active && typeof G.MegaCutscene.draw === 'function') {
       G.MegaCutscene.draw(ctx, w, h);

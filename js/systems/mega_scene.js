@@ -445,28 +445,6 @@
 
       // ----- cenário durante o Mega -----
       const k = this.intensity(), t = S.st, def = S.def;
-      if (!S.tintPat) {
-        S.tintPat = checker((S.cfg && S.cfg.color) || '#fff');
-        S.darkPat = checker('#05030a');
-      }
-      if (def.dark > 0) { c.globalAlpha = def.dark * k * 1.6; c.fillStyle = S.darkPat; c.fillRect(0, 0, lw, lh); }
-      c.globalAlpha = def.tint * k * 1.6; c.fillStyle = S.tintPat; c.fillRect(0, 0, lw, lh);
-      c.globalAlpha = 1;
-      // abre um buraco na tinta ao redor do jogador para o sprite não ficar quadriculado
-      const pl = S.pl, cam = G.Camera;
-      if (pl && cam && cam.left) {
-        const sc = cam.scale || 1, vs = pl.megaVisualScale || 1;
-        const cx = Math.round((pl.x - cam.left()) * sc / S.pix);
-        const cy = Math.round((pl.y - cam.top()) * sc / S.pix - 14 * sc * vs / S.pix);
-        const rx = Math.round(40 * sc * vs / S.pix), ry = Math.round(46 * sc * vs / S.pix);
-        c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000';
-        for (let y = -ry; y <= ry; y++) {
-          const hw = Math.round(rx * Math.sqrt(1 - (y * y) / (ry * ry)));
-          c.fillRect(cx - hw, cy + y, hw * 2 + 1, 1);
-        }
-        c.globalCompositeOperation = 'source-over';
-      }
-
       switch (def.sp) {
         case 'waves': spWaves(c, k, t); break;
         case 'vines': spVines(c, k, t); break;
@@ -480,9 +458,7 @@
       for (let i = 0; i < MAX_P; i++) if (pool[i].a) drawParticle(c, pool[i]);
 
       ctx.save(); ctx.imageSmoothingEnabled = false;
-      ctx.globalAlpha = 0.9;
       ctx.drawImage(S.lo, 0, 0, lw, lh, 0, 0, lw * S.pix, lh * S.pix);
-      ctx.globalAlpha = 1;
       if (S.flash > 0) { ctx.fillStyle = '#fff'; ctx.globalAlpha = clamp01(S.flash / 0.5) * 0.8; ctx.fillRect(0, 0, w, h); }
       ctx.restore();
     }

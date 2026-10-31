@@ -365,17 +365,7 @@
       pl.invuln = Math.max(pl.invuln || 0, 2.0);
     }
 
-    // Escurecimento ou flash de tela temático
-    if (cfg.darkenScreen) {
-      addScreenEffect({
-        type: 'darken',
-        color: '#050510',
-        alpha: 0.65,
-        life: cfg.darkenScreen,
-        maxLife: cfg.darkenScreen
-      });
-    }
-
+    // (sem escurecimento de tela: o Mega mostra só os ataques)
     // Ultimate em área: onda de choque que fere e empurra tudo ao redor do jogador
     spawnUltimateBurst(px, py, cfg, baseDamage);
     rain = (cfg.behavior === 'diagonalFall')

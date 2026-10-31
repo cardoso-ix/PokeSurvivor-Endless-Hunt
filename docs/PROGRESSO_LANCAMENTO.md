@@ -18,12 +18,18 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 | Remoção do trio/treinador | ✅ `00b7b8d` | Volta a um personagem; `player.js` pré-trio |
 | Varredura geral (etapa 1) | ✅ `86c67ee`, `321a47c`, `37233da` | Fonte, textos, HUD mobile, i18n do menu, vínculo (HUD + adiar) |
 | 3. Mega/Espaço | ✅ (aguardando teste do dono) | Cutscene (2 s, Pokémon no centro) + cenário em pixel art por tipo (18 cenas) em `js/systems/mega_scene.js`; ultimate em área, chuva de meteoros (fogo/dragão), hit-stop 0,15 s. Ativa com Espaço, M ou botão. Scanner: `tools/scan/scan_mega.js`. Pendentes: pools reais, reescrever testes antigos do Mega |
-| 4. Visual geral ("juice") | ⏳ | Partículas, hit flash, números de dano, sombras, HUD/level up/gacha |
+| 4. Visual geral ("juice") | 🔶 parte 1 feita (aguardando teste) | **Feito:** chão sem repetição (padrão 256 px com manchas, tufos, pedrinhas), 3 formas de árvore/cristal/árvore morta/pedra por bioma, luz+vinheta por bioma em cache, névoa em cache. **Falta:** água com ondas, clima ligado ao bioma, sombra de contato, partículas/hit flash/números de dano, HUD/level up/gacha |
 
 ## Varredura: resultado
 - 0 erros de JS em 9 telas, 64 ataques (nv 1 e 5), run de 15 min (~144 FPS, memória estável 15–40 MB), 3 Rifts seguidos, 6 casos de captura forçados.
 - 966 Pokémon com sprites e animações completos; evolução OK em 11 linhas.
 - Causa do FPS baixo/"bugado" do trio: `clearRect` do avatar no canvas do jogo (já removido).
+
+## Mega: ajuste pedido pelo dono
+Removidos tinta/escurecimento/vinheta/bordas do cenário do Mega (e o `darken` do VFX): ficam só os ataques de cada tipo. Cutscene mantida.
+
+## Fase 4, parte 1 (cenário)
+FPS medido com `tools/scan/scan_world.js`: 143–145 em 5 biomas, igual ao anterior. Estestudo: chão/props/luz/vinheta (`js/world/tiles.js`, `world.js`, `drawFog`).
 
 ## Varredura de ataques (31/10/2026)
 - 64 ataques x níveis 1 e 5 (128 casos): todos acertam inimigos, 0 erros de JS. `scan_moves.js` agora conta chamadas reais de `Enemy.hurt` (a medição antiga por HP era inconclusiva) e fecha a tela de vínculo que travava a varredura.

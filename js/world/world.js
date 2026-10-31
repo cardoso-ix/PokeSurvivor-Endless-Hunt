@@ -517,8 +517,11 @@ G.World = (() => {
 
   function drawProp(ctx, p, t) {
     const P = G.Sprites.PX;
+    // Forma própria de cada árvore/pedra (3 variantes por bioma), fixa por posição
+    const shape = Math.floor(H(p.tx, p.ty, 91) * 3);
     const variant = p.type === 'grass' ? (Math.sin(t * 2.4 + p.wiggle) > 0.55 ? 1 : 0)
-                  : p.type === 'rock' ? (p.hp < p.maxHp * 0.5 ? 1 : 0)
+                  : p.type === 'tree' ? shape
+                  : p.type === 'rock' ? (p.hp < p.maxHp * 0.5 ? 1 : 0) + shape * 2
                   : p.type === 'altar' ? p.kind * 2 + (p.used ? 1 : 0)
                   : p.type === 'spring' ? (p.charge < 0.15 ? 1 : 0)
                   : p.type === 'trap' ? p.kind : 0;
@@ -603,13 +606,66 @@ G.World = (() => {
 
   function biomeName() { return G.Tiles.BIOMES[biome].name; }
 
-  /** Viñeta en coordenadas de pantalla. */
+  // ---- Vinheta + luz do bioma: pré-desenhadas em baixa resolução (antes: gradiente novo a cada frame) ----
+  const LIGHT = [
+    { glow: [255, 240, 190], ga: 0.10, shade: [6, 22, 10] },    // Bosque Umbrío: sol filtrado, bordas verdes escuras
+    { glow: [150, 200, 255], ga: 0.10, shade: [10, 6, 44] },    // Cueva Cristal: brilho azulado, bordas violeta
+    { glow: [255, 140, 60], ga: 0.12, shade: [44, 6, 0] }       // Volcán Ceniza: calor alaranjado, bordas de brasa
+  ];
+  const hexRgb = h => { const n = parseInt(String(h || '#ffffff').replace('#', '').padEnd(6, 'f').slice(0, 6), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const overlays = new Map();
+  function overlayFor(bi, w, h) {
+    const lw = Math.ceil(w / 4), lh = Math.ceil(h / 4), key = bi + '|' + lw + 'x' + lh;
+    let cv = overlays.get(key);
+    if (cv) return cv;
+    const B = G.Tiles.BIOMES[bi] || G.Tiles.BIOMES[0];
+    const L = LIGHT[bi] || { glow: hexRgb(B.light), ga: 0.08, shade: hexRgb((B.floor || ['#000000'])[0]).map(v => Math.round(v * 0.15)) };
+    cv = document.createElement('canvas'); cv.width = lw; cv.height = lh;
+    const c = cv.getContext('2d');
+    const mn = Math.min(lw, lh), mx = Math.max(lw, lh);
+    // luz suave vinda do alto à esquerda
+    let g = c.createRadialGradient(lw * 0.36, lh * 0.3, 0, lw * 0.36, lh * 0.3, mx * 0.75);
+    g.addColorStop(0, `rgba(${L.glow},${L.ga})`); g.addColorStop(1, `rgba(${L.glow},0)`);
+    c.fillStyle = g; c.fillRect(0, 0, lw, lh);
+    // vinheta nas bordas, na cor sombra do bioma
+    g = c.createRadialGradient(lw / 2, lh / 2, mn * 0.34, lw / 2, lh / 2, mx * 0.78);
+    g.addColorStop(0, `rgba(${L.shade},0)`); g.addColorStop(1, `rgba(${L.shade},.55)`);
+    c.fillStyle = g; c.fillRect(0, 0, lw, lh);
+    if (overlays.size >= 8) overlays.delete(overlays.keys().next().value);
+    overlays.set(key, cv);
+    return cv;
+  }
+
+  /** Vinheta + luz do bioma em coordenadas de pantalla. */
   function drawVignette(ctx, w, h) {
-    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.78);
-    g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(1, 'rgba(0,0,0,.5)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
+    const k = fadeK();
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;       // o overlay é pequeno e suave: ampliar com suavização
+    if (k != null && fade && fade.from != null) {
+      ctx.drawImage(overlayFor(fade.from, w, h), 0, 0, w, h);
+      ctx.globalAlpha = k;
+    }
+    ctx.drawImage(overlayFor(biome, w, h), 0, 0, w, h);
+    ctx.restore();
+  }
+
+  /** Névoa de borda (clima), também em cache: só muda a opacidade. k = 0..1 */
+  let fogCv = null;
+  function drawFog(ctx, w, h, k) {
+    if (!(k > 0)) return;
+    const lw = Math.ceil(w / 4), lh = Math.ceil(h / 4);
+    if (!fogCv || fogCv.width !== lw || fogCv.height !== lh) {
+      fogCv = document.createElement('canvas'); fogCv.width = lw; fogCv.height = lh;
+      const c = fogCv.getContext('2d');
+      const g = c.createRadialGradient(lw / 2, lh / 2, Math.min(lw, lh) * 0.32, lw / 2, lh / 2, Math.max(lw, lh) * 0.62);
+      g.addColorStop(0, 'rgba(200,205,220,0)'); g.addColorStop(1, 'rgba(200,205,220,.45)');
+      c.fillStyle = g; c.fillRect(0, 0, lw, lh);
+    }
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.globalAlpha = Math.min(1, k);
+    ctx.drawImage(fogCv, 0, 0, w, h);
+    ctx.restore();
   }
 
   return {
@@ -629,7 +685,7 @@ G.World = (() => {
         if (Math.abs(cx * N + N / 2 - a.tx) < R + N && Math.abs(cy * N + N / 2 - a.ty) < R + N) { data.delete(k); images.delete(k); }
       }
     },
-    get arena() { return arena; }, drawGround, drawLiquid, visibleProps, drawProp, drawVignette,
+    get arena() { return arena; }, drawGround, drawLiquid, visibleProps, drawProp, drawVignette, drawFog,
     get biome() { return biome; }
   };
 })();

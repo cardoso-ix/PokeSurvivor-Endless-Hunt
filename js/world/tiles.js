@@ -406,15 +406,21 @@ G.Tiles = (() => {
   }
 
   const PAINT = {
-    tree(B) {
+    tree(B, variant = 0) {
       const P = Pix(30, 40);
       const L = B.leaf.map(h => pack(h)), Tr = B.trunk.map(h => pack(h));
       const edge = pack('#14200f');
-      if (B.prop === 'crystal') return PAINT.crystal(B);
-      if (B.prop === 'dead') return PAINT.deadtree(B);
+      if (B.prop === 'crystal') return PAINT.crystal(B, variant);
+      if (B.prop === 'dead') return PAINT.deadtree(B, variant);
       for (let y = 26; y < 38; y++) for (let x = 13; x < 18; x++) P.set(x, y, Tr[x === 13 || x === 17 ? 0 : 1]);
       P.set(12, 37, Tr[0]); P.set(18, 37, Tr[0]); P.set(11, 38, Tr[0]); P.set(19, 38, Tr[0]);
-      const blobs = [[15, 20, 10], [9, 16, 7], [21, 16, 7], [15, 10, 8], [10, 23, 6], [20, 23, 6]];
+      // 3 copas: redonda (original), alta e estreita, larga com topete
+      const CROWNS = [
+        [[15, 20, 10], [9, 16, 7], [21, 16, 7], [15, 10, 8], [10, 23, 6], [20, 23, 6]],
+        [[15, 18, 8], [10, 14, 6], [20, 14, 6], [15, 8, 7], [15, 24, 6], [15, 3, 4]],
+        [[15, 22, 10], [7, 20, 7], [23, 20, 7], [15, 14, 8], [10, 26, 6], [20, 26, 6], [15, 8, 5]]
+      ];
+      const blobs = CROWNS[variant % 3];
       for (const [bx, by, br] of blobs) {
         disc(P, bx, by, br, (x, y, d) => {
           // Luz desde arriba a la izquierda.
@@ -427,10 +433,15 @@ G.Tiles = (() => {
       return P.canvas();
     },
 
-    crystal(B) {
+    crystal(B, variant = 0) {
       const P = Pix(26, 40);
       const L = B.leaf.map(h => pack(h)), D = B.trunk.map(h => pack(h));
-      const spires = [[13, 2, 5, 38], [7, 14, 4, 38], [19, 12, 4, 38]];
+      const SPIRES = [
+        [[13, 2, 5, 38], [7, 14, 4, 38], [19, 12, 4, 38]],
+        [[12, 6, 5, 38], [19, 4, 4, 38], [6, 18, 3, 38]],
+        [[13, 0, 4, 38], [6, 10, 4, 38], [20, 8, 5, 38], [10, 22, 3, 38]]
+      ];
+      const spires = SPIRES[variant % 3];
       for (const [cx, top, half, bot] of spires) {
         for (let y = top; y <= bot; y++) {
           const t = Math.min(1, (y - top) / 8);
@@ -445,14 +456,16 @@ G.Tiles = (() => {
       return P.canvas();
     },
 
-    deadtree(B) {
+    deadtree(B, variant = 0) {
       const P = Pix(28, 40);
       const Tr = B.trunk.map(h => pack(h)), L = B.leaf.map(h => pack(h));
-      for (let y = 12; y < 38; y++) for (let x = 12; x < 16; x++) P.set(x, y, Tr[x < 14 ? 0 : 1]);
+      for (let y = variant === 2 ? 16 : 12; y < 38; y++) for (let x = 12; x < 16; x++) P.set(x, y, Tr[x < 14 ? 0 : 1]);
       const branch = (x0, y0, dx, len) => {
         for (let i = 0; i < len; i++) { P.set(x0 + dx * i, y0 - i, L[1]); P.set(x0 + dx * i, y0 - i + 1, L[0]); }
       };
-      branch(12, 20, -1, 9); branch(15, 17, 1, 10); branch(13, 13, -1, 7); branch(14, 12, 1, 6);
+      if (variant === 1) { branch(12, 18, -1, 10); branch(15, 20, 1, 8); branch(13, 12, -1, 6); branch(14, 14, 1, 9); }
+      else if (variant === 2) { branch(12, 24, -1, 8); branch(15, 22, 1, 9); branch(13, 18, -1, 6); branch(14, 16, 1, 5); }
+      else { branch(12, 20, -1, 9); branch(15, 17, 1, 10); branch(13, 13, -1, 7); branch(14, 12, 1, 6); }
       outline(P, pack('#0f0b09'));
       return P.canvas();
     },
@@ -460,10 +473,12 @@ G.Tiles = (() => {
     rock(B, variant) {
       const P = Pix(22, 17);
       const R = B.rock.map(h => pack(h));
+      const shape = variant >> 1;           // 0 original, 1 alta/estreita, 2 larga/achatada (bit 0 = danificada)
+      const rx = [9.5, 8, 9.8][shape], ry = [7, 7.6, 6][shape], cy0 = [9.5, 9, 10][shape];
       const shine = pack('#ffffff');
       // Peñasco achatado: elipse más ancha que alta, base plana.
       for (let y = 2; y <= 15; y++) for (let x = 1; x <= 20; x++) {
-        const nx = (x - 10.5) / 9.5, ny = (y - 9.5) / 7;
+        const nx = (x - 10.5) / rx, ny = (y - cy0) / ry;
         const d = nx * nx + ny * ny + (H(x, y, 61) - 0.5) * 0.08;
         if (d > 1) continue;
         const lit = -nx * 0.55 - ny * 0.85 + (H(x, y, 62) - 0.5) * 0.25;
@@ -475,7 +490,7 @@ G.Tiles = (() => {
       [[6, 5], [7, 5], [6, 6], [8, 4]].forEach(([x, y]) => P.set(x, y, shine));
       [[13, 8], [14, 9], [9, 11], [16, 11], [11, 7]].forEach(([x, y]) => P.set(x, y, R[0]));
       // Grietas en la variante dañada.
-      if (variant === 1) {
+      if (variant & 1) {
         const dark = pack('#1b1d22');
         [[9, 4], [10, 5], [10, 6], [11, 7], [10, 8], [12, 8], [13, 9], [8, 9], [7, 10]].forEach(([x, y]) => P.set(x, y, dark));
       }
@@ -651,8 +666,8 @@ G.Tiles = (() => {
     if (patternCache.has(bi)) return patternCache.get(bi);
 
     const B = BIOMES[bi] || BIOMES[0];
-    const S = 64; // 64x64 arte -> 128x128px canvas (alta densidade)
-    const P = 2;  // Escala de arte (pixel 2x2 para acompanhar perfeitamente os sprites)
+    const S = 128; // 128x128 arte -> 256x256 px (antes 64: a repetição de 128 px aparecia)
+    const P = 2;   // Escala de arte (pixel 2x2 para acompanhar perfeitamente os sprites)
     const patCanvas = document.createElement('canvas');
     patCanvas.width = S * P;
     patCanvas.height = S * P;
@@ -662,50 +677,51 @@ G.Tiles = (() => {
     const floors = B.floor || ['#3e7a39', '#44813d', '#397134'];
     const dirtCol = B.dirt && B.dirt[0] ? B.dirt[0] : floors[0];
 
+    // Ruído de valor periódico (a rede dá a volta): manchas grandes sem emenda
+    const lattice = (n, sd) => { const a = []; for (let j = 0; j < n; j++) { a.push([]); for (let i = 0; i < n; i++) a[j].push(H(i, j, sd + bi * 13)); } return a; };
+    const L4 = lattice(4, 311), L8 = lattice(8, 523);
+    const pn = (L, n, x, y) => {
+      const fx = x / S * n, fy = y / S * n, i0 = Math.floor(fx), j0 = Math.floor(fy);
+      const tx = fx - i0, ty = fy - j0, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+      const a = L[j0 % n][i0 % n], b = L[j0 % n][(i0 + 1) % n], c = L[(j0 + 1) % n][i0 % n], d = L[(j0 + 1) % n][(i0 + 1) % n];
+      return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+    };
+
     for (let y = 0; y < S; y++) {
       for (let x = 0; x < S; x++) {
-        // Coordenadas periódicas 0..2PI para garantir seamless perfeito nas bordas
-        const u = (x / S) * 2 * Math.PI;
-        const v = (y / S) * 2 * Math.PI;
-
-        // Frequências periódicas contínuas (zero costura)
-        const n1 = Math.sin(u) * Math.cos(v);
-        const n2 = Math.sin(u * 2 + 1.2) * Math.cos(v * 2 + 0.8) * 0.45;
-        const n3 = Math.cos(u * 3 - v * 2 + 0.5) * 0.25;
-        const n4 = Math.sin(u * 4 + 0.7) * Math.sin(v * 4 - 0.3) * 0.15;
-        const val = (n1 + n2 + n3 + n4 + 1.85) / 3.7; // 0..1
-
-        const hNoise = H(x % S, y % S, 111);
-        const hSpeck = H(x % S, y % S, 222);
+        const big = pn(L4, 4, x, y), mid = pn(L8, 8, x, y);
+        const hNoise = H(x, y, 111), hSpeck = H(x, y, 222);
+        const val = big * 0.5 + mid * 0.3 + hNoise * 0.2;
 
         let col;
-        if (hSpeck < 0.025) {
-          col = B.speck || '#2f5f2b';
-        } else if (hSpeck > 0.982) {
-          col = B.light || '#5f9d50';
-        } else if (val < 0.12 && hNoise < 0.35) {
-          col = dirtCol;
-        } else {
-          const idx = Math.min(floors.length - 1, Math.floor((val * 0.7 + hNoise * 0.3) * floors.length));
-          col = floors[idx];
-        }
+        if (hSpeck < 0.025) col = B.speck || '#2f5f2b';
+        else if (hSpeck > 0.982) col = B.light || '#5f9d50';
+        else if (big < 0.26 && mid < 0.5 && hNoise < 0.55) col = dirtCol;                              // manchas de terra
+        else if (big > 0.78 && mid > 0.5 && hNoise < 0.16) col = B.light || floors[floors.length - 1]; // clareiras de capim
+        else col = floors[Math.min(floors.length - 1, Math.floor(val * floors.length))];
 
         pctx.fillStyle = col;
         pctx.fillRect(x * P, y * P, P, P);
       }
     }
 
-    // Detalhes pontuais sem emendas (flores discretas)
-    if (B.flowers && B.flowers.length) {
-      const flwSpots = [[12, 18], [40, 8], [25, 48], [52, 34]];
-      for (let i = 0; i < flwSpots.length; i++) {
-        const [fx, fy] = flwSpots[i];
-        const fc = B.flowers[i % B.flowers.length];
-        pctx.fillStyle = fc;
-        pctx.fillRect(fx * P, fy * P, P, P);
-        pctx.fillStyle = B.light || '#fff';
-        pctx.fillRect((fx + 1) * P, fy * P, P, P);
-      }
+    // Detalhes espalhados (posições por hash, longe da borda para não cortar na emenda)
+    const spot = (n, sd) => { const o = []; for (let i = 0; i < n; i++) o.push([2 + Math.floor(H(i, 1, sd + bi) * (S - 5)), 2 + Math.floor(H(i, 2, sd + bi) * (S - 5))]); return o; };
+    const dark = floors[0], rockC = (B.rock && B.rock[1]) || B.speck || dark, rockL = (B.rock && B.rock[2]) || B.light || '#fff';
+    for (const [x, y] of spot(46, 700)) {                       // tufos de capim em "v"
+      pctx.fillStyle = dark;
+      pctx.fillRect(x * P, y * P, P, P); pctx.fillRect((x - 1) * P, (y - 1) * P, P, P); pctx.fillRect((x + 1) * P, (y - 1) * P, P, P);
+      pctx.fillStyle = B.light || '#fff'; pctx.fillRect(x * P, (y - 1) * P, P, P);
+    }
+    for (const [x, y] of spot(12, 800)) {                       // pedrinhas
+      pctx.fillStyle = rockC; pctx.fillRect(x * P, y * P, P * 2, P);
+      pctx.fillStyle = rockL; pctx.fillRect(x * P, (y - 1) * P, P, P);
+    }
+    if (B.flowers && B.flowers.length) {                        // flores discretas
+      spot(16, 900).forEach(([fx, fy], i) => {
+        pctx.fillStyle = B.flowers[i % B.flowers.length]; pctx.fillRect(fx * P, fy * P, P, P);
+        pctx.fillStyle = B.light || '#fff'; pctx.fillRect((fx + 1) * P, fy * P, P, P);
+      });
     }
 
     const pattern = ctx.createPattern(patCanvas, 'repeat');
