@@ -97,16 +97,14 @@ const MegaSystem = {
         pl.megaMode.maxTimer = 10.0;
       }
 
-      // Dispara a Mega Skill Elemental Procedural correspondente ao tipo do Pokémon
+      // Guarda o tipo ativo (paleta da aura do jogador)
       const pType = (pl.mon && pl.mon.types && pl.mon.types[0]) ? pl.mon.types[0] : (pl.types && pl.types[0] ? pl.types[0] : 'normal');
       // Expõe o tipo ativo para que a aura do jogador (player.js) use a paleta elemental correta
       this.activeType = pType;
       this.currentElement = pType;
       if (pl) pl.megaAuraElement = pType;
-      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : ((typeof G === 'object') ? (G.MegaSkillVFXManager || G.UltimateVFX) : null);
-      if (vfx && typeof vfx.trigger === 'function') {
-        vfx.trigger(pType, pl);
-      }
+      // O golpe do Mega (cutscene + ataque) roda em mega_scene.js/mega_strike.js ANTES desta ativação.
+      // Sem o VFX contínuo antigo (MegaSkillVFXManager.trigger): o Mega agora é só o golpe + o buff.
     }
 
     if (typeof G === 'object' && G.Spawner && typeof G.Spawner.say === 'function') {

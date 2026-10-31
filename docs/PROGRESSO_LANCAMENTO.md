@@ -28,8 +28,13 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 ## Mega: ajuste pedido pelo dono
 Removidos tinta/escurecimento/vinheta/bordas do cenário do Mega (e o `darken` do VFX): ficam só os ataques de cada tipo. Cutscene mantida.
 
+## Mega v2 (31/10/2026): cinemática + golpe único
+Corte 0,9 s -> carga 0,6 s -> golpe assinatura em tela cheia (pixel art, dano em área nos impactos) -> buff de 10 s sem efeito contínuo.
+Código: `js/systems/mega_scene.js` (fases, primitivas, dano) e `js/systems/mega_strike.js` (golpes por tipo).
+**Leva 1 pronta:** Fogo, Água, Elétrico, Gelo, Normal, Dragão. **Leva 2 pendente:** os outros 12 tipos (hoje usam o Hiper Raio com as cores do tipo). Scanner: `tools/scan/scan_mega.js <pasta> [tipos] [pagina]`.
+
 ## Fase 4, parte 1 (cenário)
-FPS medido com `tools/scan/scan_world.js`: 143–145 em 5 biomas, igual ao anterior. Estestudo: chão/props/luz/vinheta (`js/world/tiles.js`, `world.js`, `drawFog`).
+FPS medido com `tools/scan/scan_world.js`: 143–145 em 5 biomas, igual ao anterior. Estudo: chão/props/luz/vinheta (`js/world/tiles.js`, `world.js`, `drawFog`).
 
 ## Varredura de ataques (31/10/2026)
 - 64 ataques x níveis 1 e 5 (128 casos): todos acertam inimigos, 0 erros de JS. `scan_moves.js` agora conta chamadas reais de `Enemy.hurt` (a medição antiga por HP era inconclusiva) e fecha a tela de vínculo que travava a varredura.

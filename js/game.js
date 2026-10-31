@@ -783,6 +783,7 @@ G.Game = (() => {
       if (G.MegaScene.introActive) {
         pl.anim.update(dt);
         G.Camera.follow(pl.x, pl.y, dt);
+        G.FX.update(dt);
         return;
       }
     }
