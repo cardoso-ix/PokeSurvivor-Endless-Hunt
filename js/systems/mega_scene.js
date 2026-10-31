@@ -195,6 +195,17 @@
     const cam = G.Camera, [wx, wy] = lowToWorld(S.px, S.py);
     eachEnemy(e => { if (cam.sees(e.x, e.y, 30)) strikeHit(e, mul, wx, wy); });
   }
+  /** Puxa os inimigos visíveis (menos chefes) uma fração do caminho até o Pokémon (golpe Psíquico). */
+  function pullEnemies(frac, minD) {
+    const pl = S.pl, cam = G.Camera;
+    if (!pl) return;
+    eachEnemy(e => {
+      if (e.boss || !cam.sees(e.x, e.y, 0)) return;
+      const dx = pl.x - e.x, dy = pl.y - e.y;
+      if (Math.hypot(dx, dy) < (minD || 40)) return;
+      e.x += dx * frac; e.y += dy * frac;
+    });
+  }
   function kick(a) { if (G.Camera && G.Camera.kick) G.Camera.kick(a); }
   function flash(a) { S.flash = Math.max(S.flash, a); }
 
@@ -218,7 +229,7 @@
 
   const P = {
     px, rect, line, circle, disc, ball, bitmap, hash, ease, burst, ring, clamp01,
-    hurtCircle, hurtRect, hurtLine, hurtAll, kick, flash, R
+    hurtCircle, hurtRect, hurtLine, hurtAll, pullEnemies, kick, flash, R
   };
 
   function fontPx(n) { return `700 ${n}px ${FONT}`; }

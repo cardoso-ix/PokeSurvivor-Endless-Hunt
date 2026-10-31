@@ -1751,9 +1751,12 @@ G.Player = class Player {
           const evoCfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
           const evoLvl = (evoCfg && evoCfg.player && evoCfg.player.evolution) || {};
           const isSecondEvolution = (this.currentEvolutionStage >= 2) || (this.evolutionHistory && this.evolutionHistory.length >= 2);
+          // Linha de só 2 estágios (a forma evoluída é a final, ex: Rattata -> Raticate):
+          // a única evolução vem no Nv 12, não no 5. Linhas de 3 estágios seguem 5 e 12.
+          const isFinalStep = !getEvo(String(evo.next).toLowerCase());
           const lvl = adminEvoMode === 'instant' ? 1 :
                       (adminEvoMode === 'official' && evo.level) ? evo.level :
-                      (isSecondEvolution ? (evoLvl.stage3Level || 12) : (evoLvl.stage2Level || 5));
+                      ((isSecondEvolution || isFinalStep) ? (evoLvl.stage3Level || 12) : (evoLvl.stage2Level || 5));
           // A evolução é AUTOMÁTICA e dispara exatamente no marco (5, 12 e 21).
           // Não há carta de evolução: os cards de Level Up ficam para ataques e atributos.
           const triggerLvl = adminEvoMode === 'instant' ? 1 : lvl;

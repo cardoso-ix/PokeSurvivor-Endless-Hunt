@@ -65,6 +65,7 @@ G.Ranking = (() => {
   }
 
   const ALL = 'all2';                     // histórico (ver arriba)
+  const RESET_GEN = 'k';                  // geração do ranking (ver boardIds)
   function periodIds(date = new Date()) {
     const { y, m, d } = madridDate(date);
     const w = isoWeek(y, m, d);
@@ -80,7 +81,11 @@ G.Ranking = (() => {
    */
   function boardIds(date) {
     const p = periodIds(date);
-    return Object.assign({}, p, { w: p.w + 'j', m: p.m + 'j' });
+    // Geração 'k' (31-10-2026, pedido do dono antes do lançamento): TODAS as tabelas (diário, semanal,
+    // mensal e histórico) recomeçam vazias. Nada foi apagado no Firestore: as tabelas antigas ficam
+    // paradas no servidor (e a outra linha do jogo, que usa o mesmo projeto, não é afetada).
+    // Para zerar de novo, troque RESET_GEN. Para voltar às marcas antigas, deixe RESET_GEN = ''.
+    return { d: p.d + RESET_GEN, w: p.w + 'j' + RESET_GEN, m: p.m + 'j' + RESET_GEN, y: p.y + RESET_GEN, a: p.a + RESET_GEN };
   }
 
   /** El filtro por Pokémon sólo existe en el histórico. */
@@ -266,7 +271,7 @@ G.Ranking = (() => {
     const ids = boardIds();
     const entry = { t: r.t, uids: [fb.uid], names: [G.Social.me.name], dex: [r.dex], shiny: [!!r.shiny], lv: r.lv, kills: r.kills, rifts: r.rifts || 0 };
     const boards = PERIODS.map(([p]) => ['s_' + ids[p], p]);
-    boards.push(['s_' + ALL + '_p' + r.dex, 'p']);
+    boards.push(['s_' + ALL + RESET_GEN + '_p' + r.dex, 'p']);
     const better = await store(boards, fb.uid, entry);
     announce(better);
     return better;
@@ -283,7 +288,7 @@ G.Ranking = (() => {
                     shiny: ms.map(m => !!m.shiny), lv: r.lv, kills: r.kills, rifts: r.rifts || 0 };
     const ids = boardIds();
     const boards = PERIODS.map(([p]) => ['g_' + ids[p], p]);
-    for (const d of new Set(entry.dex)) boards.push(['g_' + ALL + '_p' + d, 'p']);
+    for (const d of new Set(entry.dex)) boards.push(['g_' + ALL + RESET_GEN + '_p' + d, 'p']);
     const better = await store(boards, id, entry);
     announce(better);
     return better;
@@ -481,7 +486,7 @@ G.Ranking = (() => {
   async function removeEverywhere(e, mode, dexes = [], also = null) {
     const ids = boardIds();
     const boards = new Set(PERIODS.map(([p]) => mode + '_' + ids[p]));
-    for (const d of dexes) boards.add(mode + '_' + ALL + '_p' + d);
+    for (const d of dexes) boards.add(mode + '_' + ALL + RESET_GEN + '_p' + d);
     if (also) boards.add(also);
     await Promise.all([...boards].map(b => removeEntry(b, e)));
   }
@@ -514,7 +519,7 @@ G.Ranking = (() => {
       mem.delete('s:' + d.id); try { localStorage.removeItem('ps.rk.c.s:' + d.id); } catch (e) { /* nada */ }
     }
     // Las marcas del histórico que no están en el top 50 (sirven para el puesto exacto).
-    for (const b of ['s_' + ALL, 'g_' + ALL]) {
+    for (const b of ['s_' + ALL + RESET_GEN, 'g_' + ALL + RESET_GEN]) {
       const q = await col(b).where('t', '>', maxT).get();
       await Promise.all(q.docs.map(e => e.ref.delete().catch(() => {})));
       rows += q.size;

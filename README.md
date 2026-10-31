@@ -75,8 +75,8 @@ O ecossistema do jogo possui uma árvore genealógica completa baseada nas **540
 
 ### 2. ⚡ Marcos de Evolução Automática (Níveis 5, 12 e 21)
 Todas as **434 espécies evoluíveis** das 9 gerações possuem resolução automática em tempo de execução:
-- **Nível 5:** 1ª Evolução Automática garantida (Estágio 2). Cobre tanto evoluções clássicas de 3 estágios quanto Pokémon de estágio único que atingem a forma final (ex: *Pikachu ➔ Raichu*, *Riolu ➔ Lucario*, *Growlithe ➔ Arcanine*, *Eevee ➔ Jolteon*).
-- **Nível 12:** 2ª Evolução Automática (Estágio 3 / Forma Final). (ex: *Ivysaur ➔ Venusaur*, *Charmeleon ➔ Charizard*, *Haunter ➔ Gengar*, *Gabite ➔ Garchomp*).
+- **Nível 5:** 1ª Evolução Automática de linhas de **3 estágios** (ex: *Bulbasaur ➔ Ivysaur*, *Charmander ➔ Charmeleon*). Linhas de **só 2 estágios** (ex: *Rattata ➔ Raticate*, *Growlithe ➔ Arcanine*, *Eevee ➔ Jolteon*) **não evoluem no Nv. 5**: a única evolução delas vem no Nv. 12.
+- **Nível 12:** 2ª Evolução Automática das linhas de 3 estágios e evolução única das linhas de 2 estágios (Forma Final). (ex: *Ivysaur ➔ Venusaur*, *Charmeleon ➔ Charizard*, *Haunter ➔ Gengar*, *Gabite ➔ Garchomp*).
 - **Nível 21:** Ascensão Mega / Forma Ápice (+50% de dano definitivo, aura luminosa permanente e burst estelar de partículas).
 - **Cartas de Level Up Desobstruídas:** As evoluções ocorrem automaticamente no campo de batalha, deixando os 3 cards de Level Up 100% dedicados a ataques, fusões de golpes e melhorias de atributos.
 
