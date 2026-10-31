@@ -669,7 +669,7 @@ G.Game = (() => {
     for (let i = 0; i < 4; i++) {
       if (G.Input.tap('digit' + (i + 1)) || G.Input.tap('numpad' + (i + 1))) pl.setActive(i);
     }
-    if (G.Input.tap('space') || G.Input.tap(' ')) {
+    if (G.Input.tap('space') || G.Input.tap(' ') || G.Input.tap('keym')) {
       const isMegaReady = (G.Mega)
         ? (G.Mega.gauge >= G.Mega.maxGauge && !G.Mega.isActive)
         : (pl.megaEnergy >= pl.megaMaxEnergy && !pl.megaMode.active);
@@ -776,6 +776,15 @@ G.Game = (() => {
       G.Camera.follow(pl.x, pl.y, dt);
       if (deathT > 1.3) { deathT = 0; endRun(true); }
       return;
+    }
+    // Cutscene do Mega: mundo congelado, só o Pokémon anima
+    if (G.MegaScene && G.MegaScene.active) {
+      G.MegaScene.tick(dt);
+      if (G.MegaScene.introActive) {
+        pl.anim.update(dt);
+        G.Camera.follow(pl.x, pl.y, dt);
+        return;
+      }
     }
     // Hit-stop do Mega: o mundo congela por 0,15 s (só câmera e partículas seguem)
     if (G.Mega && G.Mega.hitStop > 0) {
@@ -914,7 +923,8 @@ G.Game = (() => {
 
     G.Weather.draw(ctx, w, h, frameDt);
     G.World.drawVignette(ctx, w, h);
-    if (G.Mega && typeof G.Mega.drawScreen === 'function') G.Mega.drawScreen(ctx, w, h);
+    if (G.MegaScene && G.MegaScene.active) G.MegaScene.drawScreen(ctx, w, h);
+    else if (G.Mega && typeof G.Mega.drawScreen === 'function') G.Mega.drawScreen(ctx, w, h);
     // Niebla: la viñeta se cierra un poco (sin tapar el centro).
     const fog = G.Weather.vignette;
     if (fog > 0) {

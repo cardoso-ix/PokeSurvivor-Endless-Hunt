@@ -14,6 +14,7 @@ const MegaSystem = {
   isActive: false,
   duration: 10.0, // 10 segundos exatos (janela tática)
   timeLeft: 0,
+  pending: false, // cutscene de ativação em andamento
   hitStop: 0, // congelamento curto do mundo ao ativar (segundos)
   vignetteT: 0,
 
@@ -23,6 +24,8 @@ const MegaSystem = {
     this.gauge = 0;
     this.timeLeft = 0;
     this.hitStop = 0;
+    this.pending = false;
+    if (typeof G === 'object' && G.MegaScene) G.MegaScene.stop();
     this.activeType = null;
     this.currentElement = null;
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
@@ -56,8 +59,26 @@ const MegaSystem = {
     const currentGauge = Math.max(this.gauge, (pl && pl.megaEnergy) || 0);
 
     // Permite tolerância de arredondamento em ponto flutuante
-    if (currentGauge < (this.maxGauge - 0.8) || this.isActive) return false;
+    if (currentGauge < (this.maxGauge - 0.8) || this.isActive || this.pending) return false;
 
+    // Cutscene com o Pokémon no centro; a ativação real ocorre quando ela termina
+    const scene = (typeof G === 'object') ? G.MegaScene : null;
+    if (pl && scene && scene.canPlay()) {
+      const t0 = (pl.mon && pl.mon.types && pl.mon.types[0]) ? pl.mon.types[0] : (pl.types && pl.types[0] ? pl.types[0] : 'normal');
+      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : null;
+      const typeKey = String(t0).toLowerCase();
+      this.pending = true;
+      scene.start(vfx && vfx.getTypeConfig ? ((vfx.getTypeConfig(typeKey) || {}).id || typeKey) : typeKey, pl, () => {
+        this.pending = false;
+        this._activate(pl);
+      });
+      return true;
+    }
+    return this._activate(pl);
+  },
+
+  /** Ativação efetiva (buffs, crescimento, dano e VFX) */
+  _activate(pl) {
     this.isActive = true;
     this.gauge = this.maxGauge;
     this.duration = 10.0;
