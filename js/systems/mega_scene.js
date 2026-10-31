@@ -37,7 +37,7 @@
     water:    { tint: 0.28, dark: 0.10, emit: [['bubble', 14, 'rise', 3], ['streak', 34, 'rain', 2]], sp: 'waves' },
     grass:    { tint: 0.24, dark: 0.10, emit: [['leaf', 30, 'gust', 1], ['leaf', 9, 'fall', 2]], sp: 'vines' },
     electric: { tint: 0.14, dark: 0.45, emit: [['spark', 60, 'burst', 2]], sp: 'bolts' },
-    ice:      { tint: 0.30, dark: 0.08, emit: [['flake', 50, 'snow', 3], ['shard', 2.6, 'meteor', 2]], sp: 'frost' },
+    ice:      { tint: 0.30, dark: 0.08, emit: [['flake', 50, 'snow', 3], ['shard', 2.6, 'meteor', 2]] },
     fighting: { tint: 0.28, dark: 0.30, emit: [['rock', 11, 'upward', 1], ['spark', 30, 'burst', 2]], sp: 'rings' },
     poison:   { tint: 0.30, dark: 0.30, emit: [['bubble', 24, 'rise', 1], ['wisp', 3.2, 'fog', 0]] },
     ground:   { tint: 0.28, dark: 0.25, emit: [['wisp', 6, 'dust', 1], ['rock', 12, 'upward', 0], ['boulder', 1.6, 'meteor', 0]], sp: 'quake' },
@@ -267,19 +267,6 @@
       }
     }
   }
-  function spFrost(c, k) {
-    const lw = S.lw, lh = S.lh, d = 10 * k;
-    for (let x = 0; x < lw; x++) {
-      const h1 = d * (0.5 + 0.5 * Math.sin(x * 0.7) * Math.sin(x * 0.31 + 1));
-      rect(c, x, 0, 1, Math.round(h1), x % 3 ? S.pal[2] : '#fff');
-      rect(c, x, lh - Math.round(h1), 1, Math.round(h1), x % 3 ? S.pal[2] : '#fff');
-    }
-    for (let y = 0; y < lh; y++) {
-      const h1 = d * (0.5 + 0.5 * Math.sin(y * 0.6 + 2));
-      rect(c, 0, y, Math.round(h1), 1, y % 3 ? S.pal[2] : '#fff');
-      rect(c, lw - Math.round(h1), y, Math.round(h1), 1, y % 3 ? S.pal[2] : '#fff');
-    }
-  }
   function spRings(c, dt, k, period) {
     S.ringT -= dt;
     if (S.ringT <= 0 && k > 0.4) {
@@ -484,7 +471,6 @@
         case 'waves': spWaves(c, k, t); break;
         case 'vines': spVines(c, k, t); break;
         case 'bolts': spBolts(c, dt, k); break;
-        case 'frost': spFrost(c, k); break;
         case 'rings': spRings(c, dt, k, 0.7); break;
         case 'spiral': spSpiral(c, k, t); break;
         case 'rays': spRays(c, k, t); break;
@@ -492,18 +478,6 @@
         case 'eyes': spEyes(c, k, t); break;
       }
       for (let i = 0; i < MAX_P; i++) if (pool[i].a) drawParticle(c, pool[i]);
-
-      // vinheta de bordas em xadrez
-      c.fillStyle = S.pal[1];
-      const vd = Math.round(6 * k);
-      for (let d = 0; d < vd; d++) {
-        for (let x = d; x < lw - d; x++) if (((x + d) & 1) === 0 || d < 2) {
-          c.fillRect(x, d, 1, 1); c.fillRect(x, lh - 1 - d, 1, 1);
-        }
-        for (let y = d; y < lh - d; y++) if (((y + d) & 1) === 0 || d < 2) {
-          c.fillRect(d, y, 1, 1); c.fillRect(lw - 1 - d, y, 1, 1);
-        }
-      }
 
       ctx.save(); ctx.imageSmoothingEnabled = false;
       ctx.globalAlpha = 0.9;

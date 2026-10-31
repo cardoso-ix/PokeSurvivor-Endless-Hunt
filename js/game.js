@@ -926,7 +926,6 @@ G.Game = (() => {
     G.Weather.draw(ctx, w, h, frameDt);
     G.World.drawVignette(ctx, w, h);
     if (G.MegaScene && G.MegaScene.active) G.MegaScene.drawScreen(ctx, w, h);
-    else if (G.Mega && typeof G.Mega.drawScreen === 'function') G.Mega.drawScreen(ctx, w, h);
     // Niebla: la viñeta se cierra un poco (sin tapar el centro).
     const fog = G.Weather.vignette;
     if (fog > 0) {
