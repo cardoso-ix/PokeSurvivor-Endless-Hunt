@@ -11,7 +11,7 @@ G.NewsUI = (() => {
 
   function init() {
     const b = $('btn-news');
-    b.innerHTML = G.Icons.html('book', 18) + ' <span>Novedades</span><i class="dot"></i>';
+    b.innerHTML = G.Icons.html('book', 18) + ' <span>Novidades</span><i class="dot"></i>';
     b.onclick = open;
     $('news-close').onclick = close;
     refresh();

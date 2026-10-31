@@ -204,7 +204,7 @@ console.log(`Jogador possui ${G.DB.getCapturedCountByRegion('kanto')} Pokémon e
 let repeatedFound = 0;
 for (let i = 0; i < 100; i++) {
   const g = Rift.selectRiftGuardian();
-  if (G.DB.isPokemonCaptured(g.dex) || G.DB.isPokemonCaptured(g.speciesId)) {
+  if (!g.isShiny && (G.DB.isPokemonCaptured(g.dex) || G.DB.isPokemonCaptured(g.speciesId))) { // shiny de espécie já capturada é permitido
     repeatedFound++;
   }
   assert(g.dex >= 1 && g.dex <= 151, `Guardião pertence à região de Kanto (#${g.dex} ${g.speciesId})`);

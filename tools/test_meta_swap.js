@@ -57,7 +57,8 @@ console.log('Charmander Meta Atk Bonus:', charmanderUpgrades.atkBonus, '(Esperad
 console.log('Charmeleon Meta Atk Bonus:', charmeleonUpgrades.atkBonus, '(Esperado: 0.12)');
 console.log('Charizard  Meta Atk Bonus:', charizardUpgrades.atkBonus, '(Esperado: 0)');
 
-if (charmanderUpgrades.atkBonus !== 0.32 || charmeleonUpgrades.atkBonus !== 0.12 || charizardUpgrades.atkBonus !== 0) {
+const near = (x, y) => Math.abs(x - y) < 1e-9;
+if (!near(charmanderUpgrades.atkBonus, 0.32) || !near(charmeleonUpgrades.atkBonus, 0.12) || !near(charizardUpgrades.atkBonus, 0)) {
   console.error('❌ Erro na leitura de upgrades por espécie em db.js!');
   process.exit(1);
 }
@@ -106,7 +107,7 @@ if (player.pokemonId !== 5) {
   console.error('❌ Erro: Não evoluiu para Charmeleon (dex 5)!');
   process.exit(1);
 }
-if (player.permanentMetaStats.atkBonus !== 0.12) {
+if (Math.abs(player.permanentMetaStats.atkBonus - 0.12) > 1e-9) {
   console.error('❌ Erro: Meta Atk Bonus não foi trocado para o de Charmeleon (0.12)!');
   process.exit(1);
 }
@@ -133,7 +134,7 @@ if (player.pokemonId !== 6) {
   console.error('❌ Erro: Não evoluiu para Charizard (dex 6)!');
   process.exit(1);
 }
-if (player.permanentMetaStats.atkBonus !== 0) {
+if (Math.abs(player.permanentMetaStats.atkBonus) > 1e-9) {
   console.error('❌ Erro: Meta Atk Bonus não foi trocado para o de Charizard (0)!');
   process.exit(1);
 }
@@ -147,7 +148,7 @@ console.log('\n[5] Testando Devolução para Charmeleon...');
 player.devolve();
 console.log('Espécie após devolve:', player.pokemonId, '(' + player.species + ')');
 console.log('Meta Atk Bonus restaurado:', player.permanentMetaStats.atkBonus);
-if (player.permanentMetaStats.atkBonus !== 0.12) {
+if (Math.abs(player.permanentMetaStats.atkBonus - 0.12) > 1e-9) {
   console.error('❌ Erro: Ao devolver, não restaurou o Meta Atk Bonus do Charmeleon (0.12)!');
   process.exit(1);
 }

@@ -81,10 +81,10 @@ function assert(condition, message) {
 }
 
 console.log('--- TESTE 1: SIMULAÇÃO COM 50 RIFTS (0 A 299 RIFTS) ---');
-console.log('Executando window.debugSimulateRiftSpawn(50)...');
-const res50 = window.debugSimulateRiftSpawn(50);
-assert(!res50.isLegendary, `debugSimulateRiftSpawn(50) -> Guardião ${res50.speciesId.toUpperCase()} NÃO é lendário`);
-assert(!res50.isShiny, `debugSimulateRiftSpawn(50) -> Não forçou Shiny`);
+console.log('Executando window.debugSimulateRiftSpawn(10)...');
+const res50 = window.debugSimulateRiftSpawn(10);
+assert(!res50.isLegendary, `debugSimulateRiftSpawn(10) -> Guardião ${res50.speciesId.toUpperCase()} NÃO é lendário`);
+assert(!res50.isShiny, `debugSimulateRiftSpawn(10) -> Não forçou Shiny`);
 
 // Executa 100 sorteios para comprovar estatisticamente que NENHUM lendário surge com rifts < 300
 let legendariesFoundUnder300 = 0;
@@ -92,7 +92,7 @@ for (let i = 0; i < 100; i++) {
   const g = Rift.selectRiftGuardian();
   if (g.isLegendary) legendariesFoundUnder300++;
 }
-assert(legendariesFoundUnder300 === 0, `100 sorteios com 50 rifts concluídos: 0 lendários gerados (Obtido: ${legendariesFoundUnder300})`);
+assert(legendariesFoundUnder300 === 0, `100 sorteios com 10 rifts concluídos (liberação em 30, ver BalanceConfig): 0 lendários gerados (Obtido: ${legendariesFoundUnder300})`);
 
 console.log('\n--- TESTE 2: SIMULAÇÃO COM 300 RIFTS (LENDÁRIOS DESBLOQUEADOS) ---');
 console.log('Executando window.debugSimulateRiftSpawn(300)...');
@@ -108,7 +108,7 @@ for (let i = 0; i < 300; i++) {
 const legPercentage = (legendariesFound300 / 300) * 100;
 console.log(`Estatística de Lendários em 300 sorteios: ${legendariesFound300}/300 (${legPercentage.toFixed(1)}%)`);
 assert(legendariesFound300 > 0, `Lendários foram gerados a partir de 300 rifts (${legendariesFound300} vezes)`);
-assert(legPercentage >= 8 && legPercentage <= 25, `Frequência de Lendários dentro da faixa ponderada esperada (~15%): ${legPercentage.toFixed(1)}%`);
+assert(legPercentage >= 1 && legPercentage <= 12, `Frequência de Lendários dentro da faixa ponderada esperada (~3,8%, BalanceConfig): ${legPercentage.toFixed(1)}%`);
 
 console.log('\n--- TESTE 3: SIMULAÇÃO COM 500 RIFTS (SHINY PITY 100% GARANTIDO) ---');
 console.log('Executando window.debugSimulateRiftSpawn(500)...');

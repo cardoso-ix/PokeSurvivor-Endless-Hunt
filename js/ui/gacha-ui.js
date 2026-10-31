@@ -127,7 +127,7 @@ G.GachaUI = (() => {
         <b style="color:#5fe08a;">Todos os 966 Pokémon</b>
       </div>
       <div class="gacha-rules-note">
-        <b style="color:#ffd23f;">🪙 Bônus de Repetido:</b> Se o Pokémon sorteado já estiver na sua Pokédex, você ganha <b>250 PokéMoedas</b> para gastar na aba de Melhorias!<br><br>
+        <b style="color:#ffd23f;">🪙 Bônus de Repetido:</b> Se o Pokémon sorteado já estiver na sua Pokédex, você ganha <b>${G.Gacha.ROULETTE_DUPLICATE_COINS} PokéMoedas</b> para gastar na aba de Melhorias!<br><br>
         <b style="color:#9ae6ff;">✨ Novo na Pokédex:</b> Se for um Pokémon inédito, ele é desbloqueado e registrado imediatamente na sua coleção!
       </div>
     `;
@@ -184,7 +184,7 @@ G.GachaUI = (() => {
       } else {
         // Deriva o valor da constante real: a UI não pode prometer mais do que é creditado.
         const dupCoins = (G.Gacha && G.Gacha.ROULETTE_DUPLICATE_COINS != null)
-          ? G.Gacha.ROULETTE_DUPLICATE_COINS : 250;
+          ? G.Gacha.ROULETTE_DUPLICATE_COINS : 150;
         tagHtml = `<span class="refund" style="color:#ffd23f;font-weight:bold;font-size:12px;background:rgba(255,210,63,0.18);padding:3px 8px;border-radius:6px;border:1px solid #ffd23f;">🪙 REPETIDO · +${dupCoins.toLocaleString('pt-BR')} MOEDAS</span>`;
       }
 
