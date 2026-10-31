@@ -17,6 +17,11 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 ### 🌟 Mega v2
 - Cinemática curta (0,9 s) + carga + **golpe único em tela cheia, em pixel art**, com dano em área nos impactos; depois, só o buff de 10 s (sem cenário contínuo). Um golpe assinatura para cada um dos 18 tipos (meteoros, tsunami em 3 ondas, raios, nevasca, espinhos, punho titânico, gêiseres tóxicos, terremoto, furacão, implosão psíquica, enxame, chuva de pedras, orbe espectral, vazio sombrio, dragão, corte de aço, lua rosa, hiper raio).
 
+### 🧹 Correções
+- **Mega no build de produção:** a cutscene não aparecia (o novo script recriava `G`) e os efeitos liam `G.UltimateVFX`, que não existe no bundle; corrigido e agora testado contra `index.html`.
+- **Charizard:** teste de sprite HD hi-bit revertido; as folhas do dex 6 passam a ser pedidas com `?v=pmd2` para furar o cache `immutable` do servidor e do service worker.
+- **Mega sem tela embaçada:** removidos tinta/escurecimento/vinheta/bordas coloridas.
+
 ### 🎨 Cenário
 - Chão sem repetição visível, 3 formas por árvore/cristal/pedra em cada bioma, luz e vinheta por bioma e névoa pré-desenhadas (sem gradiente por frame).
 

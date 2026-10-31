@@ -39,22 +39,19 @@ Menu Principal (Mundo vivo ao fundo com Pokémon passeando)
 ## 3. Mecânicas de Combate & Sistemas em Partida
 
 ### 3.1 Disparos e Cadência
-- O Pokémon líder ataca automaticamente direcionando o golpe selecionado (1 a 4 slots).
-- Seleção de golpe ativo: teclas `1` a `4`, `Q`/`E` ou clique/toque nos slots inferiores do HUD.
+- O Pokémon líder ataca automaticamente. **Combo por nível:** Nv. 1 = 1 ataque, Nv. 5 = 2, Nv. 10 = 3, Nv. 21 = 4 (os primeiros aprendidos, todos juntos). Não há seleção manual de slot nem fusão de ataques.
 - **52 Golpes Base e 60 Evoluções:** Divididos em famílias elementais (Projétil, Corpo a Corpo, Raio, Orbes, Nova, Aura, Buff) cobrindo todos os 18 tipos elementais.
-- **Fusão de Ataques (Vínculos):** Ao obter um Elo de Fusão em Rifts, dois ataques podem ser unidos para dispararem simultaneamente ocupando apenas 1 slot.
 
 ### 3.2 Marcos de Evolução Automática (Níveis 5, 12 e 21)
-- **Nível 5:** Primeira Evolução Automática (Estágio 2). Aplica-se a todas as espécies que possuem evolução.
-- **Nível 12:** Segunda Evolução Automática (Estágio 3 / Forma Final).
+- **Nível 5:** Primeira Evolução Automática das linhas de 3 estágios.
+- **Nível 12:** Segunda evolução das linhas de 3 estágios e evolução única das linhas de 2 estágios (Forma Final).
 - **Nível 21:** Ascensão Mega / Forma Ápice (+50% de dano definitivo, aura cintilante e burst estelar).
 - **Sem cartas ocupadas:** As transformações acontecem automaticamente sem roubar opções de cartas de melhoria.
 
-### 3.3 Mega Overdrive Elemental (18 Tipos)
+### 3.3 Mega Overdrive v2 (18 Tipos)
 - Barra de energia carregada com abates de monstros (+1.2% comum, +8% elite, +25% chefe, +35% guardião do rift).
-- Ao atingir 100%, pode ser ativado pela tecla `[Espaço]` ou pelo botão físico retro `#hud-mega-btn`.
-- Duração de 10 segundos com drenagem linear suave.
-- Identifica dinamicamente o tipo primário do líder e cobre o mapa com calamidades elementais contínuas (chuva de meteoros, geysers, relâmpagos, nevasca, etc.) com redução de 80% do dano sofrido e super ímã de coleta.
+- Ao atingir 100%: `[Espaço]`, `[M]` ou botão `#hud-mega-btn`. Cinemática curta (0,9 s) + carga (0,6 s) + **golpe único em tela cheia, em pixel art**, com um golpe assinatura para cada tipo (ver README, seção 4).
+- Depois do golpe, 10 segundos de buff (Pokémon gigante, dano ×2,5, dano recebido ×0,2, super ímã) com drenagem linear da barra.
 
 ---
 

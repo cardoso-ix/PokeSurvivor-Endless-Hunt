@@ -1,13 +1,16 @@
 # Progresso da Preparação de Lançamento (PokéSurvivor)
 
-Atualizado em **30/10/2026**. Fonte de verdade do que foi feito e do que falta no overhaul de lançamento.
+Atualizado em **31/10/2026**. Fonte de verdade do que foi feito e do que falta no overhaul de lançamento.
 Cada fase é: implementar → testes → commit → push → deploy na VPS → relatório ao dono → só então a próxima.
 
 ## Decisões do dono do projeto
-- **Um único personagem** (Pokémon de Estágio 1 que evolui sozinho nos níveis 5, 12 e 21). Treinador e trio foram removidos.
+- **Um único personagem** (Pokémon de Estágio 1 que evolui sozinho: linhas de 3 estágios nos Nv. 5 e 12, linhas de 2 estágios no Nv. 12; Ascensão Mega no 21). Treinador e trio foram removidos.
 - **Sem sprites ripados** de GBA/DS (arte da Nintendo sem licença). Treinador só com PNG fornecido em `assets/trainers/<id>.png` (hoje não há suporte; foi removido junto com o trio).
 - Dificuldade **Médio → Difícil**, com corte de economia **suave**.
 - Idioma obrigatório: **pt-BR**. Inglês é secundário.
+- **Combo por nível** (1/2/3/4 ataques nos Nv. 1/5/10/21), sem fusão de ataques e sem tela depois do Rift.
+- **Mega**: cinemática curta + golpe único por tipo, em pixel art (sem tela embaçada/bordas coloridas). Charizard HD foi testado e revertido.
+- **Ranking zerado** para o lançamento (sem apagar dados do Firestore).
 - Link para testar: http://zewmdvru0kg4xpqqttxflf7a.108.174.145.77.sslip.io/ (pokesurvivor.com é outro repositório).
 
 ## Fases
@@ -17,7 +20,7 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 | 2. Rebalanceamento | ✅ `265a520` | Economia, upgrades, gacha, XP, inimigos, captura. Detalhes no CHANGELOG |
 | Remoção do trio/treinador | ✅ `00b7b8d` | Volta a um personagem; `player.js` pré-trio |
 | Varredura geral (etapa 1) | ✅ `86c67ee`, `321a47c`, `37233da` | Fonte, textos, HUD mobile, i18n do menu, vínculo (HUD + adiar) |
-| 3. Mega/Espaço | ✅ v2 completo, 18 tipos (aguardando teste do dono) | Cutscene (2 s, Pokémon no centro) + cenário em pixel art por tipo (18 cenas) em `js/systems/mega_scene.js`; ultimate em área, chuva de meteoros (fogo/dragão), hit-stop 0,15 s. Ativa com Espaço, M ou botão. Scanner: `tools/scan/scan_mega.js`. Pendentes: pools reais, reescrever testes antigos do Mega |
+| 3. Mega/Espaço | ✅ v2 completo, 18 tipos (aguardando teste do dono) | Ver "Mega v2" abaixo |
 | 4. Visual geral ("juice") | 🔶 parte 1 feita (aguardando teste) | **Feito:** chão sem repetição (padrão 256 px com manchas, tufos, pedrinhas), 3 formas de árvore/cristal/árvore morta/pedra por bioma, luz+vinheta por bioma em cache, névoa em cache. **Falta:** água com ondas, clima ligado ao bioma, sombra de contato, partículas/hit flash/números de dano, HUD/level up/gacha |
 
 ## Varredura: resultado
@@ -48,15 +51,19 @@ FPS medido com `tools/scan/scan_world.js`: 143–145 em 5 biomas, igual ao anter
 - Mega nos 18 tipos (`scan_mega.js`), vínculo, loja/gacha/pausa, Rifts/captura: 0 erros. Espaço no build de produção (`scan_space.js`) OK.
 
 ## Pendências conhecidas
-0. **Charizard HD:** testado e **revertido** a pedido do dono (sprite PMD original restaurado). Fonte e gerador seguem em `tools/hd_src/charizard/` e `tools/make_hd_sprites.py` caso queira retomar.
-1. **Armadilha do build:** em produção o bundle roda dentro de uma função e `G` é variável local, não `window.G`. Arquivos novos não devem recriar `G` (`window.G = window.G || {}`) nem ler `G.AlgumVFX` registrado via UMD: usar o global (`typeof X`) como em `game.js`. Sempre testar com `index.html` (`tools/scan/scan_space.js`).
-1. **Fase 3 e 4** (acima).
-2. **Testes desatualizados do Mega:** `test_mega_skills_18_types`, `test_dynamic_mega_ultimates`, `test_mega_slow_cutscene`, `test_live_mega_slow_cutscene_browser`, `test_mega_cutscene_live` (cutscene não existe mais; refs mortas a `G.MegaCutscene` em `game.js`). Reescrever na Fase 3.
-3. **Testes que dependem de fluxo antigo/online:** `test_admin_*`, `test_gameplay_live`, `test_live_*`, `test_vps_*` (seletores ou servidor). `test_upgrade_costs` falha em Mewtwo/Rayquaza (já conhecido).
-4. **Inglês incompleto:** modal "Proteger Minha Conta", conquistas e várias mensagens ficam em português em `/en/`.
-5. **Não coberto pela varredura:** salas cooperativas e amigos (exigem conta online), ranking com dados, ritmo real de XP (o scanner usa personagem parado), sensação das taxas de captura (34/24/15%, lendário 5%).
-6. PDFs do manual (raiz e `docs/`) ainda citam o trio; regerar a partir do `.md`.
-7. **Rotacionar o token do Coolify** (foi colado no chat).
+1. **Testes do dono pendentes:** os 18 golpes do Mega (principalmente Lutador, Voador, Inseto, Terra, Fantasma, Sombrio e Fada, que só foram vistos em screenshots), combo por nível, evolução no Nv. 12 das linhas de 2 estágios, cenário novo e ranking zerado.
+2. **Fase 4, o que falta ("juice"):** água do cenário com ondas, clima ligado ao bioma, sombra de contato, partículas/hit flash/números de dano, HUD/level up/gacha. Medir FPS no celular real (só medimos no PC: ~144 FPS).
+3. **Testes antigos do Mega desatualizados:** `test_mega_skills_18_types`, `test_dynamic_mega_ultimates`, `test_mega_slow_cutscene`, `test_live_mega_slow_cutscene_browser`, `test_mega_cutscene_live` (cutscene antiga; `G.MegaCutscene` em `game.js` é referência morta). `MegaSkillVFXManager` (`mega_skill_vfx.js`) hoje só serve de catálogo de cores/nomes; o código dos hazards antigos está sem uso.
+4. **Código legado sem uso:** tela de fusão (`#scr-bond`, `RunUI.showBond`), `Settings`/textos de vínculo em `lang-en.js`, `js/systems/ultimate_vfx.js`.
+5. **Testes que dependem de fluxo antigo/online:** `test_admin_*`, `test_gameplay_live`, `test_live_*`, `test_vps_*`. `test_upgrade_costs` falha em Mewtwo/Rayquaza (já conhecido).
+6. **Inglês incompleto:** modal "Proteger Minha Conta", conquistas e várias mensagens ficam em português em `/en/`; os textos novos de combo/HUD ainda não têm tradução.
+7. **Não coberto pela varredura:** salas cooperativas e amigos (exigem conta online), ranking com dados reais, ritmo real de XP, sensação das taxas de captura.
+8. PDFs do manual (raiz e `docs/`) ainda citam o trio, o Super Combo e o Mega antigo; regerar a partir do `.md`.
+9. **Rotacionar o token do Coolify** (foi colado no chat).
+10. **Armadilhas do build:** (a) em produção o bundle roda dentro de uma função e `G` é variável local: arquivo novo não recria `G` nem lê `G.AlgumaCoisa` registrada via UMD (usar `typeof X`); (b) sprites e service worker são cacheados "para sempre": trocar um PNG exige mudar a URL (ver `SHEET_REV` em `js/core/sprites.js`); (c) scripts locais `tools/_dbg_coolify.js` e `tools/trigger_coolify_deploy.js` não vão para o git.
+
+## Próximo passo (amanhã)
+Ler os resultados do teste do dono; corrigir o que ele apontar nos golpes do Mega; depois seguir com a **Fase 4** (juice) e a limpeza do código legado (itens 3 e 4 acima).
 
 ## Como publicar (resumo)
 `node tools/build.js && python tools/make_seo_pages.py` → testes (`test_full_suite`, `test_all_evolution_chains`) → commit/push → deploy:

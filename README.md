@@ -40,7 +40,7 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 | :--- | :--- |
 | `W` `A` `S` `D` / Setas | Mover o seu Pokémon |
 | `Espaço` / `Space` | Ativar **Mega Overdrive Elemental** (ao atingir 100% da barra) |
-| `1` `2` `3` `4` / Clique no slot | Selecionar ataque ativo |
+| `Espaço` / `M` / botão MEGA | Ativar o Mega (com a barra cheia) |
 | `Q` / `E` / `Tab` | Alternar entre ataques anterior / próximo |
 | `+` / `−` | Ajustar escala da câmera (zoom calibrado) |
 | `Esc` / `P` | Pausar / Continuar partida |
@@ -111,36 +111,40 @@ A mecânica de captura foi reformulada para ocorrer diretamente no chão do Canv
 
 ---
 
-### 4. 🌟 Mega Overdrive Elemental Dinâmico & Cutscene Cinematográfica Prolongada
-Ao atingir 100% de energia de Mega e pressionar [ESPAÇO] ou o botão no HUD, o jogador dispara o Poder Supremo correspondente ao elemento primário do líder da equipe:
-- **Cutscene Cinematográfica Prolongada (2.8 Segundos):**
-  - **Entrada Lenta & Suave (Slow-Motion Ease-in):** Transição desacelerada com escurecimento de foco (*Focus Dim*), aproximação cinematográfica lenta de câmera (*Zoom-in* suave de 3.1x para 3.8x) e deslizamento lateral do banner angular.
-  - **Sustentação Heroica:** Exibição prolongada do Pokémon líder em tamanho ampliado com olhos em fúria, aura elemental elíptica em pulso contínuo, speedlines compassadas e tipografia épica (*Nome do Pokémon* + *Poder Supremo* + *DANO 2X ATIVO*).
-  - **Slow-Motion Cinematográfico no Mundo:** Hordas inimigas e projéteis desaceleram durante a cutscene, garantindo foco total no herói sem risco de atropelamentos.
-  - **Preservação dos 10 Segundos Úteis:** Durante os 2.8s da cutscene, a barra e o tempo do Mega permanecem intactos em 10.0s cheios. Os 10 segundos inteiros de tempestade cósmica e dano dobrado começam a contar apenas após o término da cutscene!
-- **Duração de 10.0 Segundos de Tempestade Cósmica:** Drenagem linear contínua atuando como temporizador na barra e no botão do HUD logo após a cutscene.
-- **Dano Dobrado (2x) & Super Sobrevivência:** +100% de dano base em todos os golpes, redução de 80% do dano recebido e dobro de raio de coleta (+100%).
-- **Catálogo dos 18 Poderes Supremos (`MEGA_ULTIMATES_DATA`):**
-  - 🔥 `fire`: Chuva diagonal de meteoros que abre crateras de fogo e poças de brasa no solo.
-  - 💧 `water`: Gêiseres de alta pressão e chuva torrencial que arremessam inimigos e causam lentidão de 40%.
-  - 🌿 `grass`: Vinhas espinhosas perfurantes que convertem 15% do dano causado em cura de PV para o Treinador.
-  - ⚡ `electric`: Tempestade de raios verticais com arcos voltaicos em cadeia pela horda.
-  - ❄️ `ice`: Nevasca polar contínua com estalactites caindo e chance de congelamento.
-  - 🐉 `dragon`: Bombardeio astral de meteoros cósmicos com dano massivo em área.
-  - 👻 `ghost`: Fissuras do submundo com espectros sombrios e drenagem vital contínua.
-  - 🔮 `psychic`: Ondas gravitacionais e distorções cinéticas que empurram e comprimem monstros.
-  - 🌍 `ground`: Fissuras tectônicas que racham o chão em zigue-zague.
-  - 🪨 `rock`: Desabamento de megálitos e rochas pontiagudas com atordoamento.
-  - 🌪️ `flying`: Tufões e vórtices velozes que sugam hordas e disparam lâminas de vento.
-  - 🐛 `bug`: Enxame voraz de gafanhotos de energia que corroem alvos.
-  - ☠️ `poison`: Chuva ácida corrosiva e poças tóxicas borbulhantes.
-  - 🥊 `fighting`: Ondas de choque de punhos sônicos gigantes com knockback devastador.
-  - ⚙️ `steel`: Chuva de lanças metálicas e lâminas giratórias de aço.
-  - 🌑 `dark`: Vórtice de escuridão profunda que colapsa e explode em área.
-  - ✨ `fairy`: Pulso prismático com faíscas estelares mágicas que cegam e desorientam inimigos.
-  - ⚪ `normal`: Hiper-raio radial de pura energia concentrada com empurrão massivo.
+### 4. 🌟 Mega Overdrive v2: Cinemática curta + Golpe único por tipo (18 tipos)
+Com a barra de Mega em 100%, **Espaço**, **M** ou o botão do HUD dispara o Mega do **tipo primário** do Pokémon.
 
----
+Sequência ao ativar (Espaço, `M` ou botão `#hud-mega-btn`), com o mundo congelado (`G.MegaScene`, `js/systems/mega_scene.js`):
+1. **Corte (0,9 s):** barras de cinema, Pokémon grande no centro com aura de faíscas, "MEGA <NOME>" e o nome do golpe.
+2. **Carga (0,6 s):** energia converge no Pokémon, de volta ao mundo, com tremor.
+3. **Golpe (1,9 a 2,5 s):** o golpe assinatura do tipo, em tela cheia e em pixel art (canvas de baixa resolução ampliado sem suavização, só retângulos/linhas/círculos). O dano é aplicado nos instantes de impacto de cada golpe.
+4. **Buff de 10 s** (`G.Mega._activate`): Pokémon gigante, dano ×2,5, dano recebido ×0,20, ímã ×2, recarga ×0,5, área ×1,35. Sem efeito contínuo na tela depois do golpe.
+
+**Dano do golpe:** `max(atk × 8, 90% da vida do inimigo)` por impacto em quem estiver na área. **Chefes** levam no máximo 25% da vida máxima por golpe. Os golpes ficam em `js/systems/mega_strike.js` (`G.MegaStrikes[tipo]`); o tipo usado é o primeiro tipo do Pokémon.
+
+**Os 18 golpes:**
+
+| Tipo | Golpe assinatura (tela cheia, pixel art) |
+| :--- | :--- |
+| 🔥 `fire` | **Chuva de Meteoros**: ~26 meteoros com cauda, crateras e colunas de fogo |
+| 💧 `water` | **Tsunami**: 3 ondas vistas de cima (espuma, correntes, cauda translúcida) |
+| 🌿 `grass` | **Erupção de Espinhos**: espinhos brotando em anéis a partir do Pokémon |
+| ⚡ `electric` | **Tempestade de Raios**: 10 raios; o último cai no Pokémon e vira anel de choque |
+| ❄️ `ice` | **Nevasca Eterna**: cristais gigantes brotam, estilhaçam e soltam onda branca com neve |
+| 🥊 `fighting` | **Punho Titânico**: punho gigante desce, rachaduras e anéis de choque |
+| ☠️ `poison` | **Erupção Tóxica**: gêiseres roxos pela tela e nuvem que estoura |
+| 🌍 `ground` | **Terremoto**: fissuras em estrela, pedras que sobem e caem, tremor contínuo |
+| 🌪️ `flying` | **Furacão**: funil giratório varre a tela com rajadas de vento |
+| 🔮 `psychic` | **Implosão Psíquica**: espiral puxa os inimigos (exceto chefes) e explode em anéis |
+| 🐛 `bug` | **Enxame Voraz**: enxame de insetos cruza a tela duas vezes |
+| 🪨 `rock` | **Chuva de Pedras**: pedras com rastro de poeira, crateras e espetos de pedra |
+| 👻 `ghost` | **Orbe Espectral**: orbe de sombra com rostos fantasmas engole a tela |
+| 🐉 `dragon` | **Fúria do Dragão**: cabeça de dragão em energia investe pela tela + meteoros roxos |
+| 🌑 `dark` | **Vazio Sombrio**: vazio com olhos vermelhos, depois explosão de raios sombrios |
+| ⚙️ `steel` | **Corte de Aço**: cortes diagonais e um X final em tela cheia |
+| ✨ `fairy` | **Lua Rosa**: lua gigante desce e explode em chuva de estrelas |
+| ⚪ `normal` | **Hiper Raio**: raio gigante em varredura de 180° (também o padrão de tipos sem golpe próprio) |
+
 
 ### 5. 🎴 HUD Superior Esquerdo Retro Pixel Art & Deck de Ataques do Combo por Nível
 - **Design Estilo GBA / Nintendo DS:** Moldura chanfrada sólida com relevo pixel art posicionada no **canto superior esquerdo da tela**, integrando Perfil, Vida, Mega e Deck de Habilidades em um único bloco organizado sem obstruir a visão da arena ou o cronômetro central.

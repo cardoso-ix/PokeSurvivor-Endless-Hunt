@@ -155,15 +155,18 @@ A Mega Evolução é o ápice ofensivo e defensivo da batalha, ativada ao carreg
 - **Taxa de Carga:** Orbes de energia dropadas por inimigos derrotados (+0.5% a +3.0% por abate, escalonado pela força do inimigo).
 - **Aviso de Prontidão:** Ao atingir 100%, emite SFX especial e anúncio: `⚡ MEGA PRONTO! Pressione [ESPAÇO] para ativar!`.
 
-### 5.2. Cutscene Cinematográfica Estendida de Anime (2.8s)
-- **Duração Total:** `2.8 segundos` de slow-motion cinematográfico.
-- **Fases Temporais:**
-  1. *Entrada Suave (0.0s – 0.65s):* Curva cúbica suave (ease-out cubic) com entrada do card e sprite animado ampliado do Pokémon.
-  2. *Sustentação Heroica (0.65s – 2.30s):* Foco total no Pokémon, nome da espécie, badge `⚡ MEGA OVERDRIVE ATIVADO! ⚡` e anúncio do poder elemental.
-  3. *Saída Fluida (2.30s – 2.80s):* Desvanecimento gradual e transição para a tempestade de habilidades.
-- **Efeitos Visuais:** 26 speedlines em slow motion com alfa variável e vibração de tela suave (`Camera.kick(1.8)`).
+### 5.2. Cinemática + golpe único (Mega v2)
 
-### 5.3. Efeitos do Estado de Overdrive (Duração: 10.0s)
+Sequência ao ativar (Espaço, `M` ou botão `#hud-mega-btn`), com o mundo congelado (`G.MegaScene`, `js/systems/mega_scene.js`):
+1. **Corte (0,9 s):** barras de cinema, Pokémon grande no centro com aura de faíscas, "MEGA <NOME>" e o nome do golpe.
+2. **Carga (0,6 s):** energia converge no Pokémon, de volta ao mundo, com tremor.
+3. **Golpe (1,9 a 2,5 s):** o golpe assinatura do tipo, em tela cheia e em pixel art (canvas de baixa resolução ampliado sem suavização, só retângulos/linhas/círculos). O dano é aplicado nos instantes de impacto de cada golpe.
+4. **Buff de 10 s** (`G.Mega._activate`): Pokémon gigante, dano ×2,5, dano recebido ×0,20, ímã ×2, recarga ×0,5, área ×1,35. Sem efeito contínuo na tela depois do golpe.
+
+**Dano do golpe:** `max(atk × 8, 90% da vida do inimigo)` por impacto em quem estiver na área. **Chefes** levam no máximo 25% da vida máxima por golpe. Os golpes ficam em `js/systems/mega_strike.js` (`G.MegaStrikes[tipo]`); o tipo usado é o primeiro tipo do Pokémon.
+
+### 5.3. Efeitos do Estado de Overdrive (Duração: 10.0s, depois do golpe)
+> Valores reais em `js/systems/mega.js`: dano ×2,5 (`megaDmgMul`), dano recebido ×0,20 (`dmgTakenMul`), ímã ×2, recarga ×0,5 e área ×1,35 (`player.js`). A lista abaixo é a descrição de design original; onde diferir, vale o código.
 Durante os **10.0 segundos** de Overdrive, o personagem entra em estado de transcendência heroica com os seguintes efeitos:
 1. 📏 **Gigantismo Heroico & Crescimento Visual:** O Pokémon cresce fisicamente no Canvas, transicionando suavemente para **1.55× do seu tamanho original**, escalando sua silhueta, colisão corporal (`this.r` e `this.bodyH`) e projeção de sombra no solo.
 2. 🥊 **Força & Dano Dobrados (2.0× ATK):** Todos os ataques, projéteis, feixes e zonas do jogador causam **+100% de dano base** ($2.0\times$).
@@ -175,28 +178,29 @@ Durante os **10.0 segundos** de Overdrive, o personagem entra em estado de trans
 8. 🧲 **Super Ímã Magnético (MAG):** Raio de atração de gemas de EXP e PokéMoedas duplicado para $156\text{px}$ ($+100\%$).
 9. 🌪️ **Drenagem Linear Contínua:** A barra do HUD e o botão físico drenam gradualmente de 100% até 0% em exatamente 10 segundos.
 
-### 5.4. Catálogo dos 18 Poderes Supremos Elementais (`MEGA_ULTIMATES_DATA`)
+### 5.4. Os 18 golpes assinatura (`G.MegaStrikes`)
 
-| Elemento | Nome do Poder | Mecânica e Efeitos no Campo |
-| :--- | :--- | :--- |
-| 🔥 `fire` | **Cataclismo de Meteoros** | Chuva diagonal contínua de meteoros de fogo que abrem crateras e poças de brasa no solo. |
-| 💧 `water` | **Dilúvio Primordial** | Gêiseres de água de alta pressão e chuva torrencial com 40% de lentidão nos monstros. |
-| 🌿 `grass` | **Frenesi da Floresta Viva** | Vinhas espinhosas perfurantes que convertem 15% do dano causado em cura de PV ao jogador. |
-| ⚡ `electric` | **Tempestade de Raios do Trovão** | Arcos voltaicos e relâmpagos verticais que pulam em cadeia entre monstros da horda. |
-| ❄️ `ice` | **Era Glacial Absoluta** | Nevasca contínua com estalactites caindo e congelamento total de monstros por 2.5s. |
-| 🐉 `dragon` | **Cometa do Dragão Astral** | Bombardeio massivo de esferas cósmicas que geram ondas de choque explosivas. |
-| 👻 `ghost` | **Pesadelo do Purgatório** | Fissuras espectrais roxas no chão que drenam a vitalidade dos inimigos em área. |
-| 🔮 `psychic` | **Colapso Cinético Dimensional** | Pulso gravitacional que comprime todos os inimigos da tela no centro e explode. |
-| 🌍 `ground` | **Fissura Tectônica Continental** | Terremoto em zigue-zague que racha o solo e pulveriza inimigos terrestres. |
-| 🪨 `rock` | **Desabamento de Megálitos** | Queda de blocos de pedra gigantes com atordoamento garantido de 1.5s. |
-| 🌪️ `flying` | **Tornado Ciclônico Furioso** | Vórtices de ar em alta velocidade que sugam inimigos e disparam lâminas de vácuo. |
-| 🐛 `bug` | **Enxame Voraz Esmeralda** | Nuvem de milhares de gafanhotos vorazes que corroem defesas inimigas. |
-| ☠️ `poison` | **Dilúvio de Chuva Ácida** | Gotas tóxicas contínuas que aplicam acúmulos de veneno e geram poças ácidas. |
-| 🥊 `fighting` | **Impacto Sísmico de 1.000 Golpes** | Ondas de choque em forma de punhos titânicos com knockback devastador. |
-| ⚙️ `steel` | **Tempestade de Lâminas de Aço** | Chuva cortante de lanças e espadas metálicas giratórias. |
-| 🌑 `dark` | **Vórtice do Buraco Negro** | Esfera de escuridão que engole projéteis inimigos e causa dano de colapso. |
-| ✨ `fairy` | **Julgamento Prismático Estelar** | Feixes de luz mágica multicolorida com faíscas que encantam e desorientam monstros. |
-| ⚪ `normal` | **Hiper-Raio da Força Cósmica** | Feixe massivo e contínuo de energia pura que varre horizontalmente a arena. |
+| Tipo | Golpe assinatura (tela cheia, pixel art) |
+| :--- | :--- |
+| 🔥 `fire` | **Chuva de Meteoros**: ~26 meteoros com cauda, crateras e colunas de fogo |
+| 💧 `water` | **Tsunami**: 3 ondas vistas de cima (espuma, correntes, cauda translúcida) |
+| 🌿 `grass` | **Erupção de Espinhos**: espinhos brotando em anéis a partir do Pokémon |
+| ⚡ `electric` | **Tempestade de Raios**: 10 raios; o último cai no Pokémon e vira anel de choque |
+| ❄️ `ice` | **Nevasca Eterna**: cristais gigantes brotam, estilhaçam e soltam onda branca com neve |
+| 🥊 `fighting` | **Punho Titânico**: punho gigante desce, rachaduras e anéis de choque |
+| ☠️ `poison` | **Erupção Tóxica**: gêiseres roxos pela tela e nuvem que estoura |
+| 🌍 `ground` | **Terremoto**: fissuras em estrela, pedras que sobem e caem, tremor contínuo |
+| 🌪️ `flying` | **Furacão**: funil giratório varre a tela com rajadas de vento |
+| 🔮 `psychic` | **Implosão Psíquica**: espiral puxa os inimigos (exceto chefes) e explode em anéis |
+| 🐛 `bug` | **Enxame Voraz**: enxame de insetos cruza a tela duas vezes |
+| 🪨 `rock` | **Chuva de Pedras**: pedras com rastro de poeira, crateras e espetos de pedra |
+| 👻 `ghost` | **Orbe Espectral**: orbe de sombra com rostos fantasmas engole a tela |
+| 🐉 `dragon` | **Fúria do Dragão**: cabeça de dragão em energia investe pela tela + meteoros roxos |
+| 🌑 `dark` | **Vazio Sombrio**: vazio com olhos vermelhos, depois explosão de raios sombrios |
+| ⚙️ `steel` | **Corte de Aço**: cortes diagonais e um X final em tela cheia |
+| ✨ `fairy` | **Lua Rosa**: lua gigante desce e explode em chuva de estrelas |
+| ⚪ `normal` | **Hiper Raio**: raio gigante em varredura de 180° (também o padrão de tipos sem golpe próprio) |
+
 
 ---
 
@@ -237,7 +241,7 @@ O HUD do jogo foi projetado seguindo a estética de cartuchos de Game Boy Advanc
    - Amarelo: $20\% \text{ a } 50\%$ PV
    - Vermelho piscante: $< 20\%$ PV
 2. **Barra de Overdrive & Botão Mega:** Barra gradiente roxa/dourada com porcentagem em tempo real e botão interativo.
-3. **Deck de Ataques do Super Combo:** Lista vertical com os 4 ataques ativos, ícone temático, nome da habilidade e badge de nível (ex: `NV. 1`, `NV. 3`, `NV. 5 MAX`).
+3. **Deck de Ataques do Combo:** os 4 slots com ícone, nome e nível; os do combo atual com borda dourada e os guardados apagados (`ENTRA NO NV. X`). Ver seção 6.
 
 ### 7.2. Painel com os 8 Atributos RPG em Tempo Real (`#stats-rpg-panel`)
 Localizado no canto inferior esquerdo para consulta tática imediata:
@@ -342,10 +346,10 @@ G.CaptureSystem.spawnCaptureBall({ speciesId: 'Pikachu', isShiny: true, forceGol
 
 // 4. Testar Mega Evolução & Overdrive
 G.MegaSystem.addEnergy(100); // Enche a barra em 100%
-G.MegaSystem.trigger();       // Dispara cutscene e 10s de Overdrive com Dano 2x
+G.MegaSystem.trigger();       // Dispara a cinemática + golpe do tipo e depois 10s de Overdrive
 
-// 5. Testar Ativação do Super Combo de Nível 20
-G.Game.player.level = 20;     // Ativa instantaneamente o Super Combo dos 4 ataques juntos
+// 5. Testar o combo por nível (1/2/3/4 ataques em Nv 1/5/10/21)
+G.Game.player.level = 21;     // combo de 4 (use level = 5 ou 10 para 2 e 3)
 
 // 6. Testar Roleta Gacha & Injeção de Tickets
 admin.setTickets(50000);            // Define saldo de tickets para 50.000
@@ -389,10 +393,10 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 
 ## 12. Atualizações Mestres: Gameplay Contínua, Ranking Duplo & Atributos Oficiais
 
-### 12.1. Super Combo Contínuo no Nível 20
-- Ao atingir o **Nível 20**, os 4 slots da barra passam a **combar simultaneamente de forma contínua** (`quadComboActive = true`), sem interrupções nem pausas de jogo.
-- A tela de Level Up **continua ativa** após o Nv 20: as cartas seguem sendo oferecidas e podem ocupar slots vazios, aplicar melhorias de atributos ou oferecer fusões de golpes.
-- O que muda no Nv 20 é apenas **quem dispara**: antes o jogador escolhe o slot; a partir daí, todos disparam juntos (ver seção 6).
+### 12.1. Combo por nível (substitui o Super Combo do Nv. 20)
+- Nv. 1: 1 ataque · Nv. 5: 2 · Nv. 10: 3 · Nv. 21: 4, sempre os primeiros aprendidos e todos juntos (seção 6).
+- A tela de Level Up continua oferecendo cartas (novos ataques e atributos); ataques além do tamanho do combo ficam guardados até o combo crescer.
+- Sem seleção manual de slot e sem fusão de ataques (Elo de Fusão removido).
 
 ### 12.2. Calibração Rara de Shinies e Lendários nos Rifts
 - **Comum Normal:** 94.0% das aparições de guardiões em fendas dimensionais.
@@ -440,3 +444,11 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 
 ---
 *Manual homologado em conformidade com o código-fonte de produção do PokéSurvivor: Endless Hunt.*
+
+
+---
+
+## 13. Regras atualizadas em 31/10/2026
+- **Evolução:** linhas de 3 estágios evoluem nos Nv. 5 e 12; linhas de **só 2 estágios** (forma evoluída é a final: Rattata, Growlithe, Eevee) evoluem **no Nv. 12**. Nv. 21 = Ascensão Mega (+50% de dano). Código: `Player.checkEvolutionMilestones`.
+- **Ranking:** tabelas com sufixo de geração (`RESET_GEN = 'k'` em `js/net/ranking.js`); zerado em 31/10/2026 sem apagar dados do Firestore.
+- **Cenário:** chão com padrão de 256 px sem repetição visível, 3 formas por árvore/cristal/pedra por bioma, luz e vinheta por bioma pré-desenhadas.
