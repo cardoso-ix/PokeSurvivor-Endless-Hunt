@@ -214,7 +214,13 @@
         stagesSub: "Fase da Partida",
         stagesDesc: "Os monstros e os Guardiões de Rift pertencerão exclusivamente à região selecionada.",
         gacha: "Roleta Gacha",
-        gachaSub: "Gire por 100 tickets · Lendários e Shinies"
+        gachaSub: "Gire por 100 tickets · Lendários e Shinies",
+        rewardsOne: "{n} recompensa para resgatar",
+        rewardsMany: "{n} recompensas para resgatar",
+        backToRoom: "Voltar para a sala ({n}/{max})",
+        onlineCount: "{n} online",
+        requestOne: "{n} solicitação",
+        requestMany: "{n} solicitações"
       }
     },
     'en-US': {
@@ -417,7 +423,13 @@
         stagesSub: "Run Stage",
         stagesDesc: "Monsters and Rift Guardians will belong exclusively to the selected region.",
         gacha: "Gacha Roulette",
-        gachaSub: "Spin for 100 tickets · Legendaries and Shinies"
+        gachaSub: "Spin for 100 tickets · Legendaries and Shinies",
+        rewardsOne: "{n} reward to claim",
+        rewardsMany: "{n} rewards to claim",
+        backToRoom: "Back to the room ({n}/{max})",
+        onlineCount: "{n} online",
+        requestOne: "{n} request",
+        requestMany: "{n} requests"
       }
     }
   };

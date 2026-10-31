@@ -717,3 +717,13 @@
   pointer-events: auto !important;
   z-index: 94 !important;
 }
+
+/* Telas baixas (celular na horizontal): o cartão de status ocupava metade da tela. */
+@media (max-height: 520px) {
+  #bottom-rpg-hud.hud-top-left:not(.hidden) {
+    top: 6px !important;
+    left: 6px !important;
+    transform: scale(0.62) !important;
+    transform-origin: top left !important;
+  }
+}

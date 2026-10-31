@@ -10,6 +10,8 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 - **Fonte Pixelify:** o **"C" maiúsculo parecia "O"** ("Oonta", "Oonfigurações", "Olassificação") porque a fenda do glifo era de 1 px. Fenda aberta nas fontes 400 e 700. As ligaduras `fi`/`fl`/`fg` renderizavam como "A" ("PerAl" no lugar de "Perfil") e foram removidas das fontes.
 - **Textos:** "Novedades" → "Novidades" (pt-BR e tradução inglesa); a regra da Roleta Gacha agora mostra o valor real do bônus de repetido (150 moedas, antes dizia 250).
 - **Testes corrigidos (estavam desatualizados, não eram bugs do jogo):** `test_meta_swap` (comparação de ponto flutuante), `test_rift_spawns` e `test_regions_dedup` (liberação de lendários em 30 Rifts conforme BalanceConfig; shiny de espécie já capturada é permitido).
+- **HUD no celular (horizontal):** o cartão de status ocupava ~50% da tela; em telas com menos de 520 px de altura ele agora é reduzido a 62%.
+- **Inglês:** os subtítulos do menu (Jogar, Missões, Amigos, recompensas, sala, online, solicitações) estavam fixos em português no `menu.js` e passaram a usar o i18n.
 - **Resultado da varredura:** 0 erros de JS em 9 telas, nos 64 ataques (níveis 1 e 5) e numa run de 15 min (≈144 FPS, memória estável de 15–40 MB, 68–80 inimigos); todos os 966 Pokémon têm sprites e animações completos.
 
 ---

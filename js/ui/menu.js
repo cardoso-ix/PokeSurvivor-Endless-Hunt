@@ -1,5 +1,7 @@
 /* ============ menu.js — menú principal, colección y mejoras ============ */
 G.MenuUI = (() => {
+  // Texto do i18n (pt-BR/en-US); devolve a própria chave se o i18n ainda não carregou.
+  const T = (key, vars) => (window.i18n ? window.i18n.t(key, vars) : key);
   const $ = G.UI.$;
   const GEN_NAMES = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola', 'Galar', 'Paldea'];
   let dexFilter = 'all', dexGen = 1, dexSel = null;
@@ -109,7 +111,7 @@ G.MenuUI = (() => {
     // Premios de misiones por recoger.
     G.Progress.checkAch();
     const pend = G.Progress.pending();
-    $('menu-goals-sub').textContent = pend ? pend + (pend === 1 ? ' recompensa para resgatar' : ' recompensas para resgatar') : 'Missões, conquistas e perfil';
+    $('menu-goals-sub').textContent = pend ? T(pend === 1 ? 'menu.rewardsOne' : 'menu.rewardsMany', { n: pend }) : T('menu.missionsSub');
     $('menu-goals-sub').classList.toggle('gold', pend > 0);
     // Con cuenta en la nube: amigos en línea, invitaciones y (una vez) el apodo.
     if (G.DB.online && !G.Social.started) {
@@ -125,14 +127,14 @@ G.MenuUI = (() => {
   function socialLine() {
     const room = G.Social.room;
     const play = document.querySelector('#scr-menu [data-go=play] small');
-    if (play) play.textContent = room ? 'Voltar para a sala (' + room.members.length + '/' + G.Social.MAX_PLAYERS + ')' : 'Entrar na Masmorra';
+    if (play) play.textContent = room ? T('menu.backToRoom', { n: room.members.length, max: G.Social.MAX_PLAYERS }) : T('menu.playSub');
     const fr = G.Social.friends;
     const on = fr.filter(f => f.status === 'ok' && f.online).length;
     const req = fr.filter(f => f.status === 'in').length;
     const parts = [];
-    if (on) parts.push(on + ' online');
-    if (req) parts.push(req + (req === 1 ? ' solicitação' : ' solicitações'));
-    $('menu-friends-sub').textContent = parts.length ? parts.join(' · ') : 'Jogue em grupo, até 4 jogadores';
+    if (on) parts.push(T('menu.onlineCount', { n: on }));
+    if (req) parts.push(T(req === 1 ? 'menu.requestOne' : 'menu.requestMany', { n: req }));
+    $('menu-friends-sub').textContent = parts.length ? parts.join(' · ') : T('menu.friendsSub');
     $('menu-friends-sub').classList.toggle('gold', req > 0);
   }
 
