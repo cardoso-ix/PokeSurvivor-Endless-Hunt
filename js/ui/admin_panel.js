@@ -478,7 +478,7 @@
           <!-- Busca e Desbloqueio Individual -->
           <div style="margin-bottom:8px;">
             <input id="admin-dex-search" list="admin-species-datalist" type="text" placeholder="Buscar espécie (ex: charizard, 150)..."
-              style="width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 6px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px;">
+              style="width: 100%; min-width:0; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 6px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
               <button id="admin-btn-unlock-normal" class="admin-action-btn" style="background:#2563eb; color:#ffffff; font-weight:bold;">
                 + Desbloquear Normal
@@ -542,26 +542,26 @@
           <!-- Injeção Customizada de Tickets -->
           <div style="margin-bottom:8px;">
             <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:4px;">🎟️ Quantidade de Tickets:</div>
-            <div style="display:flex; gap:5px; margin-bottom:6px;">
-              <input id="admin-tickets-input" type="number" min="0" step="1000" placeholder="Digite qtd (ex: 5000, 25000)"
-                style="flex:1; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 6px 8px; border-radius: 5px; font-size: 11px;">
-              <button id="admin-btn-set-tickets" class="admin-action-btn" style="background:#0284c7; color:#fff; font-weight:bold; white-space:nowrap;" title="Define o saldo exato de tickets">
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px;">
+              <input id="admin-tickets-input" type="number" min="0" step="1000" placeholder="Qtd (ex: 5000)"
+                style="flex:1 1 100%; min-width:0; box-sizing: border-box; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 6px 8px; border-radius: 5px; font-size: 11px;">
+              <button id="admin-btn-set-tickets" class="admin-action-btn" style="flex:1; background:#0284c7; color:#fff; font-weight:bold; white-space:nowrap;" title="Define o saldo exato de tickets">
                 Definir
               </button>
-              <button id="admin-btn-add-tickets" class="admin-action-btn" style="background:#16a34a; color:#fff; font-weight:bold; white-space:nowrap;" title="Soma a quantidade ao saldo atual">
+              <button id="admin-btn-add-tickets" class="admin-action-btn" style="flex:1; background:#16a34a; color:#fff; font-weight:bold; white-space:nowrap;" title="Soma a quantidade ao saldo atual">
                 + Somar
               </button>
             </div>
             <!-- Botões Rápidos de Tickets -->
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; margin-bottom:6px;">
               <button id="admin-btn-t-5k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+100 tickets (1 giro de Roleta)">
-                +5k (1x)
+                +100 (1x)
               </button>
               <button id="admin-btn-t-25k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+500 tickets (5 giros de Roleta)">
-                +25k (5x)
+                +500 (5x)
               </button>
               <button id="admin-btn-t-50k" class="admin-action-btn" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; font-size:10px; padding:4px 2px;" title="+1.000 tickets (10 giros de Roleta)">
-                +50k (10x)
+                +1.000 (10x)
               </button>
               <button id="admin-btn-t-zero" class="admin-action-btn" style="background:#450a0a; color:#fca5a5; border:1px solid #dc2626; font-size:10px; padding:4px 2px;" title="Zerar todos os tickets">
                 Zerar
@@ -571,7 +571,7 @@
 
           <!-- Ações de Giro da Roleta -->
           <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px; margin-bottom:8px;">
-            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:5px;">🎯 Teste Direto de Roleta (5k / giro)</div>
+            <div style="font-weight:bold; color:#cbd5e1; font-size:11px; margin-bottom:5px;">🎯 Teste Direto de Roleta (100 tickets / giro)</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:6px;">
               <button id="admin-btn-spin-1" class="admin-action-btn" style="background:#d97706; color:#fff; font-weight:bold;">
                 🎲 Girar Roleta 1x
@@ -631,7 +631,8 @@
       } else {
         // Se o painel já existe (ex: debug_panel.js), injeta a seção de Roleta e Pokédex no topo
         if (!document.getElementById('admin-gacha-section')) {
-          const header = panel.firstElementChild;
+          // depois do status (que vem logo após o menu de seções), para o menu ficar no topo
+          const header = document.getElementById('admin-status-text') || panel.firstElementChild;
           if (header && typeof header.insertAdjacentHTML === 'function') {
             header.insertAdjacentHTML('afterend', gachaSectionHTML);
           } else if (typeof panel.insertAdjacentHTML === 'function') {
@@ -666,6 +667,10 @@
             font-family: inherit;
             transition: all 0.15s ease;
             text-align: center;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            box-sizing: border-box;
+            min-width: 0;
           }
           .admin-action-btn:hover {
             filter: brightness(1.15);
@@ -677,8 +682,8 @@
           #admin-float-pill {
             position: fixed;
             bottom: 12px;
-            right: 12px;
-            z-index: 999998;
+            left: 12px;
+            z-index: 99999;
             background: linear-gradient(180deg, #1e3a8a, #0f172a);
             border: 2px solid #ffd166;
             color: #ffd166;
@@ -790,24 +795,7 @@
       if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
 
       window.addEventListener('keydown', (e) => {
-        const isF2 = (e.key === 'F2');
-        const isTildeOrQuote = (e.key === '`' || e.key === '~' || e.code === 'Backquote' || e.key === "'" || e.key === '"');
-        const target = e.target;
-        const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
-
-        // F2 abre/fecha o painel em qualquer situação
-        if (isF2) {
-          e.preventDefault();
-          AdminPanel.toggle();
-          return;
-        }
-
-        // Tecla ~ / Aspas abre/fecha se não estiver digitando em campo de texto
-        if (isTildeOrQuote && !isInput) {
-          e.preventDefault();
-          AdminPanel.toggle();
-          return;
-        }
+        // F2, F1 e ~ ficam só no debug_panel.js (antes os dois scripts alternavam o painel e ele abria e fechava).
 
         // Tecla Escape fecha o painel se estiver aberto
         if (e.key === 'Escape') {
@@ -834,7 +822,17 @@
     }
   }
 
+  // Só admin executa: window.AdminPanel, window.admin e window.admin* ficam acessíveis pelo console.
+  const PUBLIC_PANEL_FNS = ['close', 'setFeedback', 'updateStats', 'updateGachaStats', 'initDOM', 'initKeyboard'];
+  for (const k of Object.keys(AdminPanel)) {
+    const f = AdminPanel[k];
+    if (typeof f === 'function' && !PUBLIC_PANEL_FNS.includes(k)) {
+      AdminPanel[k] = function (...a) { return isUserAdmin() ? f.apply(this, a) : false; };
+    }
+  }
+
   // Atalhos e Comandos Globais de Console (F12)
+  const adminOnly = fn => (...a) => (isUserAdmin() ? fn(...a) : false);
   const globalObj = {
     unlock: (id, isShiny = false) => {
       const db = getDB();
@@ -861,6 +859,7 @@
     close: () => AdminPanel.close(),
     toggle: () => AdminPanel.toggle()
   };
+  for (const k of Object.keys(globalObj)) globalObj[k] = adminOnly(globalObj[k]);
 
   if (typeof window !== 'undefined') {
     window.AdminPanel = AdminPanel;

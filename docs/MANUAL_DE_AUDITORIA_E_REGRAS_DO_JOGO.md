@@ -370,17 +370,17 @@ admin.openGacha();                  // Abre a tela oficial da Roleta Gacha
 O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em tempo real, desenvolvido para auditorias imediatas sem necessidade de comandos complexos de terminal.
 
 ### 11.1. Como Acessar o Menu Admin
-- **Teclado:** Pressione `F2` ou a tecla de Aspas / Tilde (`'` ou `~`) a qualquer momento da partida ou nos menus.
-- **Botão Flutuante:** Clique na pílula retrô **`🛠️ Admin [F2]`** fixada no canto inferior direito da tela (visível em desktop e mobile).
+- **Teclado (só admin):** `F1`, `F2` ou a tecla de Aspas / Tilde (`'` ou `~`) abrem e fecham o painel. Menu de seções fixo no topo (Pokédex, Roleta, Evolução, Nível, Moedas, Combate, Rifts, Câmera, Clima).
+- **Botão Flutuante:** Clique na pílula retrô **`🛠️ Admin [F2]`** fixada no canto **inferior esquerdo** da tela (some enquanto o painel está aberto; visível em desktop e mobile).
 - **Console do Desenvolvedor (F12):** Digite `admin.open()` ou utilize os comandos `admin.*`.
 
 ### 11.2. Recursos da Seção: Tickets & Roleta Gacha
 1. **Visualizador de Saldo em Tempo Real:** Exibe os saldos ativos de `🎟️ Tickets de Roleta` e `🪙 PokéMoedas` sincronizados com o banco de dados.
 2. **Definição e Injeção Customizada:** Campo numérico de entrada para definir ou somar **qualquer quantidade desejada de tickets** (ex: `5.000`, `25.000`, `100.000`).
 3. **Botões Rápidos de Tickets:**
-   - `+5k (1x)`: Injeta instantaneamente 5.000 tickets (1 giro de Roleta).
-   - `+25k (5x)`: Injeta 25.000 tickets (5 giros de Roleta).
-   - `+50k (10x)`: Injeta 50.000 tickets (10 giros de Roleta).
+   - `+100 (1x)`: soma 100 tickets (1 giro de Roleta; cada giro custa 100).
+   - `+500 (5x)`: soma 500 tickets (5 giros).
+   - `+1.000 (10x)`: soma 1.000 tickets (10 giros).
    - `Zerar`: Zera todos os tickets do save para testes de saldo insuficiente.
 4. **Testes Diretos de Sorteio:** Botões `🎲 Girar Roleta 1x` e `🌟 Girar Roleta 5x` realizam o sorteio completo, registram na Pokédex e calculam o reembolso de 1.000 moedas por duplicata.
 5. **Forçador de Probabilidades (Debug Hooks):**
@@ -452,3 +452,10 @@ O PokéSurvivor conta com um **Menu Admin e Painel de Depuração** flutuante em
 - **Evolução:** linhas de 3 estágios evoluem nos Nv. 5 e 12; linhas de **só 2 estágios** (forma evoluída é a final: Rattata, Growlithe, Eevee) evoluem **no Nv. 12**. Nv. 21 = Ascensão Mega (+50% de dano). Código: `Player.checkEvolutionMilestones`.
 - **Ranking:** tabelas com sufixo de geração (`RESET_GEN = 'k'` em `js/net/ranking.js`); zerado em 31/10/2026 sem apagar dados do Firestore.
 - **Cenário:** chão com padrão de 256 px sem repetição visível, 3 formas por árvore/cristal/pedra por bioma, luz e vinheta por bioma pré-desenhadas.
+
+### 11.9. Revisão do painel (31/10/2026)
+- **Segurança:** funções do painel e atalhos só para admin; atalhos só com o painel aberto; chave só como hash SHA-256. (Antes, qualquer jogador ganhava Modo Deus/nível/limpar inimigos com `G`/`L`/`K`/`E`/`R`/`M` e chamava `adminSetTickets` pelo console.)
+- **F2/crase** abrem o painel (dois scripts alternavam o painel duas vezes e ele não abria).
+- **Botões corrigidos:** *Ativar Mega agora* (enche a barra e roda o Mega de verdade; antes não fazia nada sem a barra cheia), *Ver golpe* (cinemática + golpe de cada um dos 18 tipos, sem buff; antes disparava o efeito antigo), *Testar Tela de Captura* (usava uma função que não existe), *+5 Níveis* (agora evolui e libera o combo), rótulos de evolução (Nv 5 e 12) e de tickets (+100/+500/+1.000).
+- **Novo:** botões *Nv 5 / 10 / 12 / 21* (testam evolução, combo e Mega), menu de seções fixo e painel responsivo (340 px, textos quebram em vez de estourar). A seção duplicada de Roleta do painel de debug foi removida (fica a completa).
+- **Scanners:** `tools/scan/scan_admin.js` (segurança, todos os botões, enquadramento em 4 telas) e `tools/scan/scan_admin_prod.js` (build de produção).

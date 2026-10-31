@@ -46,7 +46,7 @@ Construído em **HTML5 Canvas 2D + Vanilla JavaScript moderno**, rodando a 60 FP
 | `Esc` / `P` | Pausar / Continuar partida |
 | `1` `2` `3` / Clique na carta | Escolher melhoria ao subir de nível |
 | `R` | Trocar opções de cartas de nível (Reroll) |
-| `F2` / `'` | Abrir Painel de Administração / Depuração |
+| `F1` / `F2` / `'` | Abrir/fechar o Painel de Administração (só admin) |
 
 **No Celular ou Tablet (Modo Paisagem/Horizontal):**  
 Arraste o dedo em qualquer lugar da tela para mover o personagem com o joystick dinâmico, toque no botão circular do Mega no canto inferior para acionar o poder supremo, use a bandeja inferior para alternar ataques e acesse a pausa pelo topo. O jogo pode ser instalado diretamente como **PWA** ("Adicionar à Tela de Início").
@@ -260,10 +260,9 @@ node tools/verify_vps_deploy.js
 ## 🛠️ Menu Admin & Blindagem de Segurança (Exclusivo Administrador)
 
 > [!IMPORTANT]
-> **Privacidade & Segurança em Produção:**  
-> O botão flutuante **`🛠️ Admin [F2]`**, os atalhos de depuração (`F2`, `F1`, `'`) e os comandos de trapaça/injeção ficam **completamente ocultos e inativos para o público geral, amigos e visitantes**.  
-> Eles são carregados e exibidos **exclusivamente na conta autenticada do Administrador** (`eduardoocardosoo@gmail.com` ou usuário mestre).  
-> Para autenticação do administrador em novos dispositivos: utilize `Ctrl + Shift + Alt + A` ou `Ctrl + F2` com a chave mestra, ou o comando `adminLogin('senha')` no console.
+> **Segurança do painel (revisado em 31/10/2026):** o botão flutuante **`🛠️ Admin [F2]`** (canto **inferior esquerdo**), os atalhos e todas as funções `adminTools.*`, `AdminPanel.*` e `admin*` só executam para o administrador (conta do dono ou a chave mestra). A chave **não fica mais em texto no código**: só o hash SHA-256 (`ADMIN_HASH` em `js/ui/debug_panel.js`; instrução para trocar a chave no comentário). Login em outro dispositivo: `Ctrl + Shift + Alt + A`, `Ctrl + F2`, ou `adminLogin('senha')` no console.
+> **Limites:** a verificação é só no navegador (a flag `ps_admin_authenticated` no localStorage libera o painel) e `window.G` continua exposto em produção (`game.js`, para os testes E2E), então um jogador técnico ainda consegue mexer no próprio jogo pelo console. O que protege o ranking de verdade são as regras do Firestore (`firestore.rules`). Para fechar de vez: não expor `window.G` e não incluir o painel no bundle público.
+> **Atalhos de teste** (`G` Deus, `L` +1 nível, `K` limpar inimigos, `E` evoluir, `R` devolver): só para admin **e só com o painel aberto**. `Espaço`/`M` é o Mega do jogo.
 
 O Painel de Administração oferece controle total sobre todos os subsistemas do jogo:
 - **🎟️ Gestão de Tickets de Roleta:** Adicionar, definir ou zerar tickets da Roleta (`+100`, `+500`, `+1.000` ou valores customizados).

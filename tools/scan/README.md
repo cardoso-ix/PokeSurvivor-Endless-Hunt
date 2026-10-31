@@ -15,6 +15,8 @@ node tools/scan/scan_mega.js shots [tipos|-] [pagina]   # golpe do Mega por tipo
 node tools/scan/scan_space.js shots 78 index.html       # Espaço de verdade no build de produção
 node tools/scan/scan_evo_levels.js [pagina]  # linhas de 2 estágios evoluem no 12; de 3, no 5 e 12
 node tools/scan/scan_world.js shots [pagina]  # cenário dos biomas + FPS
+node tools/scan/scan_admin.js shots           # painel de admin: segurança, todos os botões, enquadramento em 4 telas
+node tools/scan/scan_admin_prod.js            # painel de admin no build de produção
 node tools/scan/scan_flows.js shots         # loja, gacha, pausa
 node tools/scan/scan_mobile.js shots        # celular horizontal/vertical e /en/
 ```

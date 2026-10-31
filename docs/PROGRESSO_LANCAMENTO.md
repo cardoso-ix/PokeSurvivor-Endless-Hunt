@@ -50,7 +50,11 @@ FPS medido com `tools/scan/scan_world.js`: 143–145 em 5 biomas, igual ao anter
 - 64 ataques x níveis 1 e 5 (128 casos): todos acertam inimigos, 0 erros de JS. `scan_moves.js` agora conta chamadas reais de `Enemy.hurt` (a medição antiga por HP era inconclusiva) e fecha a tela de vínculo que travava a varredura.
 - Mega nos 18 tipos (`scan_mega.js`), vínculo, loja/gacha/pausa, Rifts/captura: 0 erros. Espaço no build de produção (`scan_space.js`) OK.
 
+## Painel de admin/testes (31/10/2026)
+Revisão completa (ver manual 11.9). Corrigidos: atalhos e funções abertos a qualquer jogador, F2 que não abria, Mega/Captura/+5 Níveis/Ver golpe, rótulos, layout. Chave do admin agora só como hash. **Troque a chave:** o texto antigo continua no histórico do git (comando no comentário de `js/ui/debug_panel.js`).
+
 ## Pendências conhecidas
+0. **Decidir antes do lançamento:** `window.G` exposto em produção (`game.js`, commit `b68ba36`, para testes E2E) permite mexer no jogo pelo console; o painel de admin também vai no bundle público. Opções: build público sem `window.G`/painel e build de testes com `--expose`. Os scanners de produção (`scan_space`, `scan_combo`, `scan_mega` com `index.html`) dependem de `G` e precisariam do build `--expose`.
 1. **Testes do dono pendentes:** os 18 golpes do Mega (principalmente Lutador, Voador, Inseto, Terra, Fantasma, Sombrio e Fada, que só foram vistos em screenshots), combo por nível, evolução no Nv. 12 das linhas de 2 estágios, cenário novo e ranking zerado.
 2. **Fase 4, o que falta ("juice"):** água do cenário com ondas, clima ligado ao bioma, sombra de contato, partículas/hit flash/números de dano, HUD/level up/gacha. Medir FPS no celular real (só medimos no PC: ~144 FPS).
 3. **Testes antigos do Mega desatualizados:** `test_mega_skills_18_types`, `test_dynamic_mega_ultimates`, `test_mega_slow_cutscene`, `test_live_mega_slow_cutscene_browser`, `test_mega_cutscene_live` (cutscene antiga; `G.MegaCutscene` em `game.js` é referência morta). `MegaSkillVFXManager` (`mega_skill_vfx.js`) hoje só serve de catálogo de cores/nomes; o código dos hazards antigos está sem uso.

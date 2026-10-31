@@ -17,6 +17,11 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 ### 🌟 Mega v2
 - Cinemática curta (0,9 s) + carga + **golpe único em tela cheia, em pixel art**, com dano em área nos impactos; depois, só o buff de 10 s (sem cenário contínuo). Um golpe assinatura para cada um dos 18 tipos (meteoros, tsunami em 3 ondas, raios, nevasca, espinhos, punho titânico, gêiseres tóxicos, terremoto, furacão, implosão psíquica, enxame, chuva de pedras, orbe espectral, vazio sombrio, dragão, corte de aço, lua rosa, hiper raio).
 
+### 🛠️ Painel de admin/testes (revisão completa)
+- **Segurança:** os atalhos `G`/`L`/`K`/`E`/`R`/`M` e as funções `admin*` funcionavam para qualquer jogador (Modo Deus, subir nível, tickets pelo console). Agora só admin, atalhos só com o painel aberto, e a chave do admin ficou só como hash SHA-256.
+- **F2/crase não abriam o painel** (dois scripts o alternavam duas vezes). Corrigido.
+- **Botões:** *Ativar Mega agora*, *Ver golpe* (18 tipos), *Testar Captura* e *+5 Níveis* funcionam; novos *Nv 5/10/12/21*; rótulos de evolução e tickets corrigidos; menu de seções; layout sem cortes em desktop e celular; botão flutuante no canto inferior esquerdo.
+
 ### 🧹 Correções
 - **Mega no build de produção:** a cutscene não aparecia (o novo script recriava `G`) e os efeitos liam `G.UltimateVFX`, que não existe no bundle; corrigido e agora testado contra `index.html`.
 - **Charizard:** teste de sprite HD hi-bit revertido; as folhas do dex 6 passam a ser pedidas com `?v=pmd2` para furar o cache `immutable` do servidor e do service worker.

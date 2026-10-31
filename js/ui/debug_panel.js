@@ -6,7 +6,43 @@
   const ADMIN_EMAILS = ['eduardoocardosoo@gmail.com'];
   const ADMIN_USERS = ['eduardo', 'cardoso', 'admin', 'eduardocardoso'];
   const ADMIN_UIDS = ['rshaa5gKD3fXw6lE4PPXITbowaG2'];
-  const ADMIN_SECRET = '04052001Erica+';
+  // Só o hash SHA-256 da chave (o texto puro não fica no código nem no bundle). Para trocar a chave:
+  //   node -e "console.log(require('crypto').createHash('sha256').update('NOVA_CHAVE').digest('hex'))"
+  const ADMIN_HASH = 'e4e800e88ef62d9f521bab0306f3c23775a7a88a54d320a20e06a83ecaa54570';
+  // SHA-256 em JS puro (crypto.subtle não existe em páginas http, como o servidor de testes)
+  function sha256(str) {
+    const msg = unescape(encodeURIComponent(str));
+    const K = [], H0 = [];
+    let pc = 0;
+    const isP = n => { for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; };
+    const frac = x => ((x - Math.floor(x)) * 4294967296) | 0;
+    for (let c = 2; pc < 64; c++) if (isP(c)) { if (pc < 8) H0[pc] = frac(Math.pow(c, 0.5)); K[pc++] = frac(Math.pow(c, 1 / 3)); }
+    const bytes = [];
+    for (let i = 0; i < msg.length; i++) bytes.push(msg.charCodeAt(i));
+    const bits = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bits >>> (i * 8)) & 255);
+    const rr = (v, n) => (v >>> n) | (v << (32 - n));
+    for (let o = 0; o < bytes.length; o += 64) {
+      const w = [];
+      for (let i = 0; i < 16; i++) w[i] = (bytes[o + i * 4] << 24) | (bytes[o + i * 4 + 1] << 16) | (bytes[o + i * 4 + 2] << 8) | bytes[o + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      let [a, b, c, dd, e, f, g, h] = H0;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+        const t2 = ((rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (dd + t1) | 0; dd = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H0[0] = (H0[0] + a) | 0; H0[1] = (H0[1] + b) | 0; H0[2] = (H0[2] + c) | 0; H0[3] = (H0[3] + dd) | 0;
+      H0[4] = (H0[4] + e) | 0; H0[5] = (H0[5] + f) | 0; H0[6] = (H0[6] + g) | 0; H0[7] = (H0[7] + h) | 0;
+    }
+    return H0.map(v => ('00000000' + (v >>> 0).toString(16)).slice(-8)).join('');
+  }
+  const checkSecret = pass => typeof pass === 'string' && sha256(pass) === ADMIN_HASH;
 
   function isUserAdmin() {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('ps_admin_authenticated') === 'true') {
@@ -31,7 +67,8 @@
     const pill = document.getElementById('admin-float-pill');
     if (!pill) return;
     const canSee = isUserAdmin();
-    pill.style.display = canSee ? 'block' : 'none';
+    const pn0 = document.getElementById('admin-debug-panel');
+    pill.style.display = (canSee && !(pn0 && pn0.style.display !== 'none')) ? 'block' : 'none';
     if (!canSee) {
       const panel = document.getElementById('admin-debug-panel');
       if (panel) panel.style.display = 'none';
@@ -115,15 +152,15 @@
       }
     },
 
-    evoMode: 'fast', // 'fast' (Nv 5/10), 'official' (Nv 16/36), 'instant' (Nv 1)
+    evoMode: 'fast', // 'fast' (padrão: Nv 5 e 12), 'official' (nível de cada evolução), 'instant' (Nv 1)
     toggleEvoMode() {
       if (this.evoMode === 'fast') this.evoMode = 'official';
       else if (this.evoMode === 'official') this.evoMode = 'instant';
       else this.evoMode = 'fast';
 
       const labels = {
-        official: 'Oficial (Nv. 16/36)',
-        fast: 'Rápido (Nv. 5/10)',
+        official: 'Oficial (nível de cada evolução)',
+        fast: 'Padrão do jogo (Nv. 5 e 12)',
         instant: 'Livre (A partir do Nv. 1)'
       };
       this.toast('Progresso de Evolução: ' + labels[this.evoMode]);
@@ -174,10 +211,21 @@
         if (typeof G === 'object' && G.Player && G.Player.xpFor) {
           p.xpNext = G.Player.xpFor(p.level);
         }
+        // Dispara evolução (Nv 5/12/21) e combo (Nv 5/10/21), como num level up de verdade
+        if (typeof p.checkEvolutionMilestones === 'function') p.checkEvolutionMilestones();
         if (typeof G === 'object' && G.Audio) G.Audio.sfx('levelup');
         this.toast('+' + n + ' Níveis adicionados! Nv. atual: ' + p.level);
       }
       this.updateStatus();
+    },
+
+    /** Vai direto para um nível (evolução e combo acompanham: 5, 10, 12, 21). */
+    setLevel(lv) {
+      const p = getPlayer();
+      if (!p) { this.toast('Nenhuma partida em andamento!'); return; }
+      if (p.level >= lv) { this.toast('Já está no Nv. ' + p.level + ' (só sobe)'); return; }
+      this.addLevel(lv - p.level);
+      this.toast('Nv. ' + p.level + ' · combo de ' + (G.Player.comboSize ? G.Player.comboSize(p.level) : '?') + ' ataque(s)');
     },
 
     addExp(amount = 1000) {
@@ -276,35 +324,29 @@
       return p.isGodMode;
     },
 
+    /** Ativa o Mega de verdade agora (enche a barra e roda cinemática + golpe + buff de 10 s). */
     fillSpecial() {
       const p = getPlayer();
       if (!p) { this.toast('Nenhuma partida em andamento!'); return; }
-
-      if (typeof p.activateMega === 'function') {
-        p.activateMega(15);
-      } else {
-        p.hp = p.maxHp;
-        if (typeof p.addBuff === 'function') {
-          p.addBuff('atk', 1.5, 30, 5);
-          p.addBuff('spd', 0.75, 30, 5);
-        }
-        p.invuln = Math.max(p.invuln || 0, 10);
-      }
-      this.toast('⭐ MODO MEGA FÚRIA ATIVADO! (Super Star Frenzy)');
+      if (typeof G !== 'object' || !G.Mega) { this.toast('Sistema Mega não carregado!'); return; }
+      if (G.Mega.isActive || G.Mega.pending || (G.MegaScene && G.MegaScene.active)) { this.toast('O Mega já está em andamento!'); return; }
+      G.Mega.gauge = G.Mega.maxGauge;
+      p.megaEnergy = G.Mega.maxGauge;
+      const ok = G.Mega.trigger();
+      this.toast(ok ? '⚡ MEGA ativado!' : 'Não foi possível ativar o Mega agora.');
       this.updateStatus();
     },
 
+    /** Só o golpe do tipo escolhido (cinemática + golpe, SEM o buff), para ver a animação. */
     triggerMegaSkill(type) {
       const p = getPlayer();
       if (!p) { this.toast('Nenhuma partida em andamento!'); return; }
-      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : ((typeof G === 'object') ? (G.MegaSkillVFXManager || G.UltimateVFX) : null);
-      if (vfx && typeof vfx.trigger === 'function') {
-        vfx.trigger(type, p);
-        const cfg = vfx.getTypeConfig ? vfx.getTypeConfig(type) : null;
-        this.toast(`⚡ Mega Skill: [${(cfg && cfg.name) || type.toUpperCase()}]`);
-      } else {
-        this.toast('MegaSkillVFXManager não encontrado!');
-      }
+      const scene = (typeof G === 'object') ? G.MegaScene : null;
+      if (!scene || typeof scene.start !== 'function') { this.toast('MegaScene não encontrado!'); return; }
+      if (scene.active || (G.Mega && (G.Mega.isActive || G.Mega.pending))) { this.toast('Espere o Mega atual terminar.'); return; }
+      const strike = G.MegaStrikes && G.MegaStrikes[type];
+      scene.start(type, p, () => {});
+      this.toast('⚡ Golpe do Mega: ' + ((strike && strike.name) || type));
     },
 
     killAll() {
@@ -365,10 +407,14 @@
     },
 
     testCapture(species, isShiny = false) {
-      if (typeof G !== 'object' || !G.Capture || !G.Capture.open) {
+      const cap = (typeof G === 'object') ? G.Capture : null;
+      if (!cap || typeof cap.startCaptureSequence !== 'function') {
         this.toast('Sistema de captura não inicializado!');
         return;
       }
+      const pl = getPlayer();
+      if (!pl) { this.toast('Inicie uma partida para testar a captura.'); return; }
+      if (cap.isCapturing) { this.toast('Já há uma captura em andamento.'); return; }
       let mon = null;
       if (typeof species === 'number') mon = G.DEX_BY[species];
       else if (typeof species === 'string' && species.trim()) {
@@ -381,13 +427,24 @@
         this.toast(`Espécie não encontrada: ${species}`);
         return;
       }
-      G.Capture.open(mon, {
+      const legendary = typeof cap.isLegendaryOrMythical === 'function' ? !!cap.isLegendaryOrMythical(mon) : false;
+      cap.startCaptureSequence({
+        speciesId: mon.name,
+        mon,
+        x: pl.x + 60,
+        y: pl.y,
+        fromX: pl.x,
+        fromY: pl.y,
         isShiny: !!isShiny,
-        onComplete: (caught) => {
-          this.toast(caught ? `🎉 ${mon.name} capturado com sucesso!` : `💨 ${mon.name} escapou!`);
+        isLegendary: legendary,
+        stage: 1,
+        level: pl.level,
+        onComplete: (caught, isDuplicate) => {
+          this.toast(caught ? `🎉 ${mon.name} capturado!${isDuplicate ? ' (repetido)' : ''}` : `💨 ${mon.name} escapou!`);
           this.updateStatus();
         }
       });
+      this.toast(`🎯 Captura de ${mon.name} iniciada!`);
     },
 
     zoomIn() {
@@ -503,8 +560,8 @@
       const evoBtn = document.getElementById('admin-btn-evomode');
       if (evoBtn) {
         const labels = {
-          official: '🎯 Requisito: Oficial (Nv 16/36)',
-          fast: '🎯 Requisito: Rápido (Nv 5/10)',
+          official: '🎯 Requisito: Oficial (nível de cada evolução)',
+          fast: '🎯 Requisito: Padrão do jogo (Nv 5 e 12)',
           instant: '🎯 Requisito: Livre (A partir do Nv 1)'
         };
         evoBtn.textContent = labels[this.evoMode] || labels.fast;
@@ -528,6 +585,15 @@
     }
   };
 
+  // Quem não é admin não executa nada daqui (o objeto está em window.adminTools e as funções em window.debug*).
+  const PUBLIC_FNS = ['close', 'toast', 'updateStatus'];
+  for (const k of Object.keys(adminTools)) {
+    const f = adminTools[k];
+    if (typeof f === 'function' && !PUBLIC_FNS.includes(k)) {
+      adminTools[k] = function (...a) { return isUserAdmin() ? f.apply(this, a) : false; };
+    }
+  }
+
   // ---------------- Injeção da Interface no DOM ----------------
   function initDOM() {
     if (document.getElementById('admin-debug-panel')) return;
@@ -539,9 +605,13 @@
       position: fixed;
       top: 12px;
       right: 12px;
-      width: 280px;
+      width: min(340px, calc(100vw - 24px));
+      box-sizing: border-box;
       max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
       overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
       background: rgba(15, 15, 20, 0.94);
       border: 1px solid #ffcb05;
       color: white;
@@ -549,7 +619,7 @@
       border-radius: 8px;
       font-family: monospace, "Segoe UI", sans-serif;
       font-size: 12px;
-      z-index: 10000;
+      z-index: 100000;
       display: none;
       box-shadow: 0 4px 20px rgba(0,0,0,0.6);
       user-select: text;
@@ -562,14 +632,19 @@
         <button id="admin-close-btn" style="background:#d9534f; border:none; color:white; border-radius:4px; cursor:pointer; font-weight:bold; padding:2px 6px;">✕</button>
       </div>
 
+      <div class="admin-nav" id="admin-nav">
+        <button data-go="admin-dex-section">Pokédex</button><button data-go="admin-gacha-section">Roleta</button><button data-go="admin-sec-evo">Evolução</button><button data-go="admin-sec-prog">Nível</button><button data-go="admin-sec-coins">Moedas</button><button data-go="admin-sec-fight">Combate</button><button data-go="admin-sec-rift">Rifts</button><button data-go="admin-sec-cam">Câmera</button><button data-go="admin-sec-wx">Clima</button>
+      </div>
+
       <div id="admin-status-text" style="background:#222; padding:6px; border-radius:4px; margin-bottom:10px; font-size:11px; line-height:1.4;">
         Carregando status...
       </div>
 
+
       <!-- SEÇÃO 1: EVOLUÇÃO -->
-      <div style="font-weight:bold; color:#7fe0ff; margin-bottom:4px; font-size:11px;">🧬 SEÇÃO 1: EVOLUÇÃO</div>
+      <div data-sec id="admin-sec-evo" style="font-weight:bold; color:#7fe0ff; margin-bottom:4px; font-size:11px;">🧬 SEÇÃO 1: EVOLUÇÃO</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
-        <button id="admin-btn-evomode" class="admin-btn" title="Alternar entre Oficial (Nv 16/36), Rápido (Nv 5/10) e Livre (Nv 1)">[ 🎯 Requisito: Rápido (Nv 5/10) ]</button>
+        <button id="admin-btn-evomode" class="admin-btn" title="Alternar entre Padrão do jogo (Nv 5 e 12), Oficial (nível de cada evolução) e Livre (Nv 1)">[ 🎯 Requisito: Padrão do jogo (Nv 5 e 12) ]</button>
         <button id="admin-btn-freeze" class="admin-btn" title="Alternar entre Fluida (0s), Rápida (0.3s) e Clássica (1.5s)">[ ❄️ Pausa na Evolução: Fluida (0s - Sem travar) ]</button>
         <button id="admin-btn-evolve" class="admin-btn" title="[E] Forçar evolução direta">[ 🔼 Forçar Próxima Evolução ] (E)</button>
         <button id="admin-btn-devolve" class="admin-btn" title="[R] Reverter para estágio anterior">[ 🔽 Devoluir Estágio ] (R)</button>
@@ -581,15 +656,21 @@
       </div>
 
       <!-- SEÇÃO 2: PROGRESSÃO -->
-      <div style="font-weight:bold; color:#ffcb3d; margin-bottom:4px; font-size:11px;">📈 SEÇÃO 2: PROGRESSÃO</div>
+      <div data-sec id="admin-sec-prog" style="font-weight:bold; color:#ffcb3d; margin-bottom:4px; font-size:11px;">📈 SEÇÃO 2: PROGRESSÃO</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <button id="admin-btn-lvl1" class="admin-btn" title="[L] Abre a tela de escolha de cartas">[ +1 Nível (Level Up) ] (L)</button>
         <button id="admin-btn-lvl5" class="admin-btn">[ +5 Níveis Diretos ]</button>
         <button id="admin-btn-xp1000" class="admin-btn">[ +1000 EXP ]</button>
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px;">
+          <button id="admin-btn-goto5" class="admin-btn" style="text-align:center; padding:5px 2px;" title="Evolui linhas de 3 estágios e libera o combo de 2">Nv 5</button>
+          <button id="admin-btn-goto10" class="admin-btn" style="text-align:center; padding:5px 2px;" title="Combo de 3 ataques">Nv 10</button>
+          <button id="admin-btn-goto12" class="admin-btn" style="text-align:center; padding:5px 2px;" title="2ª evolução (e a única das linhas de 2 estágios)">Nv 12</button>
+          <button id="admin-btn-goto21" class="admin-btn" style="text-align:center; padding:5px 2px;" title="Ascensão Mega e combo de 4 ataques">Nv 21</button>
+        </div>
       </div>
 
       <!-- SEÇÃO 3: GERADOR DE MOEDAS -->
-      <div style="font-weight:bold; color:#ffd700; margin-bottom:4px; font-size:11px;">💰 SEÇÃO 3: GERADOR DE MOEDAS</div>
+      <div data-sec id="admin-sec-coins" style="font-weight:bold; color:#ffd700; margin-bottom:4px; font-size:11px;">💰 SEÇÃO 3: GERADOR DE MOEDAS</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <div id="admin-coins-status" style="background:#1e1e24; color:#ffd700; padding:4px 8px; border-radius:4px; text-align:center; font-weight:bold; font-size:11px; border:1px solid #7c6812;">
           🪙 Banco: 0 | Run: 0
@@ -606,66 +687,23 @@
         </div>
       </div>
 
-      <!-- SEÇÃO GACHA: TICKETS & ROLETA -->
-      <div style="font-weight:bold; color:#f59e0b; margin-bottom:4px; font-size:11px;">🎰 SEÇÃO GACHA: TICKETS & ROLETA</div>
-      <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
-        <div id="admin-tickets-status" style="background:#1e1e24; color:#38bdf8; padding:4px 8px; border-radius:4px; text-align:center; font-weight:bold; font-size:11px; border:1px solid #0369a1;">
-          🎟️ Tickets Roleta: 0
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
-          <button id="admin-btn-tickets-5k" class="admin-btn" style="color:#38bdf8;" title="+5.000 Tickets">[ +100 🎟️ (1x) ]</button>
-          <button id="admin-btn-tickets-25k" class="admin-btn" style="color:#60a5fa;" title="+25.000 Tickets">[ +500 🎟️ (5x) ]</button>
-          <button id="admin-btn-tickets-50k" class="admin-btn" style="color:#93c5fd;" title="+50.000 Tickets">[ +1.000 🎟️ (10x) ]</button>
-          <button id="admin-btn-tickets-zero" class="admin-btn" style="color:#fca5a5;" title="Zerar Tickets">[ Zerar 🎟️ ]</button>
-        </div>
-        <div style="display:flex; gap:4px; margin-top:2px;">
-          <input id="admin-tickets-debug-input" type="number" placeholder="Qtd Tickets (ex: 5000)" style="flex:1; background:#111; border:1px solid #0369a1; color:#38bdf8; padding:4px; border-radius:4px; font-size:11px;">
-          <button id="admin-btn-tickets-set" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#38bdf8;">Definir</button>
-          <button id="admin-btn-tickets-add" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#4ade80;">+ Somar</button>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:2px;">
-          <button id="admin-btn-debug-spin1" class="admin-btn" style="color:#f59e0b; font-weight:bold;">[ 🎲 Girar Roleta 1x ]</button>
-          <button id="admin-btn-debug-spin5" class="admin-btn" style="color:#fbbf24; font-weight:bold;">[ 🌟 Girar Roleta 5x ]</button>
-        </div>
-        <button id="admin-btn-debug-opengacha" class="admin-btn" style="color:#c084fc; font-weight:bold; text-align:center;">[ 🎰 Abrir Tela da Roleta Gacha ]</button>
-      </div>
-
       <!-- SEÇÃO 4: SOBREVIVÊNCIA E COMBATE -->
-      <div style="font-weight:bold; color:#ff5f6d; margin-bottom:4px; font-size:11px;">⚔️ SEÇÃO 4: COMBATE & CHEATS</div>
+      <div data-sec id="admin-sec-fight" style="font-weight:bold; color:#ff5f6d; margin-bottom:4px; font-size:11px;">⚔️ SEÇÃO 4: COMBATE & CHEATS</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <button id="admin-btn-god" class="admin-btn" title="[G] Invulnerabilidade">[ 🛡️ Modo Deus: OFF ] (G)</button>
         <button id="admin-btn-heal" class="admin-btn">[ 💖 Curar 100% HP ]</button>
-        <button id="admin-btn-special" class="admin-btn" title="[M] Ativa o modo Mega Fúria estelar (Super Star Mario)">[ ⚡ Especial: Mega Fúria ] (M)</button>
+        <button id="admin-btn-special" class="admin-btn" title="Enche a barra e ativa o Mega de verdade (cinemática + golpe + 10 s de buff). No jogo normal: Espaço ou M com a barra cheia.">[ ⚡ Ativar Mega agora ]</button>
         <!-- TESTE DE MEGA SKILLS ELEMENTAIS -->
         <div style="display:flex; gap:4px; margin-top:2px; align-items:center;">
-          <select id="admin-megaskill-type" style="flex:1; background:#111; border:1px solid #ff5f6d; color:#fff; padding:4px; border-radius:4px; font-size:11px;">
-            <option value="fire">🔥 Fogo (Chuva de Meteoros)</option>
-            <option value="water">💧 Água (Tsunami Abissal)</option>
-            <option value="grass">🌿 Planta (Tempestade da Floresta)</option>
-            <option value="electric">⚡ Elétrico (Julgamento Trovão)</option>
-            <option value="ice">❄️ Gelo (Zero Absoluto)</option>
-            <option value="fighting">🥊 Lutador (Barragem de Impacto)</option>
-            <option value="poison">☠️ Veneno (Nebulosa Tóxica)</option>
-            <option value="ground">🌍 Terra (Cataclismo Sísmico)</option>
-            <option value="flying">🌪️ Voador (Furacão Cortante)</option>
-            <option value="psychic">🔮 Psíquico (Singularidade Cósmica)</option>
-            <option value="bug">🦗 Inseto (Enxame Voraz)</option>
-            <option value="rock">🪨 Pedra (Avalanche Monólitos)</option>
-            <option value="ghost">👻 Fantasma (Eclipse das Sombras)</option>
-            <option value="dragon">🐉 Dragão (Fúria Dracônica)</option>
-            <option value="dark">🌑 Sombrio (Buraco Negro Abissal)</option>
-            <option value="steel">⚔️ Aço (Tempestade de Lâminas)</option>
-            <option value="fairy">✨ Fada (Chuva Estelar Lunar)</option>
-            <option value="normal">⚪ Normal (Hiper Raio Nova)</option>
-          </select>
-          <button id="admin-btn-trigger-megaskill" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#ffcb05; white-space:nowrap;">[Disparar Mega Skill]</button>
+          <select id="admin-megaskill-type" style="flex:1; background:#111; border:1px solid #ff5f6d; color:#fff; padding:4px; border-radius:4px; font-size:11px;"></select>
+          <button id="admin-btn-trigger-megaskill" class="admin-btn" style="width:auto; padding:4px 8px; font-weight:bold; color:#ffcb05;" title="Só a cinemática e o golpe do tipo escolhido, sem o buff">[ ▶ Ver golpe ]</button>
         </div>
         <button id="admin-btn-killall" class="admin-btn" title="[K] Limpa a tela">[ 💥 Limpar Inimigos (Kill All) ] (K)</button>
         <button id="admin-btn-spawn" class="admin-btn">[ ⏱️ Spawn: ATIVO ]</button>
       </div>
 
       <!-- SEÇÃO 5: RIFTS & CAPTURA -->
-      <div style="font-weight:bold; color:#38bdf8; margin-bottom:4px; font-size:11px;">🌀 SEÇÃO 5: RIFTS & CAPTURA</div>
+      <div data-sec id="admin-sec-rift" style="font-weight:bold; color:#38bdf8; margin-bottom:4px; font-size:11px;">🌀 SEÇÃO 5: RIFTS & CAPTURA</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <button id="admin-btn-trigger-rift" class="admin-btn" title="Força início imediato de Rift Guardian">[ 🌀 Forçar Rift Guardian ]</button>
         <button id="admin-btn-test-capture" class="admin-btn" title="Abre tela de captura direta">[ 🎯 Testar Tela de Captura ]</button>
@@ -676,7 +714,7 @@
       </div>
 
       <!-- SEÇÃO 6: CÂMERA & VIEWPORT -->
-      <div style="font-weight:bold; color:#a78bfa; margin-bottom:4px; font-size:11px;">🎥 SEÇÃO 6: CÂMERA & ZOOM</div>
+      <div data-sec id="admin-sec-cam" style="font-weight:bold; color:#a78bfa; margin-bottom:4px; font-size:11px;">🎥 SEÇÃO 6: CÂMERA & ZOOM</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <div id="admin-btn-zoom-status" style="background:#1e1e24; color:#a78bfa; padding:4px 8px; border-radius:4px; text-align:center; font-weight:bold; font-size:11px; border:1px solid #4a4a5a;">
           🔍 Zoom Atual: 1.25x
@@ -689,7 +727,7 @@
       </div>
 
       <!-- SEÇÃO 7: CLIMA DINÂMICO (LIVE WEATHER) -->
-      <div style="font-weight:bold; color:#ffe066; margin-bottom:4px; font-size:11px;">🌤️ SEÇÃO 7: CLIMA DINÂMICO</div>
+      <div data-sec id="admin-sec-wx" style="font-weight:bold; color:#ffe066; margin-bottom:4px; font-size:11px;">🌤️ SEÇÃO 7: CLIMA DINÂMICO</div>
       <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
         <div id="admin-weather-status" style="background:#1e1e24; color:#ffe066; padding:4px 8px; border-radius:4px; text-align:center; font-weight:bold; font-size:11px; border:1px solid #4a4a5a;">
           🌤️ Clima Atual: ☀️ Céu Limpo
@@ -707,7 +745,7 @@
       </div>
 
       <div style="font-size:10px; color:#888; text-align:center; border-top:1px solid #333; padding-top:6px;">
-        Atalhos: [F1] Painel | [M] Mega | [G] Deus | [L] Nível | [K] Kill | [E] Evo | [R] Devol | [+][-] Zoom
+        Painel: [F1] ou [F2]. Com o painel aberto: [G] Deus | [L] Nível | [K] Kill | [E] Evo | [R] Devol
       </div>
     `;
 
@@ -724,8 +762,18 @@
         font-size: 11px;
         font-family: inherit;
         text-align: left;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.25;
+        box-sizing: border-box;
+        min-width: 0;
         transition: background .1s, border-color .1s;
       }
+      #admin-debug-panel input, #admin-debug-panel select { min-width: 0; box-sizing: border-box; }
+      #admin-debug-panel .admin-nav { position: sticky; top: -12px; z-index: 2; display: flex; flex-wrap: wrap; gap: 4px; margin: 0 -12px 8px; padding: 6px 12px; background: rgba(15,15,20,0.97); border-bottom: 1px solid #333; }
+      #admin-debug-panel .admin-nav button { background:#1f2937; border:1px solid #475569; color:#e5e7eb; border-radius:10px; font-size:10px; padding:2px 7px; cursor:pointer; font-family: inherit; }
+      #admin-debug-panel .admin-nav button:hover { border-color:#ffcb05; color:#fff; }
+      #admin-debug-panel [data-sec] { scroll-margin-top: 44px; }
       .admin-btn:hover {
         background: #3b3b4f;
         border-color: #ffcb05;
@@ -749,8 +797,8 @@
       display: none;
       position: fixed;
       bottom: 12px;
-      right: 12px;
-      z-index: 9999;
+      left: 12px;
+      z-index: 99999;
       background: linear-gradient(180deg, #3d67c0, #1b3573);
       border: 2px solid #ffd23f;
       color: #ffd23f;
@@ -763,6 +811,14 @@
       cursor: pointer;
     `;
     pill.onclick = () => adminTools.toggle();
+    // o botão só aparece com o painel fechado
+    const syncPill = () => {
+      const pn = document.getElementById('admin-debug-panel');
+      const open = pn && pn.style.display !== 'none';
+      const can = isUserAdmin();
+      pill.style.display = (can && !open) ? 'block' : 'none';
+    };
+    setInterval(syncPill, 300);
     document.body.appendChild(pill);
     updateAdminVisibility();
 
@@ -772,6 +828,17 @@
       if (el) el.onclick = fn;
     };
 
+    // lista de golpes vem do jogo (G.MegaStrikes): sempre os 18 tipos com o nome real do golpe
+    const sel = panel.querySelector('#admin-megaskill-type');
+    if (sel) {
+      const ICON = { fire: '🔥', water: '💧', grass: '🌿', electric: '⚡', ice: '❄️', fighting: '🥊', poison: '☠️', ground: '🌍', flying: '🌪️', psychic: '🔮', bug: '🐛', rock: '🪨', ghost: '👻', dragon: '🐉', dark: '🌑', steel: '⚙️', fairy: '✨', normal: '⚪' };
+      const st = (typeof G === 'object' && G.MegaStrikes) || {};
+      sel.innerHTML = Object.keys(ICON).map(t => `<option value="${t}">${ICON[t]} ${t} — ${(st[t] && st[t].name) || 'Hiper Raio'}</option>`).join('');
+    }
+    // navegação rápida entre seções
+    panel.querySelectorAll('#admin-nav button').forEach(btn => {
+      btn.onclick = () => { const t = document.getElementById(btn.dataset.go); if (t) t.scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    });
     bind('admin-close-btn', () => adminTools.close());
     bind('admin-btn-evomode', () => adminTools.toggleEvoMode());
     bind('admin-btn-freeze', () => adminTools.toggleFreezeMode());
@@ -781,6 +848,7 @@
     bind('admin-btn-lvl1', () => adminTools.addLevel(1));
     bind('admin-btn-lvl5', () => adminTools.addLevel(5));
     bind('admin-btn-xp1000', () => adminTools.addExp(1000));
+    [5, 10, 12, 21].forEach(lv => bind('admin-btn-goto' + lv, () => adminTools.setLevel(lv)));
 
     bind('admin-btn-coins-1k', () => adminTools.addCoins(1000));
     bind('admin-btn-coins-10k', () => adminTools.addCoins(10000));
@@ -805,35 +873,6 @@
         e.stopPropagation();
       };
     }
-
-    bind('admin-btn-tickets-5k', () => adminTools.addTickets(100));
-    bind('admin-btn-tickets-25k', () => adminTools.addTickets(500));
-    bind('admin-btn-tickets-50k', () => adminTools.addTickets(1000));
-    bind('admin-btn-tickets-zero', () => adminTools.setTickets(0));
-
-    const injectCustomTickets = (isAdd = false) => {
-      const input = document.getElementById('admin-tickets-debug-input') || panel.querySelector('#admin-tickets-debug-input');
-      if (input && input.value !== '') {
-        const val = parseInt(input.value, 10);
-        if (!isNaN(val)) {
-          if (isAdd) adminTools.addTickets(val);
-          else adminTools.setTickets(val);
-          input.value = '';
-        }
-      }
-    };
-    bind('admin-btn-tickets-set', () => injectCustomTickets(false));
-    bind('admin-btn-tickets-add', () => injectCustomTickets(true));
-    const ticketsInputEl = document.getElementById('admin-tickets-debug-input') || panel.querySelector('#admin-tickets-debug-input');
-    if (ticketsInputEl) {
-      ticketsInputEl.onkeydown = e => {
-        if (e.key === 'Enter') injectCustomTickets(false);
-        e.stopPropagation();
-      };
-    }
-    bind('admin-btn-debug-spin1', () => adminTools.spinRoulette(1));
-    bind('admin-btn-debug-spin5', () => adminTools.spinRoulette(5));
-    bind('admin-btn-debug-opengacha', () => adminTools.openGacha());
 
     bind('admin-btn-god', () => adminTools.toggleGodMode());
     bind('admin-btn-heal', () => adminTools.healFull());
@@ -910,7 +949,7 @@
           // Permite ao admin autenticar digitando a senha mestra se apertar Ctrl + F2
           if (e.ctrlKey && typeof prompt === 'function') {
             const pass = prompt('Chave de Acesso do Administrador:');
-            if (pass === ADMIN_SECRET) {
+            if (checkSecret(pass)) {
               localStorage.setItem('ps_admin_authenticated', 'true');
               updateAdminVisibility();
               adminTools.open();
@@ -928,7 +967,7 @@
         e.preventDefault();
         if (typeof prompt === 'function') {
           const pass = prompt('Chave de Acesso do Administrador:');
-          if (pass === ADMIN_SECRET) {
+          if (checkSecret(pass)) {
             localStorage.setItem('ps_admin_authenticated', 'true');
             updateAdminVisibility();
             adminTools.open();
@@ -937,23 +976,17 @@
         return;
       }
 
-      // Atalhos diretos de depuração (somente quando não estiver digitando)
-      if (isInput) return;
-
+      // Atalhos diretos de depuração: só para admin, só com o painel aberto e fora de campos de texto.
+      // (M ativa o Mega de verdade no jogo; por isso não é mais atalho de teste.)
+      if (isInput || !isUserAdmin()) return;
+      const panelEl = document.getElementById('admin-debug-panel');
+      if (!panelEl || panelEl.style.display === 'none') return;
       const key = e.key.toUpperCase();
-      if (key === 'M') {
-        adminTools.fillSpecial();
-      } else if (key === 'G') {
-        adminTools.toggleGodMode();
-      } else if (key === 'L') {
-        adminTools.addLevel(1);
-      } else if (key === 'K') {
-        adminTools.killAll();
-      } else if (key === 'E') {
-        adminTools.forceEvolve();
-      } else if (key === 'R') {
-        adminTools.devolve();
-      }
+      if (key === 'G') adminTools.toggleGodMode();
+      else if (key === 'L') adminTools.addLevel(1);
+      else if (key === 'K') adminTools.killAll();
+      else if (key === 'E') adminTools.forceEvolve();
+      else if (key === 'R') adminTools.devolve();
     });
   }
 
@@ -979,7 +1012,7 @@
 
   // Comandos de autorização de admin no console
   window.adminLogin = (pass) => {
-    if (pass === ADMIN_SECRET) {
+    if (checkSecret(pass)) {
       localStorage.setItem('ps_admin_authenticated', 'true');
       updateAdminVisibility();
       console.log('✅ Modo Administrador ativado com sucesso!');
