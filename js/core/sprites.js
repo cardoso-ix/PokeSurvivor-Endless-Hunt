@@ -12,6 +12,9 @@
 G.Sprites = (() => {
   /** Unidades de mundo por píxel de arte. Tiles y sprites comparten escala. */
   const PX = 2;
+  // Revisão de folhas que mudaram de arquivo: o servidor e o service worker guardam os sprites "para sempre"
+  // (immutable), então trocar o PNG sem trocar a URL deixa o jogador com a folha antiga. dex -> revisão.
+  const SHEET_REV = { 6: 'pmd2' };
   const sheets = new Map();          // "dex/Anim[/s]" -> {img, ready, failed}
 
   function meta(dex) { return G.SPRITE_META[dex] || null; }
@@ -90,12 +93,12 @@ G.Sprites = (() => {
     if (s) {
       s.at = now;
       // Si la descarga se cortó (red mala, servidor saturado), reintenta más tarde.
-      if (s.failed && performance.now() > s.retryAt) { s.failed = false; s.img.src = s.src + '?r=' + s.tries; }
+      if (s.failed && performance.now() > s.retryAt) { s.failed = false; s.img.src = s.src + (s.src.includes('?') ? '&' : '?') + 'r=' + s.tries; }
       return s;
     }
     if (sheets.size >= MAX_SHEETS) evict(now);
     s = { ready: false, failed: false, img: new Image(), tries: 0, retryAt: 0, at: now,
-          src: `assets/pokemon/${dex}/${shiny ? 's/' : ''}${name}.png` };
+          src: `assets/pokemon/${dex}/${shiny ? 's/' : ''}${name}.png` + (SHEET_REV[dex] ? '?v=' + SHEET_REV[dex] : '') };
     s.img.onload = () => { s.ready = true; };
     s.img.onerror = () => { s.failed = true; s.retryAt = performance.now() + 1000 * Math.min(8, 2 ** s.tries++); };
     s.img.src = s.src;
