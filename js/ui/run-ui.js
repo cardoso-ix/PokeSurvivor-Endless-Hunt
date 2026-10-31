@@ -171,6 +171,7 @@ G.RunUI = (() => {
   function showBond(opt, cb) {
     bond = { opt, cb, first: null, list: [] };
     $('bond-back').onclick = bondBack;
+    $('bond-later').onclick = bondLater;
     renderBond();
     G.UI.show('scr-bond');
   }
@@ -218,6 +219,15 @@ G.RunUI = (() => {
     cb(picked);
   }
 
+  /** Adia o vínculo: nada é fundido e o jogo continua (aperte B para usá-lo depois). */
+  function bondLater() {
+    if (!bond) return;
+    const cb = bond.cb;
+    bond = null;
+    G.UI.hide('scr-bond');
+    cb(null);
+  }
+
   function bondBack() {
     if (!bond) return;
     bond.first = null;
@@ -236,5 +246,5 @@ G.RunUI = (() => {
     $('btn-quit').onclick = onQuit;
   }
 
-  return { showLevelUp, reroll, showItemChoice, showBond, pickBond, bondBack, pick, setWaiting, closeLevelUp, showOver, wirePause, showPause };
+  return { showLevelUp, reroll, showItemChoice, showBond, pickBond, bondBack, bondLater, pick, setWaiting, closeLevelUp, showOver, wirePause, showPause };
 })();

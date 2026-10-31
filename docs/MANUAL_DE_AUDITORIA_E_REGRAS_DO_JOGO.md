@@ -226,7 +226,9 @@ Usar `moves` faria o ataque fundido disparar duas vezes — uma no grupo, outra 
   - **Unir dois ataques soltos** (`mode: 'pair'`): os dois passam a ocupar **um único slot**, liberando espaço na barra.
   - **Adicionar um ataque a um grupo já formado** (`mode: 'add'`): o grupo cresce até o limite de `Player.BOND_MAX` (4 ataques).
 - Se não houver dois ataques soltos disponíveis, o Elo fica guardado até o jogador aprender outro ataque.
-- Os ataques de um slot fundido **disparam juntos** quando aquele slot está ativo.
+- Os ataques de um slot fundido **disparam juntos** quando aquele slot está ativo. Os demais ataques **não são apagados**: continuam nos outros slots, com seus níveis, e são selecionados com `1`-`4`/`Q`/`E` (antes do Nv 20).
+- **Adiar o vínculo:** na tela de fusão, **"Guardar para depois"** (ou `Esc`) mantém o Elo guardado (`pl.bondHold`) e o jogo continua. A tela não reabre sozinha; aperte **`B`** para usar o Elo guardado. Um Elo novo (próximo Rift) volta a oferecer a escolha.
+- **HUD:** o card de um slot fundido mostra o ícone, o nome e o nível de **cada** ataque do grupo (`VÍNCULO · NV. a/b`).
 
 ---
 

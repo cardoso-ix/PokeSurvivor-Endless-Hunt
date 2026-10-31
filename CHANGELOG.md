@@ -12,6 +12,9 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 - **Testes corrigidos (estavam desatualizados, não eram bugs do jogo):** `test_meta_swap` (comparação de ponto flutuante), `test_rift_spawns` e `test_regions_dedup` (liberação de lendários em 30 Rifts conforme BalanceConfig; shiny de espécie já capturada é permitido).
 - **HUD no celular (horizontal):** o cartão de status ocupava ~50% da tela; em telas com menos de 520 px de altura ele agora é reduzido a 62%.
 - **Inglês:** os subtítulos do menu (Jogar, Missões, Amigos, recompensas, sala, online, solicitações) estavam fixos em português no `menu.js` e passaram a usar o i18n.
+- **Vínculo (fusão de ataques) parecia apagar ataques:** os dados estavam corretos (os outros ataques e níveis continuavam), mas o card do HUD mostrava só o primeiro ataque do grupo fundido. Agora o card mostra os ícones, nomes e níveis de todos os ataques do grupo.
+- **Adiar o vínculo:** novo botão **"Guardar para depois"** (ou `Esc`) na tela de fusão; o Elo fica guardado e a tela não reabre sozinha. Aperte **`B`** para usar quando quiser.
+- **Rifts e captura varridos:** 3 Rifts seguidos e 6 casos forçados (lendário, shiny, repetido) terminam e saem da arena sem erro; o shiny paga 5.000 tickets uma vez só.
 - **Resultado da varredura:** 0 erros de JS em 9 telas, nos 64 ataques (níveis 1 e 5) e numa run de 15 min (≈144 FPS, memória estável de 15–40 MB, 68–80 inimigos); todos os 966 Pokémon têm sprites e animações completos.
 
 ---

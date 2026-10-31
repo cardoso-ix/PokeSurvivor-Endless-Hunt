@@ -1392,7 +1392,7 @@ G.HUD = (() => {
         for (let i = 0; i < maxSlots; i++) {
           const g = pl.slots[i] || [];
           const m = g[0];
-          if (m) sig += `_${m.id}_${m.lvl}_${m.name}`;
+          if (m) sig += g.map(x => `_${x.id}_${x.lvl}_${x.name}`).join('');
           else sig += `_empty`;
         }
 
@@ -1412,13 +1412,19 @@ G.HUD = (() => {
               // No Super Combo (Nv 20+) todos os cards ficam ativos; antes disso,
               // só o slot selecionado fica ativo (a seleção é feita com 1-4/Q/E).
               cardEl.className = `hud-skill-card ${(i === pl.active || isCombo) ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
-              cardEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${m.name} (Nv. ${m.lvl})` : `${m.name} (Nv. ${m.lvl})`;
+              const fused = g.length > 1;
+              const groupLabel = g.map(x => `${x.name} (Nv. ${x.lvl})`).join(' + ');
+              cardEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${groupLabel}` : (fused ? `Vínculo: ${groupLabel}` : groupLabel);
 
               // 1. Ícone
               const iconWrap = document.createElement('div');
               iconWrap.className = 'hud-skill-icon-wrap';
               if (typeof G === 'object' && G.Icons && typeof G.Icons.html === 'function') {
-                iconWrap.innerHTML = G.Icons.html('move:' + m.id, 24);
+                // Grupo fundido (vínculo): mostra o ícone de cada ataque, em grade 2x2.
+                iconWrap.innerHTML = fused
+                  ? g.map(x => G.Icons.html('move:' + x.id, 15)).join('')
+                  : G.Icons.html('move:' + m.id, 24);
+                if (fused) iconWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:0;width:32px;line-height:0;align-content:center;';
               }
               cardEl.appendChild(iconWrap);
 
@@ -1428,7 +1434,8 @@ G.HUD = (() => {
 
               const nameEl = document.createElement('div');
               nameEl.className = 'hud-skill-name';
-              nameEl.textContent = m.name || m.id;
+              nameEl.textContent = fused ? g.map(x => x.name || x.id).join(' + ') : (m.name || m.id);
+              if (fused) nameEl.style.fontSize = '9px';
               if (typeof G === 'object' && G.U && G.U.TYPE_COLOR && G.U.TYPE_COLOR[m.type]) {
                 nameEl.style.color = G.U.TYPE_COLOR[m.type];
               }
@@ -1436,7 +1443,7 @@ G.HUD = (() => {
 
               const lvlEl = document.createElement('div');
               lvlEl.className = `hud-skill-lvl-tag ${isMax ? 'max' : ''}`;
-              lvlEl.textContent = isMax ? `NV. ${m.lvl} MAX` : `NV. ${m.lvl}`;
+              lvlEl.textContent = fused ? `VÍNCULO · NV. ${g.map(x => x.lvl).join('/')}` : (isMax ? `NV. ${m.lvl} MAX` : `NV. ${m.lvl}`);
               infoWrap.appendChild(lvlEl);
 
               cardEl.appendChild(infoWrap);
@@ -1492,7 +1499,7 @@ G.HUD = (() => {
           if (!m) continue;
           const sweep = document.getElementById(`hud-cd-sweep-${i}`);
           if (sweep) {
-            const cdFrac = m.kind === 'orbit' ? 0 : Math.max(0, Math.min(1, (m.t || 0) / (m.cd * (pl.cdMul || 1))));
+            const cdFrac = g.reduce((mx, x) => Math.max(mx, x.kind === 'orbit' ? 0 : Math.max(0, Math.min(1, (x.t || 0) / (x.cd * (pl.cdMul || 1))))), 0);
             sweep.style.height = `${(cdFrac * 100).toFixed(0)}%`;
           }
         }

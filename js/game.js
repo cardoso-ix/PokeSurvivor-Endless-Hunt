@@ -296,7 +296,7 @@ G.Game = (() => {
       const mine = G.UI.isOpen('scr-bond');
       if (holdBy.length) {
         if (state === 'playing') state = 'held';
-        if (pl && pl.bonds > 0) offerBond(true);      // si tú también tienes vínculo, eliges a la vez
+        if (pl && pl.bonds > 0 && !pl.bondHold) offerBond(true);      // si tú también tienes vínculo, eliges a la vez
         const others = holdBy.filter(n => n !== (G.Social.me && G.Social.me.name) && n !== 'Tú');
         if (!mine && others.length) G.Spawner.say('Pausa: ' + others.join(', ') + ' ' + (others.length > 1 ? 'están eligiendo…' : 'está eligiendo…'), 999, true);
         else if (!others.length) G.Spawner.say(awayBy ? awayText() : '', awayBy ? 999 : 0, true);   // sólo tú: sin aviso viejo
@@ -503,6 +503,14 @@ G.Game = (() => {
     if (G.Coop.active) G.Coop.holdStart();
     G.Audio.sfx('levelup');
     G.RunUI.showBond(opt, picked => {
+      if (!picked) {
+        // Adiado: o vínculo fica guardado e a tela não volta a abrir sozinha até a próxima recompensa.
+        pl.bondHold = true;
+        G.Spawner.say('Vínculo guardado: aperte [B] para usar quando quiser', 3.2, true);
+        if (state === 'choice') state = holdBy.length ? 'held' : 'playing';
+        if (G.Coop.active) G.Coop.holdEnd();
+        return;
+      }
       const group = pl.fuse(picked, opt.group);
       G.Audio.sfx('legend');
       G.FX.ring(pl.x, pl.y, 8, 130, '#ff8ad8', 0.8, 6);
@@ -638,6 +646,7 @@ G.Game = (() => {
       return;
     }
     if (G.UI.isOpen('scr-bond')) {
+      if (G.Input.tap('escape')) { G.RunUI.bondLater(); return; }
       for (let i = 0; i < 4; i++) {
         if (G.Input.tap('digit' + (i + 1)) || G.Input.tap('numpad' + (i + 1))) G.RunUI.pickBond(i);
       }
@@ -672,6 +681,7 @@ G.Game = (() => {
         }
       }
     }
+    if (G.Input.tap('keyb') && pl.bonds > 0) { pl.bondHold = false; offerBond(); }
     if (G.Input.tap('keyq')) pl.cycle(-1);
     if (G.Input.tap('keye') || G.Input.tap('tab')) pl.cycle(1);
   }
@@ -826,7 +836,7 @@ G.Game = (() => {
 
     G.Audio.music(G.Judgment.active ? G.Judgment.music : G.Rift.inArena ? 'rift' : G.EnemyMgr.bossAlive() ? 'boss' : G.BIOME_MUSIC[biome % G.BIOME_MUSIC.length]);
     if (!coop || G.Coop.isHost) maybeLevelUp();
-    if (pl.bonds > 0) offerBond(true);
+    if (pl.bonds > 0 && !pl.bondHold) offerBond(true);
     if (G.Coop.isHost) checkAllDown(dt);
   }
 

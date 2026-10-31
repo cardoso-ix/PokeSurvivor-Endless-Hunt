@@ -772,6 +772,7 @@ G.Rift = (() => {
     const pl = G.Game.player;
     if (pl) {
       pl.bonds++;
+      pl.bondHold = false;   // vínculo novo: volta a oferecer a escolha
       G.FX.dmgText(pl.x, pl.y - pl.bodyH - 10, 'Elo de Fusão!', '#ff8ad8', true);
       G.FX.ring(pl.x, pl.y, 8, 90, '#ff8ad8', 0.7, 5);
     }
