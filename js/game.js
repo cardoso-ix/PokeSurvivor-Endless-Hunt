@@ -777,6 +777,14 @@ G.Game = (() => {
       if (deathT > 1.3) { deathT = 0; endRun(true); }
       return;
     }
+    // Hit-stop do Mega: o mundo congela por 0,15 s (só câmera e partículas seguem)
+    if (G.Mega && G.Mega.hitStop > 0) {
+      G.Mega.hitStop -= dt;
+      pl.anim.update(dt);
+      G.Camera.follow(pl.x, pl.y, dt);
+      G.FX.update(dt);
+      return;
+    }
     time += dt;
 
     const b = Math.floor(time / 240);
@@ -906,6 +914,7 @@ G.Game = (() => {
 
     G.Weather.draw(ctx, w, h, frameDt);
     G.World.drawVignette(ctx, w, h);
+    if (G.Mega && typeof G.Mega.drawScreen === 'function') G.Mega.drawScreen(ctx, w, h);
     // Niebla: la viñeta se cierra un poco (sin tapar el centro).
     const fog = G.Weather.vignette;
     if (fog > 0) {

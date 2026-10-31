@@ -14,12 +14,15 @@ const MegaSystem = {
   isActive: false,
   duration: 10.0, // 10 segundos exatos (janela tática)
   timeLeft: 0,
+  hitStop: 0, // congelamento curto do mundo ao ativar (segundos)
+  vignetteT: 0,
 
   /** Reseta o estado do Mega ao reiniciar ou iniciar partida */
   reset() {
     this.isActive = false;
     this.gauge = 0;
     this.timeLeft = 0;
+    this.hitStop = 0;
     this.activeType = null;
     this.currentElement = null;
     const pl = (typeof G === 'object' && G.Game) ? G.Game.player : null;
@@ -59,6 +62,7 @@ const MegaSystem = {
     this.gauge = this.maxGauge;
     this.duration = 10.0;
     this.timeLeft = 10.0;
+    this.hitStop = 0.15;
 
     // Super Buff Absurdo em TUDO no Pokémon durante os 20 segundos:
     if (pl) {
@@ -93,6 +97,25 @@ const MegaSystem = {
     }
     console.log('🌟 [MEGA] Ativado por 10 segundos: Pokémon cresceu e ganhou Super Buff de Dano 2.5x!');
     return true;
+  },
+
+  /** Vinheta incandescente nas bordas da tela enquanto o Mega dura (espaço de tela). */
+  drawScreen(ctx, w, h) {
+    if (!this.isActive) return;
+    const cfg = (typeof MegaSkillVFXManager !== 'undefined' && MegaSkillVFXManager.getTypeConfig)
+      ? MegaSkillVFXManager.getTypeConfig(this.activeType) : null;
+    const color = (cfg && cfg.color) || '#ff4d00';
+    const k = Math.min(1, this.timeLeft / 1.5); // some nos últimos 1,5 s
+    const pulse = 0.85 + 0.15 * Math.sin(performance.now() / 120);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, color);
+    ctx.globalAlpha = 0.45 * k * pulse;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
   },
 
   update(dt) {

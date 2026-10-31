@@ -39,6 +39,9 @@
 
   const hazards = [];
   const particles = [];
+  // Chuva contínua (fogo/dragão): gera meteoros enquanto o Mega durar.
+  let rain = null;
+  const RAIN_INTERVAL = 0.12;
   const screenEffects = [];
 
   let _lastDrawFrame = 0;
@@ -308,6 +311,7 @@
     hazards.length = 0;
     particles.length = 0;
     screenEffects.length = 0;
+    rain = null;
   }
 
   function addHazard(h) {
@@ -372,6 +376,12 @@
       });
     }
 
+    // Ultimate em área: onda de choque que fere e empurra tudo ao redor do jogador
+    spawnUltimateBurst(px, py, cfg, baseDamage);
+    rain = (cfg.behavior === 'diagonalFall')
+      ? { t: 0, left: (typeof G === 'object' && G.Mega && G.Mega.duration) || 10, cfg, dmg: baseDamage * 0.5, pl }
+      : null;
+
     // Instanciação Baseada no Comportamento Core de Partículas
     switch (cfg.behavior) {
       case 'diagonalFall':
@@ -426,34 +436,62 @@
   // -------------------------------------------------------------
 
   // 1. Queda Diagonal (Fogo / Dragão)
-  function spawnDiagonalFall(px, py, cfg, dmg, pl) {
-    const count = 12;
-    for (let i = 0; i < count; i++) {
-      const targetX = px + (Math.random() - 0.5) * 540;
-      const targetY = py + (Math.random() - 0.5) * 420;
-      const delay = i * 0.08;
-      const travelTime = 0.35;
+  function spawnMeteor(px, py, cfg, dmg, delay) {
+    const targetX = px + (Math.random() - 0.5) * 540;
+    const targetY = py + (Math.random() - 0.5) * 420;
+    const travelTime = 0.35;
+    addHazard({
+      type: 'diagonalFall',
+      startX: targetX - 220,
+      startY: targetY - 320,
+      targetX,
+      targetY,
+      x: targetX - 220,
+      y: targetY - 320,
+      radius: 65,
+      delay,
+      life: delay + travelTime + 0.5,
+      maxLife: delay + travelTime + 0.5,
+      travelTime,
+      dmg,
+      cfg,
+      hasHit: false,
+      onImpact() {
+        if (cfg.burnStacks) applyBurnToArea(targetX, targetY, 70, cfg.burnStacks);
+        spawnRadialParticles(targetX, targetY, cfg.color, cfg.accent, 12);
+        if (typeof G === 'object' && G.Camera && typeof G.Camera.kick === 'function') G.Camera.kick(0.12);
+      }
+    });
+  }
 
+  function spawnDiagonalFall(px, py, cfg, dmg, pl) {
+    for (let i = 0; i < 12; i++) spawnMeteor(px, py, cfg, dmg, i * 0.08);
+  }
+
+  // Ultimate em área: dano + empurrão imediato e 3 ondas de choque escalonadas
+  function spawnUltimateBurst(px, py, cfg, dmg) {
+    const R = 320;
+    damageEnemiesInCircle(px, py, R, dmg * 0.6);
+    const enemies = (typeof G === 'object' && G.EnemyMgr && G.EnemyMgr.all) ? G.EnemyMgr.all() : [];
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      if (!e || e.dead || e.kx === undefined) continue;
+      const dx = e.x - px, dy = e.y - py;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > R * R) continue;
+      const d = Math.sqrt(d2) || 1;
+      e.kx += (dx / d) * 260;
+      e.ky += (dy / d) * 260;
+    }
+    for (let i = 0; i < 3; i++) {
       addHazard({
-        type: 'diagonalFall',
-        startX: targetX - 220,
-        startY: targetY - 320,
-        targetX,
-        targetY,
-        x: targetX - 220,
-        y: targetY - 320,
-        radius: 65,
-        delay,
-        life: delay + travelTime + 0.5,
-        maxLife: delay + travelTime + 0.5,
-        travelTime,
-        dmg,
-        cfg,
-        hasHit: false,
-        onImpact() {
-          if (cfg.burnStacks) applyBurnToArea(targetX, targetY, 70, cfg.burnStacks);
-          spawnRadialParticles(targetX, targetY, cfg.color, cfg.accent, 25);
-        }
+        type: 'shockwave',
+        x: px, y: py,
+        delay: i * 0.14,
+        maxRadius: R * (0.7 + i * 0.2),
+        life: 0.55 + i * 0.14,
+        maxLife: 0.55 + i * 0.14,
+        cfg
       });
     }
   }
@@ -797,6 +835,18 @@
       if (pt.life <= 0) particles.splice(i, 1);
     }
 
+    // 2b. Chuva contínua de meteoros
+    if (rain) {
+      rain.left -= dt;
+      rain.t += dt;
+      const ref = rain.pl || pl;
+      while (rain.t >= RAIN_INTERVAL && rain.left > 0) {
+        rain.t -= RAIN_INTERVAL;
+        if (ref) spawnMeteor(ref.x, ref.y, rain.cfg, rain.dmg, 0);
+      }
+      if (rain.left <= 0) rain = null;
+    }
+
     // 3. Hazards e Calamidades Ativas
     for (let i = hazards.length - 1; i >= 0; i--) {
       const h = hazards[i];
@@ -936,6 +986,19 @@
             ctx.arc(h.x, h.y, r, 0, Math.PI * 2);
             ctx.stroke();
           }
+          break;
+        }
+
+        case 'shockwave': {
+          const prog = 1 - (h.life / h.maxLife);
+          ctx.strokeStyle = h.cfg.accent;
+          ctx.lineWidth = 14 * (1 - prog) + 2;
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, h.maxRadius * prog, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 3 * (1 - prog);
+          ctx.stroke();
           break;
         }
 

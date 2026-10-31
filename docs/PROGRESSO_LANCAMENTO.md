@@ -17,7 +17,7 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 | 2. Rebalanceamento | ✅ `265a520` | Economia, upgrades, gacha, XP, inimigos, captura. Detalhes no CHANGELOG |
 | Remoção do trio/treinador | ✅ `00b7b8d` | Volta a um personagem; `player.js` pré-trio |
 | Varredura geral (etapa 1) | ✅ `86c67ee`, `321a47c`, `37233da` | Fonte, textos, HUD mobile, i18n do menu, vínculo (HUD + adiar) |
-| 3. Mega/Espaço | ⏳ **próxima** | Ultimate em área, chuva de fogo contínua, hit-stop 0,15 s, vinheta incandescente, shockwaves, `lighter`, pools |
+| 3. Mega/Espaço | ✅ (aguardando teste do dono) | Ultimate em área + 3 shockwaves, chuva de meteoros contínua (fogo/dragão), hit-stop 0,15 s, vinheta incandescente. Pools de partículas e testes antigos do Mega **não** feitos |
 | 4. Visual geral ("juice") | ⏳ | Partículas, hit flash, números de dano, sombras, HUD/level up/gacha |
 
 ## Varredura: resultado
