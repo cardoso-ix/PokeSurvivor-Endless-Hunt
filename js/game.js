@@ -916,7 +916,9 @@ G.Game = (() => {
     drawScene(G.Camera, G.Coop.active ? [pl, ...G.Coop.puppets()] : [pl]);
     G.Projectiles.draw(ctx);
     G.Combat.drawAirFields(ctx);
-    if (G.UltimateVFX && typeof G.UltimateVFX.draw === 'function') G.UltimateVFX.draw(ctx, G.Camera);
+    // Em produção o bundle fica numa função: o VFX só existe como global da janela, não em G
+    const megaVfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : G.UltimateVFX;
+    if (megaVfx && typeof megaVfx.draw === 'function') megaVfx.draw(ctx, G.Camera);
     G.FX.draw(ctx);
     G.Judgment.drawAir(ctx);
     ctx.restore();

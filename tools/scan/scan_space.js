@@ -1,0 +1,31 @@
+// Espaço de verdade com um Pokémon (dex) no build escolhido. Uso: node tools/scan/scan_space.js <pasta> <dex> [pagina=index.html]
+const puppeteer = require('C:/Users/eduar/AppData/Roaming/npm/node_modules/md-to-pdf/node_modules/puppeteer');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const errs = []; const OUT = process.argv[2], DEX = +process.argv[3] || 78, PAGE = process.argv[4] || 'index.html';
+(async () => {
+  const b = await puppeteer.launch({ headless: 'new', executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--no-sandbox'], protocolTimeout: 120000 });
+  const p = await b.newPage();
+  await p.setViewport({ width: 1100, height: 700 });
+  p.on('dialog', d => d.dismiss());
+  p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
+  p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
+  await p.goto('http://127.0.0.1:8080/' + PAGE, { waitUntil: 'networkidle2' });
+  await sleep(1200);
+  await p.evaluate(() => { const t = document.querySelector('.tapstart'); if (t) t.click(); }); await sleep(500);
+  await p.evaluate(() => { const g = document.querySelector('#btn-guest'); if (g) g.click(); }); await sleep(1200);
+  await p.evaluate(sp => { const s = G.DB.save; s.partner = s.starter = sp; s.owned = s.owned || {}; s.owned[sp] = { at: Date.now() }; document.querySelectorAll('#scr-recover').forEach(e => e.classList.add('hidden')); G.UI.hideAll(); G.Game.startRun(); }, DEX);
+  await sleep(2500);
+  await p.evaluate(() => { document.querySelectorAll('[id^=scr-]').forEach(e => e.classList.add('hidden')); const pl = G.Game.player; pl.godMode = true; pl.hp = pl.maxHp = 1e7; pl.megaEnergy = 100; G.Mega.gauge = 100; });
+  console.log('jogador:', await p.evaluate(() => { const pl = G.Game.player; return pl.dex + ' ' + (pl.mon && pl.mon.name) + ' tipos=' + JSON.stringify(pl.mon && pl.mon.types); }));
+  console.log('MegaScene existe:', await p.evaluate(() => !!G.MegaScene));
+  await sleep(300);
+  await p.keyboard.press('Space'); await sleep(900);
+  console.log('apos Espaco (0.9s):', await p.evaluate(() => ({ ph: G.MegaScene && G.MegaScene.phase, pend: G.Mega.pending, act: G.Mega.isActive })));
+  await p.screenshot({ path: `${OUT}/sp_intro.png` });
+  await sleep(3000);
+  console.log('apos 3.9s:', await p.evaluate(() => ({ ph: G.MegaScene && G.MegaScene.phase, act: G.Mega.isActive })));
+  await p.screenshot({ path: `${OUT}/sp_scene.png` });
+  console.log('=== ERROS JS (' + errs.length + ') ===');
+  [...new Set(errs)].slice(0, 20).forEach(e => console.log(e));
+  await b.close();
+})().catch(e => { console.log('FALHA', e.message); process.exit(1); });

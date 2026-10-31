@@ -6,7 +6,7 @@
  * O dano real continua em mega_skill_vfx.js; aqui é só a parte visual.
  */
 (function () {
-  const G = window.G = window.G || {};
+  // G vem do escopo externo: global no dev.html, variável do bundle (função) no build de produção
   const INTRO = 2.0;
   const MAX_P = 220;
   const FONT = "'Pixelify', 'Press Start 2P', monospace";
@@ -342,7 +342,7 @@
     canPlay() { return typeof document !== 'undefined' && typeof document.createElement === 'function'; },
 
     start(type, pl, onDone) {
-      const vfx = G.MegaSkillVFXManager;
+      const vfx = (typeof MegaSkillVFXManager !== 'undefined') ? MegaSkillVFXManager : G.MegaSkillVFXManager;
       S.type = DEFS[type] ? type : 'normal';
       S.def = DEFS[S.type];
       S.cfg = (vfx && vfx.getTypeConfig) ? vfx.getTypeConfig(S.type) : null;

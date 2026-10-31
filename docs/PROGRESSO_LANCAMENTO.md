@@ -26,7 +26,8 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 - Causa do FPS baixo/"bugado" do trio: `clearRect` do avatar no canvas do jogo (já removido).
 
 ## Pendências conhecidas
-0. **Charizard HD (teste de arte hi-bit):** aguardando os PNGs em `assets/charizard_hd/` (8 direções + strip de voo). Só chegaram como imagem no chat.
+0. **Charizard HD (teste de arte hi-bit):** aplicado no dex 6 (8 direções, 52x58 px de arte, bob/squash por animação). Fonte em `tools/hd_src/charizard/`, gerador `tools/make_hd_sprites.py`, geometria em `js/data/sprites-hd-override.js`. Sem shiny HD. Para reverter: `git checkout -- assets/pokemon/6`, apagar o override e o `<script>` no `dev.html`. Strip de voo (gif) ainda não usado.
+1. **Armadilha do build:** em produção o bundle roda dentro de uma função e `G` é variável local, não `window.G`. Arquivos novos não devem recriar `G` (`window.G = window.G || {}`) nem ler `G.AlgumVFX` registrado via UMD: usar o global (`typeof X`) como em `game.js`. Sempre testar com `index.html` (`tools/scan/scan_space.js`).
 1. **Fase 3 e 4** (acima).
 2. **Testes desatualizados do Mega:** `test_mega_skills_18_types`, `test_dynamic_mega_ultimates`, `test_mega_slow_cutscene`, `test_live_mega_slow_cutscene_browser`, `test_mega_cutscene_live` (cutscene não existe mais; refs mortas a `G.MegaCutscene` em `game.js`). Reescrever na Fase 3.
 3. **Testes que dependem de fluxo antigo/online:** `test_admin_*`, `test_gameplay_live`, `test_live_*`, `test_vps_*` (seletores ou servidor). `test_upgrade_costs` falha em Mewtwo/Rayquaza (já conhecido).
