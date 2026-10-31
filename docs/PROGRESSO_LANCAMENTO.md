@@ -17,7 +17,7 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 | 2. Rebalanceamento | ✅ `265a520` | Economia, upgrades, gacha, XP, inimigos, captura. Detalhes no CHANGELOG |
 | Remoção do trio/treinador | ✅ `00b7b8d` | Volta a um personagem; `player.js` pré-trio |
 | Varredura geral (etapa 1) | ✅ `86c67ee`, `321a47c`, `37233da` | Fonte, textos, HUD mobile, i18n do menu, vínculo (HUD + adiar) |
-| 3. Mega/Espaço | ✅ (aguardando teste do dono) | Ultimate em área + 3 shockwaves, chuva de meteoros contínua (fogo/dragão), hit-stop 0,15 s, vinheta incandescente. Pools de partículas e testes antigos do Mega **não** feitos |
+| 3. Mega/Espaço | ✅ (aguardando teste do dono) | Cutscene (2 s, Pokémon no centro) + cenário em pixel art por tipo (18 cenas) em `js/systems/mega_scene.js`; ultimate em área, chuva de meteoros (fogo/dragão), hit-stop 0,15 s. Ativa com Espaço, M ou botão. Scanner: `tools/scan/scan_mega.js`. Pendentes: pools reais, reescrever testes antigos do Mega |
 | 4. Visual geral ("juice") | ⏳ | Partículas, hit flash, números de dano, sombras, HUD/level up/gacha |
 
 ## Varredura: resultado
@@ -26,6 +26,7 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 - Causa do FPS baixo/"bugado" do trio: `clearRect` do avatar no canvas do jogo (já removido).
 
 ## Pendências conhecidas
+0. **Charizard HD (teste de arte hi-bit):** aguardando os PNGs em `assets/charizard_hd/` (8 direções + strip de voo). Só chegaram como imagem no chat.
 1. **Fase 3 e 4** (acima).
 2. **Testes desatualizados do Mega:** `test_mega_skills_18_types`, `test_dynamic_mega_ultimates`, `test_mega_slow_cutscene`, `test_live_mega_slow_cutscene_browser`, `test_mega_cutscene_live` (cutscene não existe mais; refs mortas a `G.MegaCutscene` em `game.js`). Reescrever na Fase 3.
 3. **Testes que dependem de fluxo antigo/online:** `test_admin_*`, `test_gameplay_live`, `test_live_*`, `test_vps_*` (seletores ou servidor). `test_upgrade_costs` falha em Mewtwo/Rayquaza (já conhecido).
