@@ -130,7 +130,8 @@ const BalanceConfig = {
     evolution: {
       stage2Level: 5,    // 1º salto (Estágio 1 -> 2)
       stage3Level: 12,   // 2º salto (Estágio 2 -> 3)
-      quadComboLevel: 20,
+      // Combo: nível 1 = 1 ataque; nos níveis abaixo entram o 2º, 3º e 4º ataque (disparam juntos)
+      comboLevels: [5, 10, 21],
       apexLevel: 21
     },
     // Travas e limites máximos de segurança

@@ -493,12 +493,12 @@ G.HUD = (() => {
       const g = pl.slots[i] || [];
       const m = g[0];
       const fused = g.length > 1;
-      const isCombo = (pl.level >= 20 || pl.quadComboActive);
-      const on = isCombo || (i === pl.active);
+      const comboN = G.Player.comboSize(pl.level);
+      const on = i < comboN;                       // entra no combo neste nível
+      const isCombo = on && comboN > 1;
       const x = sx + i * (S + GAP);
       const y = on ? sy - 6 : sy;
       // Tocar (o hacer clic en) un icono activa ese movimiento.
-      if (m) G.Touch.addButton(x, y, S, S, () => { if (G.Game.state === 'playing' && pl.active !== i) { pl.setActive(i); G.Audio.sfx('click'); } }, GAP / 2 + 3);
       const col = m ? G.U.TYPE_COLOR[m.type] : '#4a5468';
 
       // fondo
@@ -563,18 +563,6 @@ G.HUD = (() => {
         const prefix = isCombo ? '⚡ ' : '';
         const lvlStr = ' Nv.' + m.lvl;
         ctx.fillText(prefix + (fused ? m.name + ' +' + (g.length - 1) : m.name) + lvlStr, x + S / 2, y - 7);
-      }
-    }
-
-    // ---------- vínculo guardado (aún no hay dos movimientos sueltos) ----------
-    if (pl.bonds > 0) {
-      const bx = sx + totalW + 12, by = sy + S / 2 - 12;
-      G.Icons.draw(ctx, 'bond', bx, by, 24);
-      if (pl.bonds > 1) {
-        ctx.font = F(800, 10);
-        ctx.textAlign = 'left';
-        ctx.fillStyle = BOND;
-        ctx.fillText('×' + pl.bonds, bx + 25, by + 20);
       }
     }
 
@@ -1365,7 +1353,8 @@ G.HUD = (() => {
       const tray = document.getElementById('hud-skills-tray');
       if (tray && pl.slots) {
         const isOvercharge = pl.level >= 20;
-        const isCombo = (pl.level >= 20 || pl.quadComboActive); // Super Combo: todos os slots disparam juntos
+        const comboN = G.Player.comboSize(pl.level);   // quantos ataques disparam juntos neste nível
+        const nextCombo = (G.Player.comboLevels().find(L => pl.level < L)) || 0;
         const maxSlots = pl.maxMoves || 4;
 
         // Atualiza cabeçalho do combo
@@ -1377,18 +1366,18 @@ G.HUD = (() => {
           comboContainer.classList.toggle('combo-unlocked', isOvercharge);
         }
         if (comboTitle) {
-          comboTitle.textContent = isOvercharge
-            ? '⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡'
-            : '⚔️ ATAQUES PARA COMBAR · ESCOLHA O SLOT (1-4)';
+          comboTitle.textContent = comboN > 1
+            ? `⚡ COMBO DE ${comboN} · ${comboN} ATAQUES JUNTOS ⚡`
+            : '⚔️ 1 ATAQUE · COMBO DE 2 NO NV. ' + G.Player.comboLevels()[0];
         }
         if (comboBadge) {
-          comboBadge.textContent = isOvercharge
-            ? '🔥 COMBANDO JUNTOS · +20% ÁREA · -15% RECARGA'
-            : `NV. ${pl.level}/20`;
+          comboBadge.textContent = nextCombo
+            ? `PRÓXIMO COMBO: NV. ${nextCombo}`
+            : (isOvercharge ? '🔥 COMBO MÁXIMO · +20% ÁREA · -15% RECARGA' : '🔥 COMBO MÁXIMO');
         }
 
         // Assinatura única do estado dos slots
-        let sig = `${maxSlots}-${pl.active}-${isCombo ? 'combo' : 'solo'}`;
+        let sig = `${maxSlots}-${comboN}`;
         for (let i = 0; i < maxSlots; i++) {
           const g = pl.slots[i] || [];
           const m = g[0];
@@ -1409,12 +1398,12 @@ G.HUD = (() => {
 
             if (m) {
               const isMax = m.def && m.lvl >= m.def.maxLvl;
-              // No Super Combo (Nv 20+) todos os cards ficam ativos; antes disso,
-              // só o slot selecionado fica ativo (a seleção é feita com 1-4/Q/E).
-              cardEl.className = `hud-skill-card ${(i === pl.active || isCombo) ? 'active' : ''} ${isCombo ? 'combo-active' : ''} ${g.length > 1 ? 'fused' : ''}`;
-              const fused = g.length > 1;
+              // Combo por nível: só os primeiros `comboN` ataques disparam; os outros ficam guardados.
+              const inCombo = i < comboN;
+              cardEl.className = `hud-skill-card ${inCombo ? 'active' : 'dormant'} ${inCombo && comboN > 1 ? 'combo-active' : ''}`;
+              const fused = false;
               const groupLabel = g.map(x => `${x.name} (Nv. ${x.lvl})`).join(' + ');
-              cardEl.title = isCombo ? `⚡ COMBO TOTAL ATIVO: ${groupLabel}` : (fused ? `Vínculo: ${groupLabel}` : groupLabel);
+              cardEl.title = inCombo ? (comboN > 1 ? `⚡ NO COMBO: ${groupLabel}` : groupLabel) : `Guardado: entra no combo no Nv. ${G.Player.slotUnlockLevel(i)}`;
 
               // 1. Ícone
               const iconWrap = document.createElement('div');
@@ -1443,7 +1432,7 @@ G.HUD = (() => {
 
               const lvlEl = document.createElement('div');
               lvlEl.className = `hud-skill-lvl-tag ${isMax ? 'max' : ''}`;
-              lvlEl.textContent = fused ? `VÍNCULO · NV. ${g.map(x => x.lvl).join('/')}` : (isMax ? `NV. ${m.lvl} MAX` : `NV. ${m.lvl}`);
+              lvlEl.textContent = !inCombo ? `ENTRA NO NV. ${G.Player.slotUnlockLevel(i)}` : (isMax ? `NV. ${m.lvl} MAX` : `NV. ${m.lvl}`);
               infoWrap.appendChild(lvlEl);
 
               cardEl.appendChild(infoWrap);
@@ -1455,16 +1444,10 @@ G.HUD = (() => {
               sweepEl.style.height = '0%';
               cardEl.appendChild(sweepEl);
 
-              cardEl.addEventListener('click', () => {
-                if (typeof G === 'object' && G.Game && G.Game.state === 'playing' && pl.active !== i) {
-                  pl.setActive(i);
-                  if (G.Audio) G.Audio.sfx('click');
-                }
-              });
             } else {
               // Slot vazio
               cardEl.className = 'hud-skill-card empty';
-              cardEl.title = 'Slot de Ataque Vazio (Obtenha novos ataques ao subir de nível)';
+              cardEl.title = i < comboN ? 'Slot de Ataque Vazio (obtenha novos ataques ao subir de nível)' : `Entra no combo no Nv. ${G.Player.slotUnlockLevel(i)}`;
 
               const iconWrap = document.createElement('div');
               iconWrap.className = 'hud-skill-icon-wrap';
@@ -1482,7 +1465,7 @@ G.HUD = (() => {
 
               const emptyTxt = document.createElement('div');
               emptyTxt.className = 'hud-skill-empty-txt';
-              emptyTxt.textContent = 'Vazio';
+              emptyTxt.textContent = i < comboN ? 'Vazio' : `Combo Nv. ${G.Player.slotUnlockLevel(i)}`;
               infoWrap.appendChild(emptyTxt);
 
               cardEl.appendChild(infoWrap);

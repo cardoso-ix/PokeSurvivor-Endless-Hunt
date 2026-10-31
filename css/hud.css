@@ -727,3 +727,6 @@
     transform-origin: top left !important;
   }
 }
+
+/* Combo por nível: ataque aprendido mas ainda fora do combo */
+.hud-skill-card.dormant { opacity: 0.5; filter: grayscale(0.55); }

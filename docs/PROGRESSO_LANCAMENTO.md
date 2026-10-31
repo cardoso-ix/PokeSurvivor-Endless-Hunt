@@ -28,6 +28,9 @@ Cada fase é: implementar → testes → commit → push → deploy na VPS → r
 ## Mega: ajuste pedido pelo dono
 Removidos tinta/escurecimento/vinheta/bordas do cenário do Mega (e o `darken` do VFX): ficam só os ataques de cada tipo. Cutscene mantida.
 
+## Combo por nível (31/10/2026)
+Nv 1 = 1 ataque, Nv 5 = 2, Nv 10 = 3, Nv 21 = 4 (primeiros aprendidos, juntos). Tela de fusão do Rift, Elo de Fusão, tecla B e seleção manual de slot removidos. Scanner: `tools/scan/scan_combo.js`. Testes antigos de vínculo/Nv 20 removidos (`test_slot_selection_and_bonds`, `test_lvl20_combo`, `scan_bond`); `test_full_suite` cobre o combo real.
+
 ## Mega v2 (31/10/2026): cinemática + golpe único
 Corte 0,9 s -> carga 0,6 s -> golpe assinatura em tela cheia (pixel art, dano em área nos impactos) -> buff de 10 s sem efeito contínuo.
 Código: `js/systems/mega_scene.js` (fases, primitivas, dano) e `js/systems/mega_strike.js` (golpes por tipo).

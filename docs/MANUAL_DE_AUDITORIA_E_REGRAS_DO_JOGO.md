@@ -11,7 +11,7 @@ Este documento é a referência técnica oficial e absoluta para **auditoria, ba
 3. [Fendas Dimensionais (Rifts) & Regras de Estágios dos Chefes](#3-fendas-dimensionais-rifts--regras-de-estágios-dos-chefes)
 4. [Sistema de Roleta Gacha (5.000 Tickets) & Conversões](#4-sistema-de-roleta-gacha-5000-tickets--conversões)
 5. [Sistema de Mega Evolução (Overdrive Cósmico & 18 Ultimates)](#5-sistema-de-mega-evolução-overdrive-cósmico--18-ultimates)
-6. [Mecânica do Super Combo de Nível 20 (4 Ataques Simultâneos)](#6-mecânica-do-super-combo-de-nível-20-4-ataques-simultâneos)
+6. [Mecânica do Combo por Nível (1, 2, 3 e 4 ataques simultâneos)](#6-mecânica-do-combo-por-nível-1-2-3-e-4-ataques-simultâneos)
 7. [HUD Retro Pixel Art Superior Esquerdo & Os 8 Atributos RPG](#7-hud-retro-pixel-art-superior-esquerdo--os-8-atributos-rpg)
 8. [Árvore de Melhorias Permanentes & Multiplicador de Estágio](#8-árvore-de-melhorias-permanentes--multiplicador-de-estágio)
 9. [Geração de Inimigos, Hordas e Cronograma dos Grandes Chefes](#9-geração-de-inimigos-hordas-e-cronograma-dos-grandes-chefes)
@@ -200,35 +200,30 @@ Durante os **10.0 segundos** de Overdrive, o personagem entra em estado de trans
 
 ---
 
-## 6. Mecânica do Super Combo de Nível 20 (4 Ataques Simultâneos)
+## 6. Mecânica do Combo por Nível (1, 2, 3 e 4 ataques simultâneos)
 
-Antes do Nível 20, o jogador dispara o grupo de ataques ativo selecionado nas teclas `1`, `2`, `3` ou `4`.
+### 6.1. A regra
+Quantos ataques disparam juntos depende do nível (`Player.comboSize(level)`, com os níveis em `BalanceConfig.player.evolution.comboLevels = [5, 10, 21]`):
 
-### 6.1. A Regra do Nível 20
-Assim que o jogador atinge o **Nível 20 na partida** (`pl.level >= 20`):
-- O sistema desbloqueia automaticamente o **Super Combo Quádruplo** (`quadComboActive = true`).
-- Todos os **4 ataques alocados nos slots da barra inferior disparam juntos e simultaneamente**!
-- Cada habilidade mantém seu próprio temporizador de cooldown (`m.cd * pl.cdMul`), disparando assim que estiver pronta de forma 100% paralela.
+| Nível | Ataques no combo |
+|---|---|
+| 1–4 | 1 |
+| 5–9 | 2 |
+| 10–20 | 3 |
+| 21+ | 4 |
 
-### 6.1.1. Fonte dos ataques no Super Combo
-O Super Combo percorre os **slots** (`pl.slots`), não a lista de ataques aprendidos (`pl.moves`).
-A diferença importa: um ataque **fundido** (ver 6.3) sai do slot mas continua registrado em `moves`.
-Usar `moves` faria o ataque fundido disparar duas vezes — uma no grupo, outra avulsa.
+- `Player.activeGroup()` devolve os **primeiros `comboSize` ataques dos slots** (ordem em que foram aprendidos, ou a ordem dos atalhos de Mejoras → Atajos) e todos disparam em paralelo, cada um com seu cooldown (`m.cd * pl.cdMul`).
+- Os ataques aprendidos além do tamanho do combo ficam **guardados** e entram sozinhos quando o combo cresce. Não existe seleção manual de slot (teclas `1`-`4`, `Q`/`E`/`Tab` e clique no card foram removidos).
+- Ao atingir 5, 10 e 21, `Player.triggerComboUnlock(size)` mostra o aviso "COMBO DE N!".
+- A **Sobrecarga** (+20% de área, -15% de recarga) continua no Nível 20.
 
-### 6.2. Feedback Visual no HUD
-- O cabeçalho do deck muda para: `⚡ SUPER COMBO ATIVO · 4 ATAQUES JUNTOS ⚡`.
-- O badge de status exibe: `🔥 COMBANDO JUNTOS · +20% ÁREA · -15% RECARGA`.
-- Todos os 4 cards de ataques ganham uma **borda dourada cintilante animada** com pulso de energia.
+### 6.2. Feedback visual no HUD
+- Cabeçalho: `⚡ COMBO DE N · N ATAQUES JUNTOS ⚡` (no Nv. 1–4: `⚔️ 1 ATAQUE · COMBO DE 2 NO NV. 5`).
+- Badge: `PRÓXIMO COMBO: NV. X`; no máximo: `🔥 COMBO MÁXIMO · +20% ÁREA · -15% RECARGA`.
+- Cartões do combo com borda dourada; guardados apagados com `ENTRA NO NV. X`.
 
-### 6.3. Elo de Fusão (Bonds)
-- Cada **Rift concluído** concede **1 Elo de Fusão** ao jogador (`pl.bonds++` em `js/systems/rift.js`).
-- O Elo abre a tela `scr-bond`, onde o jogador escolhe:
-  - **Unir dois ataques soltos** (`mode: 'pair'`): os dois passam a ocupar **um único slot**, liberando espaço na barra.
-  - **Adicionar um ataque a um grupo já formado** (`mode: 'add'`): o grupo cresce até o limite de `Player.BOND_MAX` (4 ataques).
-- Se não houver dois ataques soltos disponíveis, o Elo fica guardado até o jogador aprender outro ataque.
-- Os ataques de um slot fundido **disparam juntos** quando aquele slot está ativo. Os demais ataques **não são apagados**: continuam nos outros slots, com seus níveis, e são selecionados com `1`-`4`/`Q`/`E` (antes do Nv 20).
-- **Adiar o vínculo:** na tela de fusão, **"Guardar para depois"** (ou `Esc`) mantém o Elo guardado (`pl.bondHold`) e o jogo continua. A tela não reabre sozinha; aperte **`B`** para usar o Elo guardado. Um Elo novo (próximo Rift) volta a oferecer a escolha.
-- **HUD:** o card de um slot fundido mostra o ícone, o nome e o nível de **cada** ataque do grupo (`VÍNCULO · NV. a/b`).
+### 6.3. Elo de Fusão (removido)
+O Elo de Fusão (`pl.bonds`, tela `scr-bond`, tecla `B`) foi **removido**: concluir um Rift não abre mais tela de escolha. O HTML/JS legado da tela de fusão (`#scr-bond`, `RunUI.showBond`) permanece sem uso.
 
 ---
 

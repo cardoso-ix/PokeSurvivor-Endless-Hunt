@@ -177,8 +177,6 @@ G.Player = class Player {
     this.slots = [];           // huecos: cada uno, una lista de movimientos que se lanzan a la vez
     this.active = 0;           // hueco activo
     this.maxMoves = 4;         // huecos
-    this.bonds = 0;            // vínculos por usar (premio de los legendarios)
-    this.quadComboActive = false; // Comba os 4 ataques juntos a partir do Nv 20
 
     this.buffs = {
       atk: { n: 0, t: 0, amount: 0 },
@@ -608,57 +606,30 @@ G.Player = class Player {
     this.setActive((this.active + dir + this.slots.length) % this.slots.length);
   }
 
-  // ---------------- vínculos (fusiones) ----------------
-  // Cada legendario vencido da un vínculo. Con él se juntan movimientos en un
-  // solo hueco y se lanzan a la vez. Sólo crece un grupo (hasta BOND_MAX); si
-  // no hay ninguno a medias, el vínculo une dos movimientos sueltos.
-  static get BOND_MAX() { return 4; }
-
-  /** Lo que se puede hacer ahora con un vínculo: añadir a un grupo o unir dos sueltos. */
-  bondOptions() {
-    const loose = this.slots.filter(s => s.length === 1).map(s => s[0]);
-    const grow = this.slots.find(s => s.length > 1 && s.length < Player.BOND_MAX);
-    if (grow) return loose.length ? { mode: 'add', group: grow, loose } : null;
-    return loose.length >= 2 ? { mode: 'pair', group: null, loose } : null;
+  // ---------------- combo por nível ----------------
+  // Nv 1: 1 ataque · Nv 5: combo de 2 · Nv 10: combo de 3 · Nv 21: combo de 4 (BalanceConfig.player.evolution.comboLevels).
+  // Os ataques do combo são os primeiros aprendidos (ordem dos slots) e disparam todos juntos; os que
+  // sobram ficam guardados e entram sozinhos quando o combo cresce.
+  static comboLevels() {
+    const cfg = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
+    return (cfg && cfg.player && cfg.player.evolution && cfg.player.evolution.comboLevels) || [5, 10, 21];
   }
 
-  /** Junta `moves` (sueltos) en el grupo `group` (o en uno nuevo) y gasta un vínculo. */
-  fuse(moves, group = null) {
-    const target = group || this.slots.find(s => s[0] === moves[0]);
-    const cur = this.slots[this.active];
-    for (const m of moves) {
-      if (target.includes(m)) continue;
-      const i = this.slots.findIndex(s => s.length === 1 && s[0] === m);
-      if (i < 0) continue;
-      this.slots.splice(i, 1);
-      target.push(m);
-    }
-    this.arrange();
-    // Se pasa al grupo, salvo con la Cinta Elección (sigues en el hueco que tenías, si queda).
-    const a = this.slots.indexOf(cur);
-    this.active = this.hasItem('choiceband') && a >= 0 ? a : this.slots.indexOf(target);
-    this.bonds = Math.max(0, this.bonds - 1);
-    G.Projectiles.clearOrbs(this);
-    return target;
+  /** Quantos ataques disparam juntos neste nível (1 a 4). */
+  static comboSize(level) {
+    let n = 1;
+    for (const L of Player.comboLevels()) if (level >= L) n++;
+    return Math.min(n, 4);
   }
 
-  /**
-   * Movimientos que se lanzan ahora.
-   *
-   * - Antes del Nv 20 (Super Combo): sólo el grupo del hueco activo. El jugador
-   *   elige con las teclas 1-4, con Q/E/Tab o tocando/clicando o card do HUD.
-   * - A partir do Nv 20: todos os grupos dos slots disparam em paralelo
-   *   (Super Combo dos 4 ataques). Usa `slots` e nao `moves` porque `moves`
-   *   guarda tambem os movimentos que foram fundidos num grupo (saiam dos
-   *   slots, mas continuam em `moves`).
-   */
+  /** Nível em que o slot `i` (0-3) entra no combo. */
+  static slotUnlockLevel(i) { return i <= 0 ? 1 : (Player.comboLevels()[i - 1] || 99); }
+
+  /** Movimientos que se lanzan ahora: os primeiros `comboSize` aprendidos, todos juntos. */
   activeGroup() {
-    if (this.level >= 20 || this.quadComboActive) {
-      const all = [];
-      for (const g of this.slots) for (const m of g) all.push(m);
-      return all;
-    }
-    return this.slots[this.active] || [];
+    const all = [];
+    for (const g of this.slots) for (const m of g) all.push(m);
+    return all.slice(0, Player.comboSize(this.level));
   }
 
   activeMove() { return this.activeGroup()[0]; }
@@ -1801,15 +1772,15 @@ G.Player = class Player {
       }
     }
 
-    // Marco Nível 20: Super Combo dos 4 Ataques Ativos juntos
+    // Marcos do combo (Nv 5, 10 e 21): passa a disparar 2, 3 e 4 ataques juntos
     const evoCfg2 = (typeof BalanceConfig !== 'undefined' ? BalanceConfig : (typeof G === 'object' ? G.BalanceConfig : null));
-    const evoLvl2 = (evoCfg2 && evoCfg2.player && evoCfg2.player.evolution) || {};
-    const quadLvl = evoLvl2.quadComboLevel || 20;
-    const apexLvl = evoLvl2.apexLevel || 21;
-
-    if (this.level >= quadLvl && !this._milestonesReached.has(quadLvl)) {
-      this._milestonesReached.add(quadLvl);
-      this.triggerQuadComboUnlock();
+    const apexLvl = ((evoCfg2 && evoCfg2.player && evoCfg2.player.evolution) || {}).apexLevel || 21;
+    for (const L of Player.comboLevels()) {
+      const key = 'combo_' + L;
+      if (this.level >= L && !this._milestonesReached.has(key)) {
+        this._milestonesReached.add(key);
+        this.triggerComboUnlock(Player.comboSize(L));
+      }
     }
 
     // Marco Nível 21: Ascensão Mega / Forma Ápice (+50% de dano)
@@ -1819,31 +1790,24 @@ G.Player = class Player {
     }
   }
 
-  triggerQuadComboUnlock() {
-    this.quadComboActive = true;
+  triggerComboUnlock(size) {
     const name = (this.mon && this.mon.name) || this.species;
-    console.log(`⚡ [SUPER COMBO NV 20] ${name.toUpperCase()} desbloqueou o Super Combo dos 4 Ataques Simultâneos!`);
-
-    if (typeof G === 'object') {
-      if (G.Audio && typeof G.Audio.sfx === 'function') {
-        G.Audio.sfx('legend');
-        setTimeout(() => { if (G.Audio) G.Audio.sfx('shinyGet'); }, 200);
+    console.log(`⚡ [COMBO x${size}] ${name.toUpperCase()} agora dispara ${size} ataques juntos!`);
+    if (typeof G !== 'object') return;
+    if (G.Audio && typeof G.Audio.sfx === 'function') G.Audio.sfx('legend');
+    if (G.Camera && typeof G.Camera.kick === 'function') G.Camera.kick(0.8);
+    if (G.FX) {
+      if (typeof G.FX.ring === 'function') {
+        G.FX.ring(this.x, this.y, 8, this.r * 4.4, '#ffd700', 0.8, 4);
+        G.FX.ring(this.x, this.y, 14, this.r * 3.0, '#38bdf8', 0.6, 3);
       }
-      if (G.Camera && typeof G.Camera.kick === 'function') {
-        G.Camera.kick(1.5);
-      }
-      if (G.FX) {
-        if (typeof G.FX.ring === 'function') {
-          G.FX.ring(this.x, this.y, 8, this.r * 5.2, '#ffd700', 0.85, 4);
-          G.FX.ring(this.x, this.y, 14, this.r * 3.6, '#38bdf8', 0.65, 3);
-        }
-        if (typeof G.FX.dmgText === 'function') {
-          G.FX.dmgText(this.x, this.y - this.bodyH - 26, '⚡ SUPER COMBO ATIVADO! (4 ATAQUES JUNTOS) ⚡', '#ffd700', true);
-        }
-      }
-      if (G.Spawner && typeof G.Spawner.say === 'function') {
-        G.Spawner.say('🌟 NÍVEL 20 ALCANÇADO: TODOS OS 4 ATAQUES AGORA COMBAM JUNTOS!', 4.5, true);
-      }
+      if (typeof G.FX.dmgText === 'function') G.FX.dmgText(this.x, this.y - this.bodyH - 26, `⚡ COMBO DE ${size}! ⚡`, '#ffd700', true);
+    }
+    if (G.Spawner && typeof G.Spawner.say === 'function') {
+      const have = this.slots.length;
+      G.Spawner.say(have >= size
+        ? `⚡ COMBO DE ${size} ATAQUES! Todos disparam juntos.`
+        : `⚡ COMBO DE ${size} LIBERADO! Aprenda mais ${size - have} ataque(s) para completar.`, 4, true);
     }
   }
 

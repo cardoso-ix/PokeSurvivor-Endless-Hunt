@@ -271,6 +271,7 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
   require('../js/entities/player.js');
   const RealCheck = global.G.Player.prototype.checkEvolutionMilestones;
   const RealMilestoneEvo = global.G.Player.prototype.triggerMilestoneEvolution;
+  const RealActiveGroup = global.G.Player.prototype.activeGroup;
 
   // Instância mock só com o estado que o marco realmente lê.
   const mockPlayer = {
@@ -284,7 +285,6 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
     moves: [],
     slots: [],
     active: 0,
-    quadComboActive: false,
     atkMul: 1.0,
     isMegaAscended: false,
     ascensionTitle: '',
@@ -295,7 +295,7 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
       this.evolutionHistory = this.evolutionHistory || [];
       this.evolutionHistory.push(target);
     },
-    triggerQuadComboUnlock() { this.quadComboActive = true; },
+    triggerComboUnlock(size) { this.comboUnlocked = size; },
     triggerMegaAscension() {
       this.isMegaAscended = true;
       this.atkMul = (this.atkMul || 1.0) * 1.5;
@@ -304,10 +304,7 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
   };
   mockPlayer.checkEvolutionMilestones = function () { return RealCheck.call(this); };
   mockPlayer.triggerMilestoneEvolution = function (next, lvl) { return RealMilestoneEvo.call(this, next, lvl); };
-  mockPlayer.activeGroup = function () {
-    if (this.level >= 20 || this.quadComboActive) return this.moves;
-    return this.slots[this.active] || [];
-  };
+  mockPlayer.activeGroup = function () { return RealActiveGroup.call(this); };
 
   // Nível 1: Bulbasaur
   assert.strictEqual(mockPlayer.species, 'bulbasaur');
@@ -322,8 +319,7 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
   mockPlayer.checkEvolutionMilestones();
   assert.strictEqual(mockPlayer.species, 'venusaur', 'No nível 12 deve evoluir para Venusaur');
 
-  // Nível 20: Super Combo dos 4 Ataques Ativos juntos
-  mockPlayer.level = 20;
+  // Combo por nível: 1 ataque (Nv 1-4), 2 (Nv 5), 3 (Nv 10), 4 (Nv 21) — os primeiros aprendidos, juntos
   mockPlayer.moves = [
     { id: 'vinewhip', cd: 0.5 },
     { id: 'razorleaf', cd: 0.8 },
@@ -332,9 +328,14 @@ test('Marcos Evolutivos disparam exatamente nos níveis 5, 12 e 21', () => {
   ];
   mockPlayer.slots = mockPlayer.moves.map(m => [m]);
   mockPlayer.active = 0;
-  mockPlayer.checkEvolutionMilestones();
-  assert.strictEqual(mockPlayer.quadComboActive, true, 'No nível 20 deve ativar quadComboActive');
-  assert.strictEqual(mockPlayer.activeGroup().length, 4, 'No nível 20 activeGroup deve retornar todos os 4 ataques juntos');
+  const comboAt = lv => { mockPlayer.level = lv; mockPlayer.checkEvolutionMilestones(); return mockPlayer.activeGroup().map(m => m.id); };
+  assert.deepStrictEqual(comboAt(4), ['vinewhip'], 'Nv 4: só 1 ataque');
+  assert.deepStrictEqual(comboAt(5), ['vinewhip', 'razorleaf'], 'Nv 5: combo de 2');
+  assert.deepStrictEqual(comboAt(9), ['vinewhip', 'razorleaf'], 'Nv 9: ainda combo de 2');
+  assert.deepStrictEqual(comboAt(10), ['vinewhip', 'razorleaf', 'energyball'], 'Nv 10: combo de 3');
+  assert.deepStrictEqual(comboAt(20), ['vinewhip', 'razorleaf', 'energyball'], 'Nv 20: ainda combo de 3');
+  assert.strictEqual(comboAt(21).length, 4, 'Nv 21: combo de 4');
+  assert.strictEqual(mockPlayer.comboUnlocked, 4, 'O marco do Nv 21 libera o combo de 4');
 
   // Nível 21: Ascensão Mega
   mockPlayer.level = 21;

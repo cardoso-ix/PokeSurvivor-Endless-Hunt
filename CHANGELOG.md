@@ -4,6 +4,20 @@ Todas as alterações notáveis, correções de bugs e novas mecânicas deste pr
 
 ---
 
+## [Não Lançado] — 31/10/2026 (combo por nível, Mega v2, cenário)
+
+### ⚔️ Combo por nível
+- **Nv. 1: 1 ataque · Nv. 5: combo de 2 · Nv. 10: combo de 3 · Nv. 21: combo de 4.** Os ataques do combo são os primeiros aprendidos e disparam todos juntos; os demais ficam guardados e entram quando o combo cresce. HUD mostra o combo atual, os guardados (`ENTRA NO NV. X`) e o próximo marco.
+- **Removidos:** a tela de fusão depois de concluir um Rift, o Elo de Fusão (`pl.bonds`), a tecla `B` e a seleção manual de slot (`1`-`4`, `Q`/`E`/`Tab`, clique no card). `BalanceConfig.player.evolution.quadComboLevel` virou `comboLevels: [5, 10, 21]`.
+
+### 🌟 Mega v2
+- Cinemática curta (0,9 s) + carga + **golpe único em tela cheia, em pixel art**, com dano em área nos impactos; depois, só o buff de 10 s (sem cenário contínuo). Leva 1: Fogo, Água, Elétrico, Gelo, Normal, Dragão (os demais tipos usam o Hiper Raio por enquanto).
+
+### 🎨 Cenário
+- Chão sem repetição visível, 3 formas por árvore/cristal/pedra em cada bioma, luz e vinheta por bioma e névoa pré-desenhadas (sem gradiente por frame).
+
+---
+
 ## [Não Lançado] — 30/10/2026 (varredura geral — etapa 1)
 
 ### 🔍 Varredura automatizada + correções
